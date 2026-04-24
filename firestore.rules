@@ -126,7 +126,11 @@ service cloud.firestore {
     function hasValidAggregatePayload(data) {
       return hasOnlyAllowedAggregateFields(data)
         && isKnownQuestionType(data.questionType)
-        && hasValidEitherOrCounts(data)
+        && (
+          data.questionType == "either_or"
+          ? hasValidEitherOrCounts(data)
+          : true
+        )
         && (
           data.questionType != "duel_1v1"
           || (hasValidDuel1v1Counts(data) && hasValidDuel1v1Context(data))
