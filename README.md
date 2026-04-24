@@ -20,6 +20,21 @@ Private mobile-first Web-App fuer eine feste Freundesgruppe.
    - `firebase init firestore`
    - `firebase deploy --only firestore:rules,firestore:indexes`
 
+## Deployment
+
+Fuer einen ersten echten Freundetest:
+
+1. Repo nach GitHub pushen
+2. Projekt in Vercel importieren
+3. dieselben `NEXT_PUBLIC_FIREBASE_*` Variablen in Vercel setzen
+4. in Firebase unter `Authentication > Settings > Authorized domains` die Vercel-Domain hinzufuegen
+5. `Email/Password` als Sign-in-Methode aktiv lassen
+
+Details:
+
+- `docs/firebase-setup.md`
+- `docs/vercel-deploy.md`
+
 ## Wichtige Pfade
 
 - `src/lib/firebase/client.ts`

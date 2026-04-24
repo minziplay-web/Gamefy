@@ -23,7 +23,7 @@ Dieses Dokument bringt das Projekt vom Mock-Modus in den ersten echten End-to-En
    - Authentication
    - Firestore Database
 3. Unter `Authentication > Sign-in method`:
-   - `Email link (passwordless sign-in)` aktivieren
+   - `Email/Password` aktivieren
 4. Firestore anlegen
 
 ## Schritt 2: Web App registrieren
@@ -94,7 +94,7 @@ Danach funktionieren:
 
 1. `npm run dev`
 2. `/login`
-3. Magic Link anfordern
+3. mit E-Mail + Passwort registrieren oder einloggen
 4. Onboarding abschliessen
 5. User in Firestore auf `admin` setzen
 6. `/admin`
