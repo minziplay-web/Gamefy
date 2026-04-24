@@ -1,4 +1,5 @@
 import { CATEGORY_LABELS } from "@/lib/mapping/categories";
+import { LIVE_MODE_ENABLED } from "@/lib/config/features";
 import type { Category, ProfileStats } from "@/lib/types/frontend";
 
 interface StatCard {
@@ -77,16 +78,20 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
         : "Noch keine Daily beantwortet",
       hasData: hasAnyDaily,
     },
-    {
-      label: "Live-Runden",
-      value: hasAnyLive ? `${stats.live.roundsPlayed}` : "—",
-      helper: hasAnyLive
-        ? stats.live.roundsHosted > 0
-          ? `${stats.live.roundsHosted}× gehostet`
-          : "Noch nie gehostet"
-        : "Noch keine Live-Runde",
-      hasData: hasAnyLive,
-    },
+    ...(LIVE_MODE_ENABLED
+      ? [
+          {
+            label: "Live-Runden",
+            value: hasAnyLive ? `${stats.live.roundsPlayed}` : "—",
+            helper: hasAnyLive
+              ? stats.live.roundsHosted > 0
+                ? `${stats.live.roundsHosted}× gehostet`
+                : "Noch nie gehostet"
+              : "Noch keine Live-Runde",
+            hasData: hasAnyLive,
+          } satisfies StatCard,
+        ]
+      : []),
     {
       label: "Duelle",
       value: hasAnyDuel ? `${stats.duels.wins}/${stats.duels.losses}` : "—",
@@ -102,8 +107,8 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
       label: "Votes erhalten",
       value: hasPublicVotes ? `${stats.publicVotesReceived.total}` : "—",
       helper: hasPublicVotes
-        ? "Nur oeffentliche Fragen"
-        : "Noch keine oeffentlichen Votes",
+        ? "Nur öffentliche Fragen"
+        : "Noch keine öffentlichen Votes",
       hasData: hasPublicVotes,
       accent: "votes",
     },

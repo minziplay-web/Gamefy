@@ -14,11 +14,11 @@ export function LiveCallout({
   const href = session ? `/lobby/${session.sessionId}` : "/lobby";
   const buttonLabel = session
     ? session.iAmParticipant
-      ? "Zurueck zur Runde"
+      ? "Zurück zur Runde"
       : "Live beitreten"
     : canHostLive
       ? "Lobby erstellen"
-      : "Lobby oeffnen";
+      : "Lobby öffnen";
 
   return (
     <Card tone="dark" className="space-y-4">

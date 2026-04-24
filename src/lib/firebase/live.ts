@@ -83,7 +83,7 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
       !anonymousAggregatesRef
     ) {
       queueMicrotask(() =>
-        setState({ status: "error", message: "Firestore ist nicht verfuegbar." }),
+        setState({ status: "error", message: "Firestore ist nicht verfügbar." }),
       );
       return;
     }
@@ -128,7 +128,7 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
       ) {
         setState({
           status: "error",
-          message: "Diese Live-Runde enthaelt keine spielbaren Fragen mehr.",
+          message: "Diese Live-Runde enthält keine spielbaren Fragen mehr.",
         });
         return;
       }
@@ -305,7 +305,7 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
           publicAnswers = grouped;
           emit();
         },
-        handleError("Oeffentliche Live-Antworten"),
+        handleError("Öffentliche Live-Antworten"),
       ),
       onSnapshot(
         query(anonymousAggregatesRef, where("sessionId", "==", sessionId)),

@@ -9,7 +9,7 @@ function describeCode(code?: string) {
     case "unavailable":
       return "Firestore ist gerade nicht erreichbar.";
     case "failed-precondition":
-      return "Firestore meldet fehlende Voraussetzungen fuer diese Abfrage.";
+      return "Firestore meldet fehlende Voraussetzungen für diese Abfrage.";
     default:
       return "Firestore konnte die Daten nicht laden.";
   }

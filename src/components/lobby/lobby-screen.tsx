@@ -181,7 +181,7 @@ export function LobbyScreen({
         <ScreenHeader eyebrow="Live" title="Lobby" />
         <ErrorBanner message={state.message} />
         <Button className="w-full" variant="secondary" onClick={backToLobby}>
-          Zurueck zur Lobby-Uebersicht
+          Zurück zur Lobby-Übersicht
         </Button>
       </div>
     );
@@ -274,13 +274,13 @@ export function LobbyScreen({
     return (
       <div className="space-y-4">
         <ScreenHeader eyebrow="Live" title="Runde beendet" />
-        <ErrorBanner message="Zusammenfassung ist nicht verfuegbar." />
+        <ErrorBanner message="Zusammenfassung ist nicht verfügbar." />
         <Button
           className="w-full"
           variant="secondary"
           onClick={() => router.push("/")}
         >
-          Zurueck zum Home
+          Zurück zum Home
         </Button>
       </div>
     );

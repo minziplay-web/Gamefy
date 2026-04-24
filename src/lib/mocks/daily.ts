@@ -17,7 +17,7 @@ export const mockDaily: DailyViewState = {
         type: "single_choice",
         category: "pure_fun",
         anonymous: false,
-        text: "Wer wuerde am ehesten spontan einen Flug buchen?",
+        text: "Wer würde am ehesten spontan einen Flug buchen?",
         candidates: mockMembers,
       },
       myAnswer: {
@@ -81,7 +81,7 @@ export const mockDaily: DailyViewState = {
         type: "either_or",
         category: "would_you_rather",
         anonymous: true,
-        text: "Wuerdest du eher nie wieder feiern oder nie wieder verreisen?",
+        text: "Würdest du eher nie wieder feiern oder nie wieder verreisen?",
         options: ["Nie wieder feiern", "Nie wieder verreisen"],
       },
     },

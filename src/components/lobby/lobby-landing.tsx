@@ -33,8 +33,8 @@ export function LobbyLanding({
         <h2 className="text-lg font-semibold text-sand-900">Runde erstellen</h2>
         <p className="text-sm text-sand-600">
           {canHost
-            ? "Waehle Kategorien, Dauer und starte die gemeinsame Session."
-            : "Nur Admins koennen eine Lobby starten. Frag jemanden aus der Runde."}
+            ? "Wähle Kategorien, Dauer und starte die gemeinsame Session."
+            : "Nur Admins können eine Lobby starten. Frag jemanden aus der Runde."}
         </p>
         <Button
           className="w-full"

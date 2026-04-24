@@ -83,7 +83,7 @@ function SingleChoiceInput({
   const selected = draft?.selectedUserId;
 
   return (
-    <div className="grid grid-cols-3 gap-2">
+    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
       {question.candidates.map((candidate) => {
         const active = candidate.userId === selected;
         return (
@@ -98,14 +98,16 @@ function SingleChoiceInput({
                 selectedUserId: candidate.userId,
               })
             }
-            className={`flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border-2 p-3 text-sm font-medium transition ${
+            className={`flex min-h-28 flex-col items-center justify-center gap-2.5 rounded-2xl border-2 p-3 text-sm font-medium text-center transition ${
               active
                 ? "border-coral bg-coral/5 text-sand-900"
                 : "border-sand-100 bg-white text-sand-700 hover:border-sand-200"
             } disabled:opacity-60`}
           >
             <AvatarCircle member={candidate} size="md" />
-            <span className="line-clamp-1">{candidate.displayName}</span>
+            <span className="line-clamp-2 text-xs font-semibold leading-snug text-sand-800">
+              {candidate.displayName}
+            </span>
           </button>
         );
       })}
@@ -133,7 +135,7 @@ function OpenTextInput({
       disabled={disabled}
       placeholder="Schreib deine Antwort..."
       maxLength={question.maxLength}
-      helper={`${remaining} Zeichen uebrig`}
+      helper={`${remaining} Zeichen übrig`}
       onChange={(event) =>
         onDraftChange({
           type: "open_text",

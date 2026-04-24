@@ -51,6 +51,13 @@ function SingleChoiceReveal({ result }: { result: SingleChoiceResult }) {
             percent={row.percent}
             highlight={isMine}
             top={isTop}
+            voterAvatars={
+              result.anonymous
+                ? []
+                : (result.voterRows ?? [])
+                    .filter((voteRow) => voteRow.target.userId === row.candidate.userId)
+                    .map((voteRow) => voteRow.voter)
+            }
           />
         );
       })}
@@ -254,6 +261,7 @@ function RevealBar({
   percent,
   highlight,
   top,
+  voterAvatars = [],
 }: {
   member?: MemberLite;
   label: string;
@@ -261,6 +269,7 @@ function RevealBar({
   percent: number;
   highlight: boolean;
   top?: boolean;
+  voterAvatars?: MemberLite[];
 }) {
   return (
     <div
@@ -289,9 +298,24 @@ function RevealBar({
               style={{ width: `${percent}%` }}
             />
           </div>
-          <p className="mt-1 text-[11px] text-sand-500">
-            {votes} {votes === 1 ? "Stimme" : "Stimmen"}
-          </p>
+          <div className="mt-1 flex items-center gap-2">
+            <p className="text-[11px] text-sand-500">
+              {votes} {votes === 1 ? "Stimme" : "Stimmen"}
+            </p>
+            {voterAvatars.length > 0 ? (
+              <div className="flex items-center">
+                {voterAvatars.map((voter, index) => (
+                  <div key={`${voter.userId}_${index}`} className={index === 0 ? "" : "-ml-1.5"}>
+                    <AvatarCircle
+                      member={voter}
+                      size="xs"
+                      className="ring-2 ring-white"
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
       </div>
     </div>

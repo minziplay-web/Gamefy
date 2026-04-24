@@ -77,7 +77,7 @@ export default function PreviewIndex() {
           UI-Zustaende
         </h1>
         <p className="text-sm text-sand-700">
-          Nur fuer Design-Review und Screenshots. Jeder Link rendert einen
+          Nur für Design-Review und Screenshots. Jeder Link rendert einen
           festgelegten ViewState mit Mock-Daten.
         </p>
       </header>

@@ -103,7 +103,7 @@ export function useDailyViewState(): DailyViewState {
           status: "run_unplayable",
           dateKey,
           reason:
-            validatedRun.reason ?? "Der heutige Run enthaelt keine spielbaren Fragen.",
+            validatedRun.reason ?? "Der heutige Run enthält keine spielbaren Fragen.",
           isAdmin: authState.user.role === "admin",
         });
         return;
@@ -148,17 +148,18 @@ export function useDailyViewState(): DailyViewState {
           return acc;
         }
 
-        acc.push({
-          phase: "revealed",
-          question,
-          myAnswer,
-          result: mapQuestionResult({
+          acc.push({
+            phase: "revealed",
             question,
             myAnswer,
-            publicAnswers: allPublicAnswers.get(item.questionId) ?? [],
-            anonymousAggregate: anonymousAggregates.get(item.questionId),
-          }),
-        });
+            result: mapQuestionResult({
+              question,
+              myAnswer,
+              publicAnswers: allPublicAnswers.get(item.questionId) ?? [],
+              anonymousAggregate: anonymousAggregates.get(item.questionId),
+              members,
+            }),
+          });
 
         return acc;
       }, []);
@@ -259,7 +260,7 @@ export function useDailyViewState(): DailyViewState {
           allPublicAnswers = grouped;
           emit();
         },
-        handleError("Oeffentliche Daily-Antworten"),
+        handleError("Öffentliche Daily-Antworten"),
       ),
       onSnapshot(
         query(aggregatesRef, where("dateKey", "==", dateKey)),
@@ -286,7 +287,7 @@ export function useDailyViewState(): DailyViewState {
   return state;
 }
 
-function mapDailyQuestion(params: {
+export function mapDailyQuestion(params: {
   questionId: string;
   question: QuestionDoc;
   index: number;
@@ -353,7 +354,7 @@ function mapDailyQuestion(params: {
   }
 }
 
-function mapDailyAnswerDraft(answer: DailyAnswerDoc): DailyAnswerDraft {
+export function mapDailyAnswerDraft(answer: DailyAnswerDoc): DailyAnswerDraft {
   switch (answer.questionType) {
     case "single_choice":
       return {
@@ -391,13 +392,14 @@ function mapDailyAnswerDraft(answer: DailyAnswerDoc): DailyAnswerDraft {
   }
 }
 
-function mapQuestionResult(params: {
+export function mapQuestionResult(params: {
   question: DailyQuestion;
   myAnswer?: DailyAnswerDraft;
   publicAnswers: DailyAnswerDoc[];
   anonymousAggregate?: DailyAnonymousAggregateDoc;
+  members?: Map<string, MemberLite>;
 }): QuestionResult {
-  const { question, myAnswer, publicAnswers, anonymousAggregate } = params;
+  const { question, myAnswer, publicAnswers, anonymousAggregate, members } = params;
 
   switch (question.type) {
     case "single_choice": {
@@ -414,14 +416,32 @@ function mapQuestionResult(params: {
           percent: totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0,
         };
       });
-      return {
-        questionType: "single_choice",
-        anonymous: question.anonymous,
-        totalVotes,
-        counts,
-        myChoiceUserId:
-          myAnswer?.type === "single_choice" ? myAnswer.selectedUserId : undefined,
-      };
+        return {
+          questionType: "single_choice",
+          anonymous: question.anonymous,
+          totalVotes,
+          counts,
+          voterRows: question.anonymous
+            ? undefined
+            : publicAnswers
+                .map((answer) => {
+                  const voter = members?.get(answer.userId);
+                  const target = answer.selectedUserId
+                    ? question.candidates.find(
+                        (candidate) => candidate.userId === answer.selectedUserId,
+                      )
+                    : undefined;
+
+                  if (!voter || !target) {
+                    return null;
+                  }
+
+                  return { voter, target };
+                })
+                .filter((row): row is { voter: MemberLite; target: MemberLite } => row !== null),
+          myChoiceUserId:
+            myAnswer?.type === "single_choice" ? myAnswer.selectedUserId : undefined,
+        };
     }
     case "open_text":
       return {

@@ -12,6 +12,7 @@
     "firebase:login": "firebase login",
     "firebase:use": "firebase use --add",
     "firebase:deploy": "firebase deploy --only firestore:rules,firestore:indexes",
+    "firebase:deploy:storage": "firebase deploy --only storage",
     "firebase:check-env": "node scripts/check-firebase-env.mjs"
   },
   "dependencies": {

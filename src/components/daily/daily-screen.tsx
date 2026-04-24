@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
-import { DailyProgress } from "@/components/daily/daily-progress";
+import { DailyCompletionCard } from "@/components/daily/daily-completion-card";
+import { DailyStepIndicator } from "@/components/daily/daily-step-indicator";
 import { QuestionCardShell } from "@/components/daily/question-card-shell";
+import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -31,11 +33,45 @@ export function DailyScreen({
     queueMicrotask(() => setState((prev) => mergeDailyState(prev, initial)));
   }, [initial]);
 
+  const cards = state.status === "ready" ? state.cards : null;
+
+  const initialIndex = useMemo(() => {
+    if (!cards || cards.length === 0) return 0;
+    const firstOpen = cards.findIndex(
+      (card) => card.phase === "unanswered" || card.phase === "error",
+    );
+    return firstOpen === -1 ? Math.max(0, cards.length - 1) : firstOpen;
+  }, [cards]);
+
+  const [currentIndex, setCurrentIndex] = useState(initialIndex);
+  const [showCompletion, setShowCompletion] = useState(false);
+  const scrollTargetRef = useRef<HTMLDivElement | null>(null);
+  const didInitRef = useRef(false);
+
+  // Seed currentIndex once the first card array arrives (or resets once the run changes).
+  useEffect(() => {
+    if (!cards || cards.length === 0) {
+      didInitRef.current = false;
+      return;
+    }
+    if (didInitRef.current) return;
+    didInitRef.current = true;
+    setCurrentIndex(initialIndex);
+  }, [cards, initialIndex]);
+
+  // Smoothly scroll the step header into view on index change.
+  useEffect(() => {
+    if (!scrollTargetRef.current) return;
+    scrollTargetRef.current.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }, [currentIndex, showCompletion]);
+
   if (state.status === "loading") {
     return (
       <div className="space-y-4">
         <ScreenHeader eyebrow="Daily" title="Heutige Fragen" />
-        <SkeletonCard />
         <SkeletonCard />
       </div>
     );
@@ -96,8 +132,7 @@ export function DailyScreen({
         card.question.questionId === questionId ? mutate(card) : card,
       );
       const answered = nextCards.filter(
-        (c) =>
-          c.phase === "submitted_waiting_reveal" || c.phase === "revealed",
+        (c) => c.phase === "submitted_waiting_reveal" || c.phase === "revealed",
       ).length;
       return {
         ...prev,
@@ -109,12 +144,8 @@ export function DailyScreen({
 
   const handleDraftChange = (questionId: string, draft: DailyAnswerDraft) => {
     updateCard(questionId, (card) => {
-      if (card.phase === "unanswered") {
-        return { ...card, draft };
-      }
-      if (card.phase === "error") {
-        return { ...card, lastDraft: draft };
-      }
+      if (card.phase === "unanswered") return { ...card, draft };
+      if (card.phase === "error") return { ...card, lastDraft: draft };
       return card;
     });
   };
@@ -128,7 +159,7 @@ export function DailyScreen({
 
     const currentCard =
       state.status === "ready"
-        ? state.cards.find((card) => card.question.questionId === questionId)
+        ? state.cards.find((c) => c.question.questionId === questionId)
         : undefined;
 
     if (onSubmitAnswer && currentCard) {
@@ -147,6 +178,7 @@ export function DailyScreen({
       return;
     }
 
+    // Preview / mock: fake the reveal transition so the flow is fully navigable.
     window.setTimeout(() => {
       updateCard(questionId, (card) => {
         if (state.revealPolicy === "after_answer") {
@@ -166,42 +198,132 @@ export function DailyScreen({
     }, 400);
   };
 
+  const totalCards = state.cards.length;
+  const currentCard = state.cards[currentIndex];
+  const isLast = currentIndex === totalCards - 1;
+  const isCurrentAnswered =
+    currentCard?.phase === "submitted_waiting_reveal" ||
+    currentCard?.phase === "revealed";
+  const canGoBack = currentIndex > 0 && !showCompletion;
+  const canGoNext = isCurrentAnswered && !isLast;
+  const canFinish = isCurrentAnswered && isLast;
+
+  const goTo = (nextIndex: number) => {
+    if (nextIndex < 0 || nextIndex >= totalCards) return;
+    setShowCompletion(false);
+    setCurrentIndex(nextIndex);
+  };
+
   return (
-    <div className="space-y-4">
+    <div className="flex flex-col gap-4">
+      <div ref={scrollTargetRef} aria-hidden className="-mt-1" />
       <ScreenHeader
         eyebrow="Daily"
         title={formatBerlinDateLabel(state.dateKey)}
         subtitle={
           state.runStatus === "closed"
             ? "Diese Daily ist abgeschlossen."
-            : "Antworte in deinem Tempo."
+            : showCompletion
+              ? "Deine Antworten sind gespeichert."
+              : "Antwort abgeben, dann weiter zur nächsten Frage."
         }
       />
-      <section className="radius-card border border-white/60 bg-white/85 p-5 shadow-card-flat backdrop-blur-sm">
-        <DailyProgress
-          answered={state.progress.answered}
-          total={state.progress.total}
+
+      {!showCompletion ? (
+        <DailyStepIndicator
+          cards={state.cards}
+          currentIndex={currentIndex}
+          onJump={(idx) => goTo(idx)}
         />
-      </section>
+      ) : null}
+
       {state.hasIncompleteItems ? (
         <div className="flex items-start gap-3 rounded-2xl border border-amber-200/80 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           <span aria-hidden className="shrink-0 text-lg leading-none">⚠️</span>
           <p className="leading-relaxed">
-            Einige Fragen konnten nicht geladen werden und sind uebersprungen.
+            Einige Fragen konnten nicht geladen werden und sind übersprungen.
             Ein Admin kann den Run ersetzen.
           </p>
         </div>
       ) : null}
-      {state.cards.map((card) => (
-        <QuestionCardShell
-          key={card.question.questionId}
-          state={card}
-          onDraftChange={(draft) =>
-            handleDraftChange(card.question.questionId, draft)
-          }
-          onSubmit={(draft) => handleSubmit(card.question.questionId, draft)}
+
+      {showCompletion || !currentCard ? (
+        <DailyCompletionCard
+          cards={state.cards}
+          revealPolicy={state.revealPolicy}
         />
-      ))}
+      ) : (
+        <QuestionCardShell
+          key={currentCard.question.questionId}
+          state={currentCard}
+          onDraftChange={(draft) =>
+            handleDraftChange(currentCard.question.questionId, draft)
+          }
+          onSubmit={(draft) =>
+            handleSubmit(currentCard.question.questionId, draft)
+          }
+        />
+      )}
+
+      {!showCompletion ? (
+        <StepNav
+          canGoBack={canGoBack}
+          canGoNext={canGoNext}
+          canFinish={canFinish}
+          isCurrentAnswered={Boolean(isCurrentAnswered)}
+          onBack={() => goTo(currentIndex - 1)}
+          onNext={() => goTo(currentIndex + 1)}
+          onFinish={() => setShowCompletion(true)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function StepNav({
+  canGoBack,
+  canGoNext,
+  canFinish,
+  isCurrentAnswered,
+  onBack,
+  onNext,
+  onFinish,
+}: {
+  canGoBack: boolean;
+  canGoNext: boolean;
+  canFinish: boolean;
+  isCurrentAnswered: boolean;
+  onBack: () => void;
+  onNext: () => void;
+  onFinish: () => void;
+}) {
+  return (
+    <div className="flex items-center gap-3">
+      <Button
+        variant="ghost"
+        size="sm"
+        disabled={!canGoBack}
+        onClick={onBack}
+        aria-label="Vorherige Frage"
+      >
+        ←
+      </Button>
+      {canFinish ? (
+        <Button className="flex-1" onClick={onFinish}>
+          Daily abschließen
+        </Button>
+      ) : (
+        <Button
+          className="flex-1"
+          disabled={!canGoNext}
+          onClick={onNext}
+          variant={isCurrentAnswered ? "primary" : "secondary"}
+        >
+          {isCurrentAnswered
+            ? "Nächste Frage"
+            : "Beantworte zuerst diese Frage"}
+        </Button>
+      )}
     </div>
   );
 }
@@ -235,9 +357,7 @@ function mockResultFor(
         entries: [
           {
             text:
-              draft.type === "open_text"
-                ? draft.textAnswer
-                : "Meine Antwort.",
+              draft.type === "open_text" ? draft.textAnswer : "Meine Antwort.",
           },
         ],
       };
@@ -300,4 +420,3 @@ function mockResultFor(
     }
   }
 }
-

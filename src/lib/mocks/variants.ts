@@ -303,12 +303,12 @@ export const adminVariants: Record<string, AdminViewState> = {
                 {
                   severity: "warning",
                   code: "run_incomplete",
-                  message: "Mindestens eine Frage im heutigen Run ist nicht spielbar und wird uebersprungen.",
+                  message: "Mindestens eine Frage im heutigen Run ist nicht spielbar und wird übersprungen.",
                 },
                 {
                   severity: "warning",
                   code: "first_answer_lock_mismatch",
-                  message: "First-Answer-Locks stimmen nicht mit Antworten ueberein.",
+                  message: "First-Answer-Locks stimmen nicht mit Antworten überein.",
                 },
               ],
             },
@@ -320,7 +320,7 @@ export const adminVariants: Record<string, AdminViewState> = {
                     {
                       severity: "warning",
                       code: "question_phase_stalled",
-                      message: "Question-Phase laeuft ueberdurchschnittlich lang.",
+                      message: "Question-Phase läuft überdurchschnittlich lang.",
                     },
                   ],
                 }

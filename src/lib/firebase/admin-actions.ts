@@ -58,7 +58,7 @@ export async function saveAdminConfig(draft: AdminConfigDraft) {
   const target = appConfigDoc();
 
   if (!target) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   await setDoc(
@@ -80,7 +80,7 @@ export async function toggleQuestionActive(questionId: string, active: boolean) 
   const questionsRef = questionsCollection();
 
   if (!questionsRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   await updateDoc(doc(questionsRef, questionId), {
@@ -152,7 +152,7 @@ export async function importQuestions(raw: string, createdBy: string) {
   const questionsRef = questionsCollection();
 
   if (!questionsRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   const batch = writeBatch(questionsRef.firestore);
@@ -212,7 +212,7 @@ export async function cleanupFinishedLiveSessions(params?: {
     !dailyRunsRef ||
     !dailyFirstAnswersRef
   ) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   const finalizedStaleLiveSessions = await finalizeStaleLiveSessions({
@@ -328,13 +328,13 @@ async function upsertDailyRun(params: {
     !aggregatesRef ||
     !firstAnswersRef
   ) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   const existingRun = await getDoc(runRef);
 
   if (existingRun.exists() && params.mode === "create") {
-    throw new Error("Fuer heute existiert bereits ein Daily-Run. Bitte explizit ersetzen.");
+    throw new Error("Für heute existiert bereits ein Daily-Run. Bitte explizit ersetzen.");
   }
 
   const [questionSnapshot, userSnapshot] = await Promise.all([

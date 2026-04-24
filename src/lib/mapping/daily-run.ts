@@ -94,12 +94,12 @@ function getUnplayableReason(
   activeMemberIds: Set<string>,
 ) {
   if (items.length === 0) {
-    return "Der heutige Run enthaelt keine Fragen.";
+    return "Der heutige Run enthält keine Fragen.";
   }
 
   const hasKnownQuestion = items.some((item) => questions.has(item.questionId));
   if (!hasKnownQuestion) {
-    return "Die Fragen fuer den heutigen Run konnten nicht geladen werden.";
+    return "Die Fragen für den heutigen Run konnten nicht geladen werden.";
   }
 
   const hasDuelItem = items.some((item) => {
@@ -108,8 +108,8 @@ function getUnplayableReason(
   });
 
   if (hasDuelItem && activeMemberIds.size < 2) {
-    return "Es gibt nicht genug aktive Mitglieder fuer die heutigen Duel-Fragen.";
+    return "Es gibt nicht genug aktive Mitglieder für die heutigen Duel-Fragen.";
   }
 
-  return "Der heutige Run enthaelt keine spielbaren Fragen.";
+  return "Der heutige Run enthält keine spielbaren Fragen.";
 }

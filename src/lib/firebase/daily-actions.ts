@@ -48,7 +48,7 @@ export async function submitDailyAnswer(params: {
     !firstAnswerRef ||
     !runRef
   ) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   assertValidDraftForQuestion(question, draft);
@@ -70,7 +70,7 @@ export async function submitDailyAnswer(params: {
       throw new Error("Diese Daily ist nicht mehr aktiv.");
     }
     if (!(run.questionIds ?? []).includes(question.questionId)) {
-      throw new Error("Diese Frage gehoert nicht mehr zum aktuellen Daily-Run.");
+      throw new Error("Diese Frage gehört nicht mehr zum aktuellen Daily-Run.");
     }
 
     const previousPrivate = previousPrivateSnap.exists()

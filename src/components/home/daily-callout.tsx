@@ -11,9 +11,11 @@ export function DailyCallout({ teaser }: { teaser: DailyTeaser | null }) {
     return (
       <Card className="space-y-3">
         <Badge tone="neutral">Daily</Badge>
-        <h2 className="text-xl font-semibold text-sand-900">Heute keine Daily</h2>
+        <h2 className="text-xl font-semibold text-sand-900">
+          Heute ist noch nichts live
+        </h2>
         <p className="text-sm leading-relaxed text-sand-700">
-          Sobald ein Admin heute eine Daily erzeugt, landet sie hier.
+          Sobald die heutige Daily freigeschaltet ist, wartet sie hier auf dich.
         </p>
       </Card>
     );
@@ -30,8 +32,8 @@ export function DailyCallout({ teaser }: { teaser: DailyTeaser | null }) {
           Daily nicht spielbar
         </h2>
         <p className="text-sm leading-relaxed text-sand-700">
-          Der heutige Run hat keine spielbaren Fragen. Ein Admin muss den Run
-          ersetzen.
+          Der heutige Run ist unvollständig. Ein Admin muss die Daily neu
+          erzeugen oder ersetzen.
         </p>
       </Card>
     );
@@ -42,11 +44,11 @@ export function DailyCallout({ teaser }: { teaser: DailyTeaser | null }) {
       <Card className="space-y-3">
         <Badge tone="neutral">Daily geplant</Badge>
         <h2 className="text-xl font-semibold text-sand-900">
-          Daily startet gleich
+          Gleich geht es los
         </h2>
         <p className="text-sm leading-relaxed text-sand-700">
-          Der Run ist geplant, aber noch nicht aktiv. Sobald er freigeschaltet ist,
-          kannst du loslegen.
+          Die Fragen für heute stehen bereit, sind aber noch nicht geöffnet.
+          Sobald der Run aktiv ist, kannst du direkt starten.
         </p>
       </Card>
     );
@@ -59,14 +61,14 @@ export function DailyCallout({ teaser }: { teaser: DailyTeaser | null }) {
           <div className="space-y-2">
             <Badge tone="neutral">Daily beendet</Badge>
             <h2 className="text-xl font-semibold text-sand-900">
-              Die heutige Daily ist durch
+              Für heute bist du durch
             </h2>
           </div>
           <ProgressPill answered={teaser.answeredByMe} total={teaser.totalQuestions} />
         </div>
         {teaser.hasIncompleteItems ? (
           <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
-            Einige Fragen wurden aus dem Run gefiltert.
+            Einige Fragen konnten heute nicht ausgespielt werden.
           </p>
         ) : null}
         <Link href="/daily" className="block">
@@ -89,10 +91,10 @@ export function DailyCallout({ teaser }: { teaser: DailyTeaser | null }) {
           <Badge tone="coral">Daily</Badge>
           <h2 className="text-xl font-semibold leading-tight text-sand-900">
             {allAnswered
-              ? "Alle Fragen beantwortet"
+              ? "Alles für heute beantwortet"
               : remaining === 1
-                ? "Noch 1 Frage offen"
-                : `${remaining} Fragen offen`}
+                ? "Noch eine Frage wartet"
+                : `Noch ${remaining} Fragen warten`}
           </h2>
         </div>
         <ProgressPill answered={teaser.answeredByMe} total={playable} />
@@ -100,17 +102,17 @@ export function DailyCallout({ teaser }: { teaser: DailyTeaser | null }) {
       <ProgressBar value={teaser.answeredByMe} total={playable} />
       {teaser.hasIncompleteItems ? (
         <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
-          Einige Fragen wurden aus dem Run gefiltert.
+          Einige Fragen konnten heute nicht ausgespielt werden.
         </p>
       ) : null}
       <p className="text-sm leading-relaxed text-sand-700">
         {teaser.revealPolicy === "after_answer"
-          ? "Ergebnisse erscheinen sofort nach deiner Antwort."
-          : "Ergebnisse erscheinen erst nach Tagesende."}
+          ? "Nach deiner Antwort siehst du direkt, wie die anderen abgestimmt haben."
+          : "Die Ergebnisse werden gesammelt und erst nach Tagesende aufgedeckt."}
       </p>
       <Link href="/daily" className="block">
         <Button className="w-full">
-          {allAnswered ? "Ergebnisse ansehen" : "Daily weitermachen"}
+          {allAnswered ? "Zur Daily" : "Daily starten"}
         </Button>
       </Link>
     </Card>

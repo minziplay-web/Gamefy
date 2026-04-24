@@ -1,8 +1,10 @@
 import { DailyCallout } from "@/components/home/daily-callout";
+import { DailyRecap } from "@/components/home/daily-recap";
 import { LiveCallout } from "@/components/home/live-callout";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { SkeletonCard } from "@/components/ui/skeleton";
+import { LIVE_MODE_ENABLED } from "@/lib/config/features";
 import type { HomeViewState } from "@/lib/types/frontend";
 
 export function HomeScreen({ state }: { state: HomeViewState }) {
@@ -33,15 +35,20 @@ export function HomeScreen({ state }: { state: HomeViewState }) {
       <ScreenHeader
         eyebrow={state.greeting.localDateLabel}
         title={`Hi ${state.greeting.displayName}`}
-        subtitle="Heute ist Platz fuer ein paar ehrliche, lustige und leicht gefaehrliche Fragen."
+        subtitle="Heute wird's ehrlich, lustig und vielleicht ein kleines bisschen gefährlich."
         action={<StreakPill value={state.greeting.streakCurrent} />}
       />
 
       <DailyCallout teaser={state.dailyTeaser} />
-      <LiveCallout
-        session={state.activeLiveSession}
-        canHostLive={state.canHostLive}
-      />
+      {state.dailyRecap && state.dailyRecap.length > 0 ? (
+        <DailyRecap items={state.dailyRecap} />
+      ) : null}
+      {LIVE_MODE_ENABLED ? (
+        <LiveCallout
+          session={state.activeLiveSession}
+          canHostLive={state.canHostLive}
+        />
+      ) : null}
     </div>
   );
 }
@@ -50,7 +57,7 @@ function StreakPill({ value }: { value: number }) {
   if (value <= 0) {
     return (
       <span className="inline-flex items-center gap-1.5 rounded-full bg-sand-100 px-3 py-1.5 text-xs font-semibold text-sand-600">
-        Neu dabei
+        Startklar
       </span>
     );
   }

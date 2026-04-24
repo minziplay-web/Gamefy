@@ -97,7 +97,7 @@ export function EmailPasswordForm() {
         disabled={!email || password.length < 6 || isBusy}
       >
         {isBusy
-          ? "Laeuft..."
+          ? "Läuft..."
           : mode === "login"
             ? "Einloggen"
             : "Account erstellen"}
@@ -106,7 +106,7 @@ export function EmailPasswordForm() {
       <p className="text-sm text-sand-500">
         {isMockMode
           ? "Mock-Modus aktiv: ohne Firebase springt die App mit Demo-Daten weiter."
-          : "Lokaler Dev-Login ohne Magic-Link, damit wir sauber testen koennen."}
+          : "Lokaler Dev-Login ohne Magic-Link, damit wir sauber testen können."}
       </p>
 
       {authState.status === "error" ? (

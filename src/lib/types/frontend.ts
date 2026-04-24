@@ -102,12 +102,21 @@ export interface HomeGreeting {
   streakCurrent: number;
 }
 
+export interface DailyRecapItem {
+  questionId: QuestionId;
+  questionText: string;
+  category: Category;
+  anonymous: boolean;
+  result: QuestionResult;
+}
+
 export type HomeViewState =
   | { status: "loading" }
   | {
       status: "ready";
       greeting: HomeGreeting;
       dailyTeaser: DailyTeaser | null;
+      dailyRecap?: DailyRecapItem[];
       activeLiveSession: LiveSessionTeaser | null;
       canHostLive: boolean;
       showAdminEntry: boolean;
@@ -178,6 +187,10 @@ export interface SingleChoiceResult {
     percent: number;
   }>;
   myChoiceUserId?: UserId;
+  voterRows?: Array<{
+    voter: MemberLite;
+    target: MemberLite;
+  }>;
 }
 
 export interface OpenTextResult {

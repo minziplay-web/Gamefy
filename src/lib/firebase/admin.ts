@@ -259,7 +259,7 @@ export function useAdminViewState(): AdminViewState {
           todayPublicAnswerCount = snapshot.docs.length;
           emit();
         },
-        handleError("Admin-Heutige oeffentliche Antworten"),
+        handleError("Admin-Heutige öffentliche Antworten"),
       ),
       onSnapshot(
         query(dailyPrivateAnswersRef, where("dateKey", "==", todayDateKey)),

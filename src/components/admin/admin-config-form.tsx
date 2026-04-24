@@ -68,7 +68,7 @@ export function AdminConfigForm({
               Onboarding erzwingen
             </p>
             <p className="text-[11px] text-sand-500">
-              Neue User muessen Name + Bild setzen.
+              Neue User müssen Name + Bild setzen.
             </p>
           </div>
           <ToggleSwitch
@@ -139,7 +139,7 @@ function Stepper({
           type="button"
           onClick={inc}
           disabled={value >= max}
-          aria-label={`${label} erhoehen`}
+          aria-label={`${label} erhöhen`}
           className="flex size-12 items-center justify-center rounded-full bg-sand-100 text-xl font-semibold text-sand-800 transition hover:bg-sand-200 disabled:cursor-not-allowed disabled:opacity-40"
         >
           +

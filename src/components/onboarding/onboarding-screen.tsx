@@ -70,7 +70,7 @@ export function OnboardingScreen({
             Wie sollen dich deine Freunde sehen?
           </h1>
           <p className="text-sm leading-relaxed text-sand-700">
-            Ein Anzeigename reicht. Der Rest kann spaeter kommen.
+            Ein Anzeigename reicht. Der Rest kann später kommen.
           </p>
           {authState.status === "authenticated" ? (
             <p className="text-[11px] text-sand-500">
@@ -108,7 +108,7 @@ export function OnboardingScreen({
             onClick={() => setPhotoExpanded(true)}
             className="min-h-12 w-full rounded-2xl border border-dashed border-sand-200 bg-sand-50/60 px-4 py-3 text-left text-sm font-medium text-sand-600 transition hover:border-sand-300 hover:bg-sand-50"
           >
-            + Profilbild hinzufuegen (optional)
+            + Profilbild hinzufügen (optional)
           </button>
         )}
 

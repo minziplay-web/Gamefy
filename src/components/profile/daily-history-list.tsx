@@ -29,7 +29,7 @@ export function DailyHistoryList({ entries }: { entries: DailyHistoryEntry[] }) 
               </p>
               <p className="text-xs text-sand-500">
                 {entry.status === "active"
-                  ? "Laeuft noch"
+                  ? "Läuft noch"
                   : entry.status === "closed"
                     ? "Abgeschlossen"
                     : "Geplant"}

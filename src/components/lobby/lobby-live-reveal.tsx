@@ -39,7 +39,7 @@ export function LobbyLiveReveal({
       {isHost ? (
         <div className="flex gap-3">
           <Button className="flex-1" onClick={onAdvance}>
-            Naechste Frage
+            Nächste Frage
           </Button>
           <Button className="flex-1" variant="ghost" onClick={onEnd}>
             Runde beenden
@@ -47,7 +47,7 @@ export function LobbyLiveReveal({
         </div>
       ) : (
         <p className="text-center text-sm text-sand-500">
-          Host fuehrt gleich zur naechsten Frage.
+          Host führt gleich zur nächsten Frage.
         </p>
       )}
     </div>

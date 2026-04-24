@@ -17,7 +17,7 @@ const DAILY_STATE_TONE: Record<
 > = {
   missing: { label: "Kein Run", tone: "neutral" },
   ready: { label: "Spielbar", tone: "success" },
-  incomplete: { label: "Unvollstaendig", tone: "warning" },
+  incomplete: { label: "Unvollständig", tone: "warning" },
   unplayable: { label: "Nicht spielbar", tone: "danger" },
 };
 
@@ -33,7 +33,7 @@ const LIVE_STATE_TONE: Record<
 const PHASE_LABEL: Record<AdminLiveDiagnostics["phase"], string> = {
   lobby: "Warteraum",
   question: "Frage",
-  reveal: "Aufloesung",
+  reveal: "Auflösung",
   finished: "Beendet",
 };
 
@@ -201,7 +201,7 @@ function OpsBlock({
         <div className="space-y-0.5">
           <p className="text-sm font-semibold text-sand-900">Ops</p>
           <p className="text-xs text-sand-500">
-            Aufraeumen beendeter Live-Sessions und alter Lobby-Codes.
+            Aufräumen beendeter Live-Sessions und alter Lobby-Codes.
           </p>
         </div>
         <Button
@@ -210,7 +210,7 @@ function OpsBlock({
           onClick={onCleanup}
           disabled={!onCleanup || cleanupStatus === "running"}
         >
-          {cleanupStatus === "running" ? "Raeumt auf..." : "Cleanup"}
+          {cleanupStatus === "running" ? "Räumt auf..." : "Cleanup"}
         </Button>
       </div>
 
@@ -235,11 +235,11 @@ function OpsBlock({
         <CountRow
           items={[
             {
-              label: "Aelteste Session",
+              label: "Älteste Session",
               value: formatHours(ops.oldestStaleFinishedLiveAgeHours),
             },
             {
-              label: "Aeltester Code",
+              label: "Ältester Code",
               value: formatHours(ops.oldestStaleInactiveLobbyCodeAgeHours),
             },
           ]}
@@ -250,7 +250,7 @@ function OpsBlock({
         <CountRow
           items={[
             { label: "Finalisiert", value: `${cleanupResult.finalizedStaleLiveSessions}` },
-            { label: "Geloescht", value: `${cleanupResult.deletedFinishedLiveSessions}` },
+            { label: "Gelöscht", value: `${cleanupResult.deletedFinishedLiveSessions}` },
             { label: "Codes", value: `${cleanupResult.deletedInactiveLobbyCodes}` },
           ]}
         />

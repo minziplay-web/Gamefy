@@ -10,9 +10,10 @@ function initials(name?: string | null) {
     .join("");
 }
 
-type Size = "sm" | "md" | "lg" | "xl";
+type Size = "xs" | "sm" | "md" | "lg" | "xl";
 
 const sizeClasses: Record<Size, string> = {
+  xs: "size-4 text-[9px]",
   sm: "size-8 text-xs",
   md: "size-11 text-sm",
   lg: "size-14 text-base",
@@ -40,7 +41,16 @@ export function AvatarCircle({
       className={`flex items-center justify-center rounded-full font-semibold ${sizeClasses[size]} ${palette} ${className}`}
       aria-label={member.displayName || "Friend"}
     >
-      {initials(member.displayName)}
+      {member.photoURL ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={member.photoURL}
+          alt={member.displayName || "Friend"}
+          className="size-full rounded-full object-cover"
+        />
+      ) : (
+        initials(member.displayName)
+      )}
     </div>
   );
 }

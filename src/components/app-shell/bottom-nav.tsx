@@ -3,11 +3,15 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { LIVE_MODE_ENABLED } from "@/lib/config/features";
+
 const items = [
   { href: "/", label: "Home", icon: HomeIcon },
   { href: "/daily", label: "Daily", icon: DailyIcon },
-  { href: "/lobby", label: "Lobby", icon: LobbyIcon },
   { href: "/profile", label: "Profil", icon: ProfileIcon },
+  ...(LIVE_MODE_ENABLED
+    ? ([{ href: "/lobby", label: "Lobby", icon: LobbyIcon }] as const)
+    : []),
 ] as const;
 
 function isActive(pathname: string, href: string) {

@@ -93,7 +93,7 @@ export function AdminScreen({
         <ScreenHeader eyebrow="Admin" title="Verwaltung" />
         <EmptyState
           icon="🔒"
-          title="Nur fuer Admins"
+          title="Nur für Admins"
           description="Du hast keine Admin-Rechte in dieser Gruppe."
         />
       </div>
@@ -424,7 +424,7 @@ export function AdminScreen({
       <ConfirmDialog
         open={replaceConfirm !== null}
         title="Heutigen Run ersetzen?"
-        description="Fuer heute existiert schon ein Daily-Run. Beim Ersetzen werden neue Fragen ausgewaehlt. Bereits abgegebene Antworten koennen dadurch ihre Relevanz verlieren."
+        description="Für heute existiert schon ein Daily-Run. Beim Ersetzen werden neue Fragen ausgewählt. Bereits abgegebene Antworten können dadurch ihre Relevanz verlieren."
         confirmLabel="Ersetzen"
         cancelLabel="Abbrechen"
         tone="destructive"
@@ -444,7 +444,7 @@ function buildCleanupMessage(result: AdminCleanupResult) {
     result.deletedOrphanedDailyFirstAnswerLocks;
 
   if (affectedTotal === 0) {
-    return "Es gab nichts zum Aufraeumen.";
+    return "Es gab nichts zum Aufräumen.";
   }
 
   const parts: string[] = [];
@@ -452,14 +452,14 @@ function buildCleanupMessage(result: AdminCleanupResult) {
     parts.push(`${result.finalizedStaleLiveSessions} stale Live-Sessions finalisiert`);
   }
   if (result.deletedFinishedLiveSessions > 0) {
-    parts.push(`${result.deletedFinishedLiveSessions} finished Live-Sessions geloescht`);
+    parts.push(`${result.deletedFinishedLiveSessions} finished Live-Sessions gelöscht`);
   }
   if (result.deletedInactiveLobbyCodes > 0) {
-    parts.push(`${result.deletedInactiveLobbyCodes} alte Lobby-Codes geloescht`);
+    parts.push(`${result.deletedInactiveLobbyCodes} alte Lobby-Codes gelöscht`);
   }
   if (result.deletedOrphanedDailyFirstAnswerLocks > 0) {
     parts.push(
-      `${result.deletedOrphanedDailyFirstAnswerLocks} verwaiste First-Answer-Locks geloescht`,
+      `${result.deletedOrphanedDailyFirstAnswerLocks} verwaiste First-Answer-Locks gelöscht`,
     );
   }
 
@@ -468,7 +468,7 @@ function buildCleanupMessage(result: AdminCleanupResult) {
 
 function buildRunActionMessage(result: AdminRunActionResult) {
   if (result.mode === "create") {
-    return `Run fuer ${result.dateKey} mit ${result.questionCount} Fragen erzeugt.`;
+    return `Run für ${result.dateKey} mit ${result.questionCount} Fragen erzeugt.`;
   }
 
   const clearedTotal =
@@ -478,12 +478,12 @@ function buildRunActionMessage(result: AdminRunActionResult) {
     result.deletedFirstAnswerLocks;
 
   if (clearedTotal === 0) {
-    return `Run fuer ${result.dateKey} ersetzt. ${result.questionCount} Fragen sind jetzt aktiv.`;
+    return `Run für ${result.dateKey} ersetzt. ${result.questionCount} Fragen sind jetzt aktiv.`;
   }
 
-  const parts: string[] = [`Run fuer ${result.dateKey} ersetzt.`];
+  const parts: string[] = [`Run für ${result.dateKey} ersetzt.`];
   if (result.deletedPublicAnswers > 0) {
-    parts.push(`${result.deletedPublicAnswers} oeffentliche Antworten entfernt`);
+    parts.push(`${result.deletedPublicAnswers} öffentliche Antworten entfernt`);
   }
   if (result.deletedPrivateAnswers > 0) {
     parts.push(`${result.deletedPrivateAnswers} private Antworten entfernt`);

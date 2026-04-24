@@ -161,7 +161,7 @@ function Stepper({
         <button
           type="button"
           onClick={inc}
-          aria-label={`${label} erhoehen`}
+          aria-label={`${label} erhöhen`}
           className="flex size-12 items-center justify-center rounded-full bg-sand-100 text-xl font-semibold text-sand-800 transition hover:bg-sand-200 disabled:cursor-not-allowed disabled:opacity-40"
           disabled={value >= max}
         >

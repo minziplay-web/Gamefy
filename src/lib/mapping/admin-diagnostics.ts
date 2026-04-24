@@ -47,13 +47,13 @@ export function analyzeTodayDailyDiagnostics(params: {
       issues.push({
         severity: "error",
         code: "orphaned_daily_data",
-        message: "Fuer heute existieren Antworten oder Locks ohne passenden Run.",
+        message: "Für heute existieren Antworten oder Locks ohne passenden Run.",
       });
     } else {
       issues.push({
         severity: "warning",
         code: "missing_daily_run",
-        message: "Fuer heute existiert noch kein Daily-Run.",
+        message: "Für heute existiert noch kein Daily-Run.",
       });
     }
 
@@ -78,7 +78,7 @@ export function analyzeTodayDailyDiagnostics(params: {
     issues.push({
       severity: "error",
       code: "empty_run",
-      message: "Der heutige Run enthaelt keine Items.",
+      message: "Der heutige Run enthält keine Items.",
     });
   }
 
@@ -94,13 +94,13 @@ export function analyzeTodayDailyDiagnostics(params: {
     issues.push({
       severity: "error",
       code: "run_unplayable",
-      message: validated.reason ?? "Der heutige Run enthaelt keine spielbaren Fragen.",
+      message: validated.reason ?? "Der heutige Run enthält keine spielbaren Fragen.",
     });
   } else if (validated.hasIncompleteItems) {
     issues.push({
       severity: "warning",
       code: "run_incomplete",
-      message: "Mindestens eine Frage im heutigen Run ist nicht spielbar und wird uebersprungen.",
+      message: "Mindestens eine Frage im heutigen Run ist nicht spielbar und wird übersprungen.",
     });
   }
 
@@ -161,7 +161,7 @@ export function analyzeActiveLiveDiagnostics(params: {
     issues.push({
       severity: "error",
       code: "empty_session",
-      message: "Die aktive Live-Session enthaelt keine Fragen.",
+      message: "Die aktive Live-Session enthält keine Fragen.",
     });
   }
 
@@ -212,7 +212,7 @@ export function analyzeActiveLiveDiagnostics(params: {
     issues.push({
       severity: "error",
       code: "no_playable_live_questions",
-      message: "Die aktive Live-Session enthaelt keine spielbaren Fragen mehr.",
+      message: "Die aktive Live-Session enthält keine spielbaren Fragen mehr.",
     });
   }
 
@@ -228,7 +228,7 @@ export function analyzeActiveLiveDiagnostics(params: {
     issues.push({
       severity: "warning",
       code: "question_phase_stalled",
-      message: "Die Fragenphase laeuft deutlich laenger als der konfigurierte Countdown. Die Runde koennte haengen.",
+      message: "Die Fragenphase läuft deutlich länger als der konfigurierte Countdown. Die Runde könnte hängen.",
     });
   }
 
@@ -239,7 +239,7 @@ export function analyzeActiveLiveDiagnostics(params: {
     issues.push({
       severity: "warning",
       code: "reveal_phase_stalled",
-      message: "Die Aufloesungsphase laeuft deutlich laenger als erwartet. Der Host sollte weiterfuehren oder beenden.",
+      message: "Die Auflösungsphase läuft deutlich länger als erwartet. Der Host sollte weiterführen oder beenden.",
     });
   }
 
@@ -250,7 +250,7 @@ export function analyzeActiveLiveDiagnostics(params: {
     issues.push({
       severity: "warning",
       code: "lobby_stale",
-      message: "Diese Lobby ist seit laengerer Zeit offen und koennte veraltet sein.",
+      message: "Diese Lobby ist seit längerer Zeit offen und könnte veraltet sein.",
     });
   }
 

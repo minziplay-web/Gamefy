@@ -1,10 +1,15 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 
 import { LobbyScreen } from "@/components/lobby/lobby-screen";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import { ScreenHeader } from "@/components/ui/screen-header";
 import { useAuth } from "@/lib/auth/auth-context";
+import { LIVE_MODE_ENABLED } from "@/lib/config/features";
 import {
   advanceLiveSession,
   endLiveSession,
@@ -24,6 +29,7 @@ export default function LobbySessionPage() {
   const lastAutoRevealKeyRef = useRef<string | null>(null);
 
   useEffect(() => {
+    if (!LIVE_MODE_ENABLED) return;
     if (
       state.status !== "connected" ||
       !state.isHost ||
@@ -57,6 +63,24 @@ export default function LobbySessionPage() {
       window.clearTimeout(timeoutId);
     };
   }, [authState, sessionId, state]);
+
+  if (!LIVE_MODE_ENABLED) {
+    return (
+      <div className="space-y-4">
+        <ScreenHeader eyebrow="Live" title="Live pausiert" />
+        <EmptyState
+          icon="🧊"
+          title="Diese Runde ist gerade nicht verfügbar"
+          description="Das Live-System ist vorübergehend ausgeblendet, bis wir es wieder sauber freigeben."
+          action={
+            <Link href="/" className="block">
+              <Button>Zur Startseite</Button>
+            </Link>
+          }
+        />
+      </div>
+    );
+  }
 
   return (
     <LobbyScreen

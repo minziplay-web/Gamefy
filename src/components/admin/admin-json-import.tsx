@@ -7,7 +7,7 @@ import { TextArea } from "@/components/ui/text-field";
 
 const EXAMPLE = `[
   {
-    "text": "Wer wuerde am ehesten spontan einen Flug buchen?",
+    "text": "Wer würde am ehesten spontan einen Flug buchen?",
     "category": "pure_fun",
     "type": "single_choice",
     "anonymous": false,
@@ -31,7 +31,7 @@ export function AdminJsonImport({
       <div className="space-y-1">
         <h3 className="text-sm font-semibold text-sand-900">Fragen importieren</h3>
         <p className="text-xs text-sand-500">
-          JSON-Array im vereinbarten Frage-Format einfuegen.
+          JSON-Array im vereinbarten Frage-Format einfügen.
         </p>
       </div>
       <TextArea

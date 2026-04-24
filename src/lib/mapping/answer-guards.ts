@@ -12,7 +12,7 @@ export function assertValidDraftForQuestion(
 ) {
   assert(
     draft.questionId === question.questionId,
-    "Antwortentwurf und Frage gehoeren nicht zusammen.",
+    "Antwortentwurf und Frage gehören nicht zusammen.",
   );
   assert(
     draft.type === question.type,
@@ -27,11 +27,11 @@ export function assertValidDraftForQuestion(
       );
       assert(
         !!draft.selectedUserId,
-        "Fuer diese Frage muss eine Person ausgewaehlt werden.",
+        "Für diese Frage muss eine Person ausgewählt werden.",
       );
       assert(
         question.candidates.some((candidate) => candidate.userId === draft.selectedUserId),
-        "Die ausgewaehlte Person gehoert nicht zu dieser Frage.",
+        "Die ausgewählte Person gehört nicht zu dieser Frage.",
       );
       return;
 
@@ -46,7 +46,7 @@ export function assertValidDraftForQuestion(
       );
       assert(
         draft.textAnswer.trim().length <= question.maxLength,
-        "Textantwort ist laenger als erlaubt.",
+        "Textantwort ist länger als erlaubt.",
       );
       return;
 
@@ -57,7 +57,7 @@ export function assertValidDraftForQuestion(
       );
       assert(
         draft.selectedSide === "left" || draft.selectedSide === "right",
-        "Bei diesem Duel muss links oder rechts gewaehlt werden.",
+        "Bei diesem Duel muss links oder rechts gewählt werden.",
       );
       return;
 
@@ -68,7 +68,7 @@ export function assertValidDraftForQuestion(
       );
       assert(
         draft.selectedTeam === "teamA" || draft.selectedTeam === "teamB",
-        "Bei diesem Duel muss Team A oder Team B gewaehlt werden.",
+        "Bei diesem Duel muss Team A oder Team B gewählt werden.",
       );
       return;
 
@@ -79,7 +79,7 @@ export function assertValidDraftForQuestion(
       );
       assert(
         draft.selectedOptionIndex === 0 || draft.selectedOptionIndex === 1,
-        "Bei dieser Frage muss Option 0 oder 1 gewaehlt werden.",
+        "Bei dieser Frage muss Option 0 oder 1 gewählt werden.",
       );
       return;
   }

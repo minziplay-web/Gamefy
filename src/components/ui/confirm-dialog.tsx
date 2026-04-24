@@ -8,7 +8,7 @@ export function ConfirmDialog({
   open,
   title,
   description,
-  confirmLabel = "Bestaetigen",
+  confirmLabel = "Bestätigen",
   cancelLabel = "Abbrechen",
   tone = "default",
   onCancel,

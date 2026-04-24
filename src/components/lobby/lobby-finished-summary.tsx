@@ -19,7 +19,7 @@ export function LobbyFinishedSummary({
     <div className="space-y-4">
       <ScreenHeader
         eyebrow="Runde abgeschlossen"
-        title="Danke fuers Mitspielen!"
+        title="Danke fürs Mitspielen!"
         subtitle={`${summary.myAnswersCount} von ${summary.totalQuestions} Fragen beantwortet.`}
       />
 
@@ -63,7 +63,7 @@ export function LobbyFinishedSummary({
       </div>
 
       <Button className="w-full" onClick={onClose}>
-        Zurueck zum Home
+        Zurück zum Home
       </Button>
     </div>
   );

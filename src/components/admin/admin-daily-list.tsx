@@ -43,7 +43,7 @@ export function AdminDailyList({
               Heute
             </p>
             <p className="text-sm font-medium text-amber-900">
-              Fuer heute existiert bereits ein Run mit {todayRun.questionCount} Fragen.
+              Für heute existiert bereits ein Run mit {todayRun.questionCount} Fragen.
             </p>
           </div>
           <Button
@@ -78,7 +78,7 @@ export function AdminDailyList({
       {runs.length === 0 ? (
         <EmptyState
           title="Noch keine Runs"
-          description="Erzeuge einen Run fuer heute oder morgen."
+          description="Erzeuge einen Run für heute oder morgen."
         />
       ) : (
         <ul className="space-y-2">

@@ -38,7 +38,7 @@ export function AvatarUploader({
           initials
         )}
         <span className="absolute inset-x-0 bottom-0 bg-sand-900/80 py-1 text-[10px] font-semibold uppercase tracking-wider">
-          {previewUrl ? "Aendern" : "Hochladen"}
+          {previewUrl ? "Ändern" : "Hochladen"}
         </span>
       </button>
       <input

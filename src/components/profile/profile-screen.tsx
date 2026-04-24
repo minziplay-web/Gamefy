@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useState } from "react";
 
 import { DailyHistoryList } from "@/components/profile/daily-history-list";
 import { MemberRail } from "@/components/profile/member-rail";
 import { ProfileHeader } from "@/components/profile/profile-header";
+import { ProfileNameEditor } from "@/components/profile/profile-name-editor";
+import { ProfilePhotoEditor } from "@/components/profile/profile-photo-editor";
 import { ProfileStatGrid } from "@/components/profile/profile-stat-grid";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -16,6 +19,8 @@ import type { ProfileViewState } from "@/lib/types/frontend";
 
 export function ProfileScreen({ state }: { state: ProfileViewState }) {
   const { logout } = useAuth();
+  const [isEditing, setIsEditing] = useState(false);
+  const [activeEditor, setActiveEditor] = useState<"name" | "photo" | null>(null);
 
   if (state.status === "loading") {
     return (
@@ -49,7 +54,35 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
 
   return (
     <div className="space-y-5">
-      <ProfileHeader user={state.user} isSelf={state.isSelf} />
+      {state.isSelf ? (
+        <ProfileHeader
+          user={state.user}
+          isSelf={state.isSelf}
+          isEditing={isEditing}
+          onToggleEditing={() => {
+            setIsEditing((prev) => {
+              const next = !prev;
+              if (!next) {
+                setActiveEditor(null);
+              }
+              return next;
+            });
+          }}
+          onEditName={() => setActiveEditor("name")}
+          onEditPhoto={() => setActiveEditor("photo")}
+        />
+      ) : (
+        <ProfileHeader user={state.user} isSelf={state.isSelf} />
+      )}
+      {state.isSelf && isEditing && activeEditor === "name" ? (
+        <ProfileNameEditor key={`${state.user.userId}:${state.user.displayName}`} user={state.user} />
+      ) : null}
+      {state.isSelf && isEditing && activeEditor === "photo" ? (
+        <ProfilePhotoEditor
+          key={`${state.user.userId}:${state.user.photoURL ?? "none"}`}
+          user={state.user}
+        />
+      ) : null}
       <ProfileStatGrid stats={state.stats} />
 
       {state.isSelf ? (
@@ -73,7 +106,7 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
           {state.user.role === "admin" ? (
             <Link href="/admin" className="block">
               <Button variant="secondary" className="w-full">
-                Admin oeffnen
+                Admin öffnen
               </Button>
             </Link>
           ) : null}

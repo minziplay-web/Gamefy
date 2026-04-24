@@ -39,6 +39,11 @@ interface AuthContextValue {
     displayName: string;
     photoFile: File | null;
   }) => Promise<void>;
+  updateDisplayName: (displayName: string) => Promise<void>;
+  updateProfilePhoto: (params: {
+    photoFile: File | null;
+    removePhoto?: boolean;
+  }) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -127,7 +132,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!auth) {
           setAuthState({
             status: "error",
-            message: "Firebase Auth ist nicht verfuegbar.",
+            message: "Firebase Auth ist nicht verfügbar.",
             recoverable: false,
           });
           return;
@@ -171,7 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (!auth) {
           setAuthState({
             status: "error",
-            message: "Firebase Auth ist nicht verfuegbar.",
+            message: "Firebase Auth ist nicht verfügbar.",
             recoverable: false,
           });
           return;
@@ -232,10 +237,78 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        await saveOnboardingProfile({
+        const saved = await saveOnboardingProfile({
           user: authState.user,
           displayName,
           photoFile,
+        });
+        setAuthState({
+          status: "authenticated",
+          user: {
+            ...authState.user,
+            displayName: saved.displayName,
+            photoURL: saved.photoURL,
+            onboardingCompleted: true,
+          },
+        });
+      },
+      async updateDisplayName(displayName: string) {
+        if (authState.status !== "authenticated") {
+          return;
+        }
+
+        if (isMockMode) {
+          setAuthState({
+            status: "authenticated",
+            user: {
+              ...authState.user,
+              displayName: displayName.trim(),
+            },
+          });
+          return;
+        }
+
+        const saved = await saveOnboardingProfile({
+          user: authState.user,
+          displayName,
+          photoFile: null,
+        });
+        setAuthState({
+          status: "authenticated",
+          user: {
+            ...authState.user,
+            displayName: saved.displayName,
+          },
+        });
+      },
+      async updateProfilePhoto({ photoFile, removePhoto = false }) {
+        if (authState.status !== "authenticated") {
+          return;
+        }
+
+        if (isMockMode) {
+          setAuthState({
+            status: "authenticated",
+            user: {
+              ...authState.user,
+              photoURL: removePhoto ? null : authState.user.photoURL,
+            },
+          });
+          return;
+        }
+
+        const saved = await saveOnboardingProfile({
+          user: authState.user,
+          displayName: authState.user.displayName,
+          photoFile,
+          removePhoto,
+        });
+        setAuthState({
+          status: "authenticated",
+          user: {
+            ...authState.user,
+            photoURL: saved.photoURL,
+          },
         });
       },
     }),

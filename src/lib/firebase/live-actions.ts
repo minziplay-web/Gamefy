@@ -59,7 +59,7 @@ export async function createLiveSession(params: {
   const usersRef = usersCollection();
 
   if (!sessionsRef || !questionsRef || !usersRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   const [questionSnapshot, userSnapshot] = await Promise.all([
@@ -152,7 +152,7 @@ export async function joinLiveSessionByCode(params: {
   const codeRef = liveLobbyCodeDoc(code);
 
   if (!codeRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   const codeSnapshot = await getDoc(codeRef);
@@ -162,12 +162,12 @@ export async function joinLiveSessionByCode(params: {
 
   const codeData = codeSnapshot.data() as LiveLobbyCodeDoc;
   if (!codeData.active) {
-    throw new Error("Diese Live-Runde ist nicht mehr verfuegbar.");
+    throw new Error("Diese Live-Runde ist nicht mehr verfügbar.");
   }
 
   const sessionRef = liveSessionDoc(codeData.sessionId);
   if (!sessionRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   const sessionSnapshot = await getDoc(sessionRef);
@@ -184,7 +184,7 @@ export async function joinLiveSessionByCode(params: {
   const participantRef = liveParticipantDoc(codeData.sessionId, user.userId);
 
   if (!participantRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   await runTransaction(participantRef.firestore, async (transaction) => {
@@ -215,7 +215,7 @@ export async function leaveLiveSession(sessionId: string, userId: string) {
   const participantsRef = liveParticipantsCollection(sessionId);
 
   if (!participantRef || !sessionRef || !participantsRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   await updateDoc(participantRef, { connected: false });
@@ -249,7 +249,7 @@ export async function startLiveSession(sessionId: string, actingUserId: string) 
   const participantsRef = liveParticipantsCollection(sessionId);
 
   if (!sessionRef || !questionsRef || !participantsRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   const [questionSnapshot, participantsSnapshot] = await Promise.all([
@@ -299,7 +299,7 @@ export async function startLiveSession(sessionId: string, actingUserId: string) 
     );
 
     if (firstPlayableIndex < 0) {
-      throw new Error("Diese Live-Runde enthaelt keine spielbaren Fragen.");
+      throw new Error("Diese Live-Runde enthält keine spielbaren Fragen.");
     }
 
     assertValidLiveQuestionIndex({
@@ -328,7 +328,7 @@ export async function advanceLiveSession(params: {
   const participantsRef = liveParticipantsCollection(sessionId);
 
   if (!sessionRef || !questionsRef || !participantsRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   const [questionSnapshot, participantsSnapshot] = await Promise.all([
@@ -354,7 +354,7 @@ export async function advanceLiveSession(params: {
 
     const session = sessionSnap.data() as LiveSessionDoc;
     if (session.hostUserId !== actingUserId) {
-      throw new Error("Nur der Host kann die Runde weiterfuehren.");
+      throw new Error("Nur der Host kann die Runde weiterführen.");
     }
     if (session.status !== "reveal") {
       return false;
@@ -403,7 +403,7 @@ export async function revealLiveSession(sessionId: string, actingUserId: string)
   const sessionRef = liveSessionDoc(sessionId);
 
   if (!sessionRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   await runTransaction(sessionRef.firestore, async (transaction) => {
@@ -414,7 +414,7 @@ export async function revealLiveSession(sessionId: string, actingUserId: string)
 
     const session = sessionSnap.data() as LiveSessionDoc;
     if (session.hostUserId !== actingUserId) {
-      throw new Error("Nur der Host kann die Aufloesung starten.");
+      throw new Error("Nur der Host kann die Auflösung starten.");
     }
     if (session.status !== "question") {
       return;
@@ -431,7 +431,7 @@ export async function endLiveSession(sessionId: string, actingUserId: string) {
   const sessionRef = liveSessionDoc(sessionId);
 
   if (!sessionRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   await runTransaction(sessionRef.firestore, async (transaction) => {
@@ -481,7 +481,7 @@ export async function submitLiveAnswer(params: {
   const participantsRef = liveParticipantsCollection(sessionId);
 
   if (!sessionRef || !questionsRef || !participantsRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   const [sessionSnapshot, questionSnapshot, participantsSnapshot] = await Promise.all([
@@ -533,7 +533,7 @@ export async function submitLiveAnswer(params: {
   const aggregateRef = liveAnonymousAggregateDoc(`${sessionId}_${questionIndex}`);
 
   if (!privateRef || !publicRef || !aggregateRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   assertValidDraftForQuestion(question, draft);
@@ -604,7 +604,7 @@ async function reserveLobbyCodeAndCreateSession(params: {
     const codeRef = liveLobbyCodeDoc(code);
 
     if (!codeRef) {
-      throw new Error("Firestore ist nicht verfuegbar.");
+      throw new Error("Firestore ist nicht verfügbar.");
     }
 
     try {
@@ -658,7 +658,7 @@ async function finalizeLiveSession(sessionId: string, session: LiveSessionDoc) {
   const sessionRef = liveSessionDoc(sessionId);
 
   if (!sessionRef) {
-    throw new Error("Firestore ist nicht verfuegbar.");
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
   await runTransaction(sessionRef.firestore, async (transaction) => {

@@ -15,7 +15,7 @@ export const mockAdmin: AdminViewState = {
     rows: [
       {
         questionId: "q1",
-        text: "Wer wuerde am ehesten spontan einen Flug buchen?",
+        text: "Wer würde am ehesten spontan einen Flug buchen?",
         category: "pure_fun",
         type: "single_choice",
         anonymous: false,
@@ -59,7 +59,7 @@ export const mockAdmin: AdminViewState = {
       },
       {
         questionId: "q5",
-        text: "Wuerdest du eher nie wieder feiern oder nie wieder verreisen?",
+        text: "Würdest du eher nie wieder feiern oder nie wieder verreisen?",
         category: "would_you_rather",
         type: "either_or",
         anonymous: true,
@@ -117,7 +117,7 @@ export const mockAdmin: AdminViewState = {
         {
           severity: "warning",
           code: "run_incomplete",
-          message: "Mindestens eine Frage im heutigen Run ist nicht spielbar und wird uebersprungen.",
+          message: "Mindestens eine Frage im heutigen Run ist nicht spielbar und wird übersprungen.",
         },
       ],
     },
