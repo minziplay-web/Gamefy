@@ -27,7 +27,7 @@ export function AdminConfigForm({
           label="Dailys pro Tag"
           value={draft.dailyQuestionCount}
           min={1}
-          max={20}
+          max={10}
           onChange={(dailyQuestionCount) => onChange({ ...draft, dailyQuestionCount })}
         />
         <div className="space-y-2">

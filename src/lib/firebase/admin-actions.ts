@@ -55,6 +55,8 @@ interface ImportQuestionInput {
   options?: string[];
 }
 
+const MAX_DAILY_CATEGORY_COUNT = 10;
+
 export async function saveAdminConfig(draft: AdminConfigDraft) {
   const target = appConfigDoc();
 
@@ -66,7 +68,7 @@ export async function saveAdminConfig(draft: AdminConfigDraft) {
     target,
     {
       timezone: "Europe/Berlin",
-      dailyQuestionCount: draft.dailyQuestionCount,
+      dailyQuestionCount: Math.min(draft.dailyQuestionCount, MAX_DAILY_CATEGORY_COUNT),
       dailyRevealPolicy: draft.dailyRevealPolicy,
       onboardingEnabled: draft.onboardingEnabled,
       liveDefaultQuestionDurationSec: draft.liveDefaultQuestionDurationSec,
@@ -458,10 +460,16 @@ function buildDailyRunPayload(params: {
     previous,
   } = params;
 
-  const selectedQuestions = shuffle(questions).slice(
-    0,
-    Math.min(questionCount, questions.length),
-  );
+  const questionsByCategory = new Map<Category, Array<{ questionId: string } & QuestionDoc>>();
+  for (const question of questions) {
+    const group = questionsByCategory.get(question.category) ?? [];
+    group.push(question);
+    questionsByCategory.set(question.category, group);
+  }
+
+  const selectedQuestions = shuffle(Array.from(questionsByCategory.entries()))
+    .slice(0, Math.min(questionCount, MAX_DAILY_CATEGORY_COUNT, questionsByCategory.size))
+    .map(([, categoryQuestions]) => shuffle(categoryQuestions)[0]);
 
   const items = selectedQuestions.map((question) => {
     const pairing = buildPairing(question.type, userIds);
