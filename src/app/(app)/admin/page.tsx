@@ -3,6 +3,8 @@
 import { AdminScreen } from "@/components/admin/admin-screen";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
+  bulkDeleteQuestions,
+  bulkSetQuestionsActive,
   cleanupFinishedLiveSessions,
   createDailyRun,
   deactivateUser,
@@ -23,6 +25,8 @@ export default function AdminPage() {
       state={state}
       currentUserId={authState.status === "authenticated" ? authState.user.userId : undefined}
       onToggleActive={toggleQuestionActive}
+      onBulkSetActive={bulkSetQuestionsActive}
+      onBulkDelete={bulkDeleteQuestions}
       onImportQuestions={async (raw) => {
         if (authState.status !== "authenticated") {
           throw new Error("Nicht eingeloggt.");

@@ -92,6 +92,47 @@ export async function toggleQuestionActive(questionId: string, active: boolean) 
   });
 }
 
+export async function bulkSetQuestionsActive(questionIds: string[], active: boolean) {
+  const questionsRef = questionsCollection();
+
+  if (!questionsRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  if (questionIds.length === 0) {
+    return;
+  }
+
+  const batch = writeBatch(questionsRef.firestore);
+  for (const questionId of questionIds) {
+    batch.update(doc(questionsRef, questionId), {
+      active,
+      updatedAt: serverTimestamp(),
+    });
+  }
+  await batch.commit();
+}
+
+export async function bulkDeleteQuestions(questionIds: string[]) {
+  const questionsRef = questionsCollection();
+
+  if (!questionsRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  if (questionIds.length === 0) {
+    return;
+  }
+
+  for (const chunk of chunkDocs(questionIds, 450)) {
+    const batch = writeBatch(questionsRef.firestore);
+    for (const questionId of chunk) {
+      batch.delete(doc(questionsRef, questionId));
+    }
+    await batch.commit();
+  }
+}
+
 export async function deactivateUser(params: {
   userId: string;
   actingUserId: string;

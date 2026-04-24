@@ -31,6 +31,8 @@ export function AdminScreen({
   state: initial,
   currentUserId,
   onToggleActive,
+  onBulkSetActive,
+  onBulkDelete,
   onImportQuestions,
   onCreateRun,
   onDeactivateUser,
@@ -40,6 +42,8 @@ export function AdminScreen({
   state: AdminViewState;
   currentUserId?: string;
   onToggleActive?: (questionId: string, active: boolean) => Promise<void>;
+  onBulkSetActive?: (questionIds: string[], active: boolean) => Promise<void>;
+  onBulkDelete?: (questionIds: string[]) => Promise<void>;
   onImportQuestions?: (raw: string) => Promise<void>;
   onCreateRun?: (mode: "create" | "replace") => Promise<AdminRunActionResult>;
   onDeactivateUser?: (userId: string) => Promise<void>;
@@ -429,6 +433,8 @@ export function AdminScreen({
           />
           <AdminQuestionList
             rows={filteredRows}
+            onBulkSetActive={onBulkSetActive}
+            onBulkDelete={onBulkDelete}
             onToggleActive={(questionId, next) => {
               toggleActive(questionId, next);
               if (onToggleActive) {
