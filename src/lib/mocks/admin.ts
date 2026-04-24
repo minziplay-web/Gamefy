@@ -90,6 +90,35 @@ export const mockAdmin: AdminViewState = {
       createdByDisplayName: "Leon",
     },
   ],
+  members: [
+    {
+      userId: "u1",
+      displayName: "Leon",
+      email: "leon@example.com",
+      photoURL: null,
+      role: "admin",
+      onboardingCompleted: true,
+      joinedAtIso: "2026-04-01T18:20:00.000Z",
+    },
+    {
+      userId: "u2",
+      displayName: "Mila",
+      email: "mila@example.com",
+      photoURL: null,
+      role: "member",
+      onboardingCompleted: true,
+      joinedAtIso: "2026-04-08T17:10:00.000Z",
+    },
+    {
+      userId: "u3",
+      displayName: "Noah",
+      email: "noah@example.com",
+      photoURL: null,
+      role: "member",
+      onboardingCompleted: false,
+      joinedAtIso: "2026-04-15T20:05:00.000Z",
+    },
+  ],
   config: {
     draft: {
       dailyQuestionCount: 5,

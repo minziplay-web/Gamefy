@@ -30,6 +30,7 @@ import {
   livePrivateAnswersCollection,
   liveSessionsCollection,
   questionsCollection,
+  userDoc,
   usersCollection,
 } from "@/lib/firebase/collections";
 import { berlinDateKey, shiftDateKey } from "@/lib/mapping/date";
@@ -85,6 +86,42 @@ export async function toggleQuestionActive(questionId: string, active: boolean) 
 
   await updateDoc(doc(questionsRef, questionId), {
     active,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function deactivateUser(params: {
+  userId: string;
+  actingUserId: string;
+}) {
+  const targetRef = userDoc(params.userId);
+
+  if (!targetRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  if (params.userId === params.actingUserId) {
+    throw new Error("Du kannst dich nicht selbst entfernen.");
+  }
+
+  const snapshot = await getDoc(targetRef);
+
+  if (!snapshot.exists()) {
+    throw new Error("Der Benutzer wurde nicht gefunden.");
+  }
+
+  const user = snapshot.data() as UserDoc;
+
+  if (user.role === "admin") {
+    throw new Error("Admins können hier nicht entfernt werden.");
+  }
+
+  if (user.isActive === false) {
+    return;
+  }
+
+  await updateDoc(targetRef, {
+    isActive: false,
     updatedAt: serverTimestamp(),
   });
 }

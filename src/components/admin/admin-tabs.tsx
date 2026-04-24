@@ -5,6 +5,7 @@ import type { AdminTab } from "@/lib/types/frontend";
 const TABS: Array<{ value: AdminTab; label: string; emoji: string }> = [
   { value: "questions", label: "Fragen", emoji: "📝" },
   { value: "daily", label: "Daily", emoji: "📅" },
+  { value: "members", label: "Mitglieder", emoji: "👥" },
   { value: "config", label: "Config", emoji: "⚙️" },
 ];
 
@@ -19,7 +20,7 @@ export function AdminTabs({
     <div
       role="tablist"
       aria-label="Admin-Bereich"
-      className="grid grid-cols-3 gap-2"
+      className="grid grid-cols-2 gap-2 sm:grid-cols-4"
     >
       {TABS.map((tab) => {
         const active = tab.value === value;

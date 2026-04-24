@@ -6,6 +6,7 @@ import { AdminConfigForm } from "@/components/admin/admin-config-form";
 import { AdminDailyList } from "@/components/admin/admin-daily-list";
 import { AdminDiagnostics } from "@/components/admin/admin-diagnostics";
 import { AdminJsonImport } from "@/components/admin/admin-json-import";
+import { AdminMemberList } from "@/components/admin/admin-member-list";
 import { AdminQuestionFilterBar } from "@/components/admin/admin-question-filter-bar";
 import { AdminQuestionList } from "@/components/admin/admin-question-list";
 import { AdminTabs } from "@/components/admin/admin-tabs";
@@ -19,6 +20,7 @@ import { berlinDateKey } from "@/lib/mapping/date";
 import type {
   AdminCleanupResult,
   AdminQuestionFilter,
+  AdminMemberRow,
   AdminQuestionRow,
   AdminRunActionResult,
   AdminTab,
@@ -27,16 +29,20 @@ import type {
 
 export function AdminScreen({
   state: initial,
+  currentUserId,
   onToggleActive,
   onImportQuestions,
   onCreateRun,
+  onDeactivateUser,
   onCleanupFinishedSessions,
   onSaveConfig,
 }: {
   state: AdminViewState;
+  currentUserId?: string;
   onToggleActive?: (questionId: string, active: boolean) => Promise<void>;
   onImportQuestions?: (raw: string) => Promise<void>;
   onCreateRun?: (mode: "create" | "replace") => Promise<AdminRunActionResult>;
+  onDeactivateUser?: (userId: string) => Promise<void>;
   onCleanupFinishedSessions?: () => Promise<AdminCleanupResult>;
   onSaveConfig?: (
     draft: Extract<AdminViewState, { status: "ready" }>["config"]["draft"],
@@ -44,6 +50,7 @@ export function AdminScreen({
 }) {
   const [state, setState] = useState(initial);
   const [replaceConfirm, setReplaceConfirm] = useState<string | null>(null);
+  const [memberToRemove, setMemberToRemove] = useState<AdminMemberRow | null>(null);
   const [cleanupState, setCleanupState] = useState<{
     status: "idle" | "running" | "success" | "error";
     message?: string;
@@ -55,6 +62,12 @@ export function AdminScreen({
     status: "idle" | "running" | "success" | "error";
     message?: string;
     result?: AdminRunActionResult;
+  }>({
+    status: "idle",
+  });
+  const [memberActionState, setMemberActionState] = useState<{
+    status: "idle" | "running" | "success" | "error";
+    message?: string;
   }>({
     status: "idle",
   });
@@ -357,6 +370,34 @@ export function AdminScreen({
     }, 400);
   };
 
+  const confirmRemoveMember = async () => {
+    const target = memberToRemove;
+    if (!target) {
+      return;
+    }
+
+    setMemberActionState({
+      status: "running",
+      message: undefined,
+    });
+
+    try {
+      if (onDeactivateUser) {
+        await onDeactivateUser(target.userId);
+      }
+      setMemberActionState({
+        status: "success",
+        message: `${target.displayName} wurde entfernt.`,
+      });
+      setMemberToRemove(null);
+    } catch (error) {
+      setMemberActionState({
+        status: "error",
+        message: getErrorMessage(error, "Das Mitglied konnte nicht entfernt werden."),
+      });
+    }
+  };
+
   return (
     <div className="space-y-4">
       <ScreenHeader
@@ -410,6 +451,16 @@ export function AdminScreen({
         />
       ) : null}
 
+      {state.activeTab === "members" ? (
+        <AdminMemberList
+          members={state.members}
+          currentUserId={currentUserId}
+          removeStatus={memberActionState.status}
+          removeMessage={memberActionState.message}
+          onRemove={setMemberToRemove}
+        />
+      ) : null}
+
       {state.activeTab === "config" ? (
         <AdminConfigForm
           draft={state.config.draft}
@@ -431,6 +482,21 @@ export function AdminScreen({
         onCancel={() => setReplaceConfirm(null)}
         onConfirm={() => void confirmReplace()}
         loading={runActionState.status === "running"}
+      />
+      <ConfirmDialog
+        open={memberToRemove !== null}
+        title="Mitglied entfernen?"
+        description={
+          memberToRemove
+            ? `${memberToRemove.displayName} wird aus der App deaktiviert und verschwindet aus den aktiven Listen.`
+            : ""
+        }
+        confirmLabel="Entfernen"
+        cancelLabel="Abbrechen"
+        tone="destructive"
+        onCancel={() => setMemberToRemove(null)}
+        onConfirm={() => void confirmRemoveMember()}
+        loading={memberActionState.status === "running"}
       />
     </div>
   );

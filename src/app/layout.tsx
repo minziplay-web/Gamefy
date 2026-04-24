@@ -11,8 +11,8 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Gameapp",
-  description: "Private mobile-first friend game web app",
+  title: "Mijija",
+  description: "Mijija ist eure private mobile-first Freundesgruppe-App.",
 };
 
 export default function RootLayout({

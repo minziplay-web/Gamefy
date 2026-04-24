@@ -41,7 +41,7 @@ import type {
   UserDoc,
 } from "@/lib/types/firestore";
 
-export function useProfileViewState(): ProfileViewState {
+export function useProfileViewState(targetUserId?: string): ProfileViewState {
   const { authState, isMockMode } = useAuth();
   const [state, setState] = useState<ProfileViewState>(
     isMockMode ? mockProfile : { status: "loading" },
@@ -90,7 +90,10 @@ export function useProfileViewState(): ProfileViewState {
       return;
     }
 
+    const viewedUserId = targetUserId ?? authState.user.userId;
+    const isSelfProfile = viewedUserId === authState.user.userId;
     let members: MemberLite[] = [];
+    let viewedUser: UserDoc | null = null;
     let dailyRuns: DailyRunDoc[] = [];
     let myDailyAnswers: DailyPrivateAnswerDoc[] = [];
     let myLiveAnswers: LivePrivateAnswerDoc[] = [];
@@ -104,11 +107,14 @@ export function useProfileViewState(): ProfileViewState {
     let questions = new Map<string, QuestionDoc>();
 
     const emit = () => {
-      const streaks = computeDailyStreakStats(
-        myDailyAnswers.map((answer) => answer.dateKey),
-      );
+      if (!viewedUser) {
+        setState({ status: "not_found" });
+        return;
+      }
+
+      const streaks = computeDailyStreakStats(myDailyAnswers.map((answer) => answer.dateKey));
       const duelStats = computeDuelStats({
-        userId: authState.user.userId,
+        userId: viewedUserId,
         dailyRuns,
         dailyAnswers,
         dailyAnonymousAggregates: dailyAggregates,
@@ -123,7 +129,7 @@ export function useProfileViewState(): ProfileViewState {
         ]),
       );
       const publicVotesReceived = computePublicVotesReceivedStats({
-        userId: authState.user.userId,
+        userId: viewedUserId,
         dailyAnswers,
         liveAnswers,
         questionCategories,
@@ -142,7 +148,7 @@ export function useProfileViewState(): ProfileViewState {
         }
       }
       const roundsHosted = liveSessions.filter(
-        (session) => session.hostUserId === authState.user.userId,
+        (session) => session.hostUserId === viewedUserId,
       ).length;
       const roundsPlayed = new Set(liveParticipantSessionIds).size;
       const history: DailyHistoryEntry[] = dailyRuns.slice(0, 10).map((run) => ({
@@ -154,21 +160,28 @@ export function useProfileViewState(): ProfileViewState {
 
       setState({
         status: "ready",
-        user: authState.user,
-        isSelf: true,
+        user: {
+          userId: viewedUserId,
+          email: viewedUser.email,
+          displayName: viewedUser.displayName,
+          photoURL: viewedUser.photoURL ?? null,
+          role: viewedUser.role,
+          onboardingCompleted: viewedUser.onboardingCompleted,
+        },
+        isSelf: viewedUserId === authState.user.userId,
         stats: {
           daily: {
             answeredCount: myDailyAnswers.length,
             streakCurrent: streaks.current,
             streakBest: streaks.best,
             firstAnswerCount: dailyFirstAnswers.filter(
-              (answer) => answer.userId === authState.user.userId,
+              (answer) => answer.userId === viewedUserId,
             ).length,
           },
           live: {
             roundsPlayed,
             roundsHosted,
-            answersSubmitted: myLiveAnswers.length,
+            answersSubmitted: isSelfProfile ? myLiveAnswers.length : 0,
           },
           duels: {
             wins: duelStats.wins,
@@ -197,6 +210,10 @@ export function useProfileViewState(): ProfileViewState {
       onSnapshot(
         query(usersRef, where("isActive", "==", true)),
         (snapshot) => {
+          const userMap = new Map(
+            snapshot.docs.map((doc) => [doc.id, doc.data() as UserDoc] as const),
+          );
+          viewedUser = userMap.get(viewedUserId) ?? null;
           members = snapshot.docs.map((doc) => {
             const data = doc.data() as UserDoc;
             return {
@@ -245,14 +262,20 @@ export function useProfileViewState(): ProfileViewState {
         },
         handleError("Profil-Daily-Aggregate"),
       ),
-      onSnapshot(
-        query(privateAnswersRef, where("userId", "==", authState.user.userId)),
-        (snapshot) => {
-          myDailyAnswers = snapshot.docs.map((doc) => doc.data() as DailyPrivateAnswerDoc);
-          emit();
-        },
-        handleError("Profil-Eigene Daily-Antworten"),
-      ),
+      ...(isSelfProfile
+        ? [
+            onSnapshot(
+              query(privateAnswersRef, where("userId", "==", viewedUserId)),
+              (snapshot) => {
+                myDailyAnswers = snapshot.docs.map(
+                  (doc) => doc.data() as DailyPrivateAnswerDoc,
+                );
+                emit();
+              },
+              handleError("Profil-Daily-Antworten"),
+            ),
+          ]
+        : []),
       onSnapshot(
         liveSessionsRef,
         (snapshot) => {
@@ -265,7 +288,7 @@ export function useProfileViewState(): ProfileViewState {
         handleError("Profil-Live-Sessions"),
       ),
       onSnapshot(
-        query(liveParticipantsRef, where("userId", "==", authState.user.userId)),
+        query(liveParticipantsRef, where("userId", "==", viewedUserId)),
         (snapshot) => {
           liveParticipantSessionIds = snapshot.docs
             .map((doc) => doc.ref.parent.parent?.id ?? "")
@@ -274,16 +297,20 @@ export function useProfileViewState(): ProfileViewState {
         },
         handleError("Profil-Live-Teilnahmen"),
       ),
-      onSnapshot(
-        query(livePrivateAnswersRef, where("userId", "==", authState.user.userId)),
-        (snapshot) => {
-          myLiveAnswers = snapshot.docs.map(
-            (doc) => doc.data() as LivePrivateAnswerDoc,
-          );
-          emit();
-        },
-        handleError("Profil-Eigene Live-Antworten"),
-      ),
+      ...(isSelfProfile
+        ? [
+            onSnapshot(
+              query(livePrivateAnswersRef, where("userId", "==", viewedUserId)),
+              (snapshot) => {
+                myLiveAnswers = snapshot.docs.map(
+                  (doc) => doc.data() as LivePrivateAnswerDoc,
+                );
+                emit();
+              },
+              handleError("Profil-Live-Antworten des Profils"),
+            ),
+          ]
+        : []),
       onSnapshot(
         liveAnswersRef,
         (snapshot) => {
@@ -319,7 +346,7 @@ export function useProfileViewState(): ProfileViewState {
         unsubscribe();
       }
     };
-  }, [authState, isMockMode]);
+  }, [authState, isMockMode, targetUserId]);
 
   return state;
 }

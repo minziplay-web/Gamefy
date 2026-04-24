@@ -1,0 +1,111 @@
+"use client";
+
+import { AvatarCircle } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/ui/empty-state";
+import type { AdminMemberRow } from "@/lib/types/frontend";
+
+export function AdminMemberList({
+  members,
+  currentUserId,
+  removeStatus = "idle",
+  removeMessage,
+  onRemove,
+}: {
+  members: AdminMemberRow[];
+  currentUserId?: string;
+  removeStatus?: "idle" | "running" | "success" | "error";
+  removeMessage?: string;
+  onRemove?: (member: AdminMemberRow) => void;
+}) {
+  if (members.length === 0) {
+    return (
+      <EmptyState
+        title="Keine aktiven Mitglieder"
+        description="Sobald jemand der App beitritt, taucht die Person hier auf."
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <div className="rounded-2xl border border-sand-100 bg-white/85 p-4">
+        <p className="text-sm font-medium text-sand-700">
+          Hier kannst du Mitglieder aus der App entfernen. Der Account bleibt bei Firebase
+          bestehen, ist aber in Gamefy nicht mehr aktiv.
+        </p>
+      </div>
+
+      {removeMessage ? (
+        <p
+          className={`rounded-xl px-3 py-2 text-sm ${
+            removeStatus === "error"
+              ? "bg-rose-50 text-rose-800"
+              : removeStatus === "success"
+                ? "bg-emerald-50 text-emerald-800"
+                : "bg-sand-50 text-sand-700"
+          }`}
+        >
+          {removeMessage}
+        </p>
+      ) : null}
+
+      <ul className="space-y-2">
+        {members.map((member) => {
+          const isSelf = member.userId === currentUserId;
+          const isAdmin = member.role === "admin";
+
+          return (
+            <li
+              key={member.userId}
+              className="flex items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/85 px-4 py-3"
+            >
+              <div className="flex min-w-0 items-center gap-3">
+                <AvatarCircle
+                  member={{
+                    userId: member.userId,
+                    displayName: member.displayName,
+                    photoURL: member.photoURL,
+                  }}
+                  size="sm"
+                />
+                <div className="min-w-0 space-y-1">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <p className="truncate text-sm font-semibold text-sand-900">
+                      {member.displayName}
+                    </p>
+                    <Badge tone={isAdmin ? "dark" : "neutral"} size="sm">
+                      {isAdmin ? "Admin" : "Mitglied"}
+                    </Badge>
+                    {!member.onboardingCompleted ? (
+                      <Badge tone="warning" size="sm">
+                        Onboarding offen
+                      </Badge>
+                    ) : null}
+                    {isSelf ? (
+                      <Badge tone="coral" size="sm">
+                        Du
+                      </Badge>
+                    ) : null}
+                  </div>
+                  <p className="truncate text-sm text-sand-600">{member.email}</p>
+                </div>
+              </div>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                className="shrink-0 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                disabled={!onRemove || removeStatus === "running" || isSelf || isAdmin}
+                onClick={() => onRemove?.(member)}
+              >
+                Entfernen
+              </Button>
+            </li>
+          );
+        })}
+      </ul>
+    </div>
+  );
+}

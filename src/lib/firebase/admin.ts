@@ -132,6 +132,17 @@ export function useAdminViewState(): AdminViewState {
           importStatus: "idle",
         },
         dailyRuns,
+        members: [...activeUsers.entries()]
+          .map(([userId, user]) => ({
+            userId,
+            displayName: user.displayName,
+            email: user.email,
+            photoURL: user.photoURL,
+            role: user.role,
+            onboardingCompleted: user.onboardingCompleted,
+            joinedAtIso: toIsoString(user.createdAt),
+          }))
+          .sort((left, right) => left.displayName.localeCompare(right.displayName, "de")),
         config: {
           draft: configDraft,
           saveStatus: "idle",

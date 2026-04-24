@@ -5,6 +5,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import {
   cleanupFinishedLiveSessions,
   createDailyRun,
+  deactivateUser,
   importQuestions,
   replaceDailyRun,
   saveAdminConfig,
@@ -20,6 +21,7 @@ export default function AdminPage() {
   return (
     <AdminScreen
       state={state}
+      currentUserId={authState.status === "authenticated" ? authState.user.userId : undefined}
       onToggleActive={toggleQuestionActive}
       onImportQuestions={async (raw) => {
         if (authState.status !== "authenticated") {
@@ -52,6 +54,16 @@ export default function AdminPage() {
         }
 
         return cleanupFinishedLiveSessions();
+      }}
+      onDeactivateUser={async (userId) => {
+        if (authState.status !== "authenticated" || state.status !== "ready") {
+          throw new Error("Nicht bereit.");
+        }
+
+        return deactivateUser({
+          userId,
+          actingUserId: authState.user.userId,
+        });
       }}
       onSaveConfig={saveAdminConfig}
     />

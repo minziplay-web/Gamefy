@@ -462,6 +462,16 @@ export interface AdminDailyRunRow {
   createdByDisplayName: string;
 }
 
+export interface AdminMemberRow {
+  userId: UserId;
+  displayName: string;
+  email: string;
+  photoURL: string | null;
+  role: UserRole;
+  onboardingCompleted: boolean;
+  joinedAtIso: string | null;
+}
+
 export interface AdminDiagnosticIssue {
   severity: "warning" | "error";
   code: string;
@@ -535,7 +545,7 @@ export interface AdminConfigDraft {
   onboardingEnabled: boolean;
 }
 
-export type AdminTab = "questions" | "daily" | "config";
+export type AdminTab = "questions" | "daily" | "members" | "config";
 
 export type AdminViewState =
   | { status: "loading" }
@@ -550,6 +560,7 @@ export type AdminViewState =
         importError?: string;
       };
       dailyRuns: AdminDailyRunRow[];
+      members: AdminMemberRow[];
       config: {
         draft: AdminConfigDraft;
         saveStatus: "idle" | "saving" | "saved" | "error";
