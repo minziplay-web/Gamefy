@@ -9,8 +9,13 @@ export function EmailPasswordForm() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { authState, loginWithPassword, registerWithPassword, isMockMode } =
-    useAuth();
+  const {
+    authState,
+    loginWithGoogle,
+    loginWithPassword,
+    registerWithPassword,
+    isMockMode,
+  } = useAuth();
 
   const isBusy =
     authState.status === "requesting_link" ||
@@ -34,6 +39,25 @@ export function EmailPasswordForm() {
         }
       }}
     >
+      <Button
+        type="button"
+        variant="secondary"
+        className="w-full"
+        disabled={isBusy}
+        onClick={() => void loginWithGoogle()}
+      >
+        <span aria-hidden>G</span>
+        Mit Google weiter
+      </Button>
+
+      <div className="flex items-center gap-3">
+        <div className="h-px flex-1 bg-sand-200" />
+        <span className="text-xs font-medium uppercase tracking-[0.14em] text-sand-400">
+          oder
+        </span>
+        <div className="h-px flex-1 bg-sand-200" />
+      </div>
+
       <div className="grid grid-cols-2 gap-2 rounded-2xl bg-sand-100 p-1">
         <button
           type="button"
@@ -106,7 +130,7 @@ export function EmailPasswordForm() {
       <p className="text-sm text-sand-500">
         {isMockMode
           ? "Mock-Modus aktiv: ohne Firebase springt die App mit Demo-Daten weiter."
-          : "Lokaler Dev-Login ohne Magic-Link, damit wir sauber testen können."}
+          : "Du kannst dich mit Google oder klassisch per E-Mail und Passwort anmelden."}
       </p>
 
       {authState.status === "error" ? (

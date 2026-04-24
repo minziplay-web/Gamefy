@@ -32,7 +32,7 @@ export default function LoginPage() {
             Rein in die Gruppe
           </h1>
           <p className="text-sm leading-6 text-sand-600">
-            Für die Entwicklung nutzen wir E-Mail und Passwort, damit localhost uns nicht mehr ausbremst.
+            Melde dich mit Google oder klassisch per E-Mail und Passwort an.
           </p>
         </div>
           <EmailPasswordForm />

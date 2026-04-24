@@ -1,15 +1,5 @@
 import type { MemberLite } from "@/lib/types/frontend";
 
-function initials(name?: string | null) {
-  const safeName = typeof name === "string" && name.trim() ? name.trim() : "Friend";
-
-  return safeName
-    .split(" ")
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-}
-
 type Size = "xs" | "sm" | "md" | "lg" | "xl";
 
 const sizeClasses: Record<Size, string> = {
@@ -49,7 +39,7 @@ export function AvatarCircle({
           className="size-full rounded-full object-cover"
         />
       ) : (
-        initials(member.displayName)
+        <FallbackAvatarIcon />
       )}
     </div>
   );
@@ -97,5 +87,23 @@ export function AvatarStack({
         </div>
       ) : null}
     </div>
+  );
+}
+
+function FallbackAvatarIcon() {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="1.8"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className="size-[62%]"
+      aria-hidden
+    >
+      <circle cx="12" cy="8.25" r="3.5" />
+      <path d="M5 19c1.1-3.1 3.9-5 7-5s5.9 1.9 7 5" />
+    </svg>
   );
 }

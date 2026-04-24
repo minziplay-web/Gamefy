@@ -11,9 +11,11 @@ import {
 import {
   browserLocalPersistence,
   type AuthError,
-  onAuthStateChanged,
   createUserWithEmailAndPassword,
+  GoogleAuthProvider,
+  onAuthStateChanged,
   setPersistence,
+  signInWithPopup,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -32,6 +34,7 @@ import type { UserDoc } from "@/lib/types/firestore";
 interface AuthContextValue {
   authState: AuthState;
   isMockMode: boolean;
+  loginWithGoogle: () => Promise<void>;
   loginWithPassword: (email: string, password: string) => Promise<void>;
   registerWithPassword: (email: string, password: string) => Promise<void>;
   logout: () => Promise<void>;
@@ -121,6 +124,52 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     () => ({
       authState,
       isMockMode,
+      async loginWithGoogle() {
+        if (isMockMode) {
+          setAuthState({ status: "authenticated", user: mockMe });
+          return;
+        }
+
+        const { auth } = getFirebaseServices();
+
+        if (!auth) {
+          setAuthState({
+            status: "error",
+            message: "Firebase Auth ist nicht verfügbar.",
+            recoverable: false,
+          });
+          return;
+        }
+
+        setAuthState({ status: "verifying_link" });
+
+        try {
+          const provider = new GoogleAuthProvider();
+          provider.setCustomParameters({ prompt: "select_account" });
+          const credential = await signInWithPopup(auth, provider);
+          const target = userDoc(credential.user.uid);
+          const baseUser = mapFirebaseUser(credential.user);
+
+          if (!target) {
+            setAuthState({ status: "authenticated", user: baseUser });
+            return;
+          }
+
+          const profile = await ensureUserProfile(target, baseUser);
+          setAuthState({
+            status: "authenticated",
+            user: mapUserDocToAppUser(credential.user.uid, profile, baseUser),
+          });
+        } catch (error) {
+          const authError = error as AuthError | undefined;
+          const code = authError?.code ?? "unknown";
+          setAuthState({
+            status: "error",
+            message: `Google-Login fehlgeschlagen (${code}).`,
+            recoverable: true,
+          });
+        }
+      },
       async loginWithPassword(email: string, password: string) {
         if (isMockMode) {
           setAuthState({ status: "authenticated", user: mockMe });
