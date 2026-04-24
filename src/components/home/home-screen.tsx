@@ -1,0 +1,63 @@
+import { DailyCallout } from "@/components/home/daily-callout";
+import { LiveCallout } from "@/components/home/live-callout";
+import { ErrorBanner } from "@/components/ui/error-banner";
+import { ScreenHeader } from "@/components/ui/screen-header";
+import { SkeletonCard } from "@/components/ui/skeleton";
+import type { HomeViewState } from "@/lib/types/frontend";
+
+export function HomeScreen({ state }: { state: HomeViewState }) {
+  if (state.status === "loading") {
+    return (
+      <div className="space-y-4">
+        <div className="space-y-2 px-1 pb-3 pt-4">
+          <div className="h-3 w-32 animate-pulse rounded-full bg-sand-100" />
+          <div className="h-9 w-48 animate-pulse rounded-2xl bg-sand-100" />
+        </div>
+        <SkeletonCard />
+        <SkeletonCard />
+      </div>
+    );
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className="space-y-4">
+        <ScreenHeader eyebrow="Heute" title="Startseite" />
+        <ErrorBanner message={state.message} />
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      <ScreenHeader
+        eyebrow={state.greeting.localDateLabel}
+        title={`Hi ${state.greeting.displayName}`}
+        subtitle="Heute ist Platz fuer ein paar ehrliche, lustige und leicht gefaehrliche Fragen."
+        action={<StreakPill value={state.greeting.streakCurrent} />}
+      />
+
+      <DailyCallout teaser={state.dailyTeaser} />
+      <LiveCallout
+        session={state.activeLiveSession}
+        canHostLive={state.canHostLive}
+      />
+    </div>
+  );
+}
+
+function StreakPill({ value }: { value: number }) {
+  if (value <= 0) {
+    return (
+      <span className="inline-flex items-center gap-1.5 rounded-full bg-sand-100 px-3 py-1.5 text-xs font-semibold text-sand-600">
+        Neu dabei
+      </span>
+    );
+  }
+  return (
+    <span className="inline-flex items-center gap-1.5 rounded-full bg-sand-900 px-3 py-1.5 text-xs font-semibold text-cream">
+      <span aria-hidden>🔥</span>
+      {value} {value === 1 ? "Tag" : "Tage"}
+    </span>
+  );
+}

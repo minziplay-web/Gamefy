@@ -1,0 +1,65 @@
+"use client";
+
+import { useRef } from "react";
+
+export function AvatarUploader({
+  displayName,
+  previewUrl,
+  onFileSelected,
+  onClear,
+}: {
+  displayName: string;
+  previewUrl: string | null;
+  onFileSelected: (file: File) => void;
+  onClear: () => void;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const initials = displayName
+    .split(" ")
+    .slice(0, 2)
+    .map((p) => p[0]?.toUpperCase() ?? "")
+    .join("") || "?";
+
+  return (
+    <div className="flex flex-col items-center gap-3">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.click()}
+        className="relative flex size-28 items-center justify-center overflow-hidden rounded-full bg-sand-900 text-3xl font-semibold text-cream ring-4 ring-white"
+      >
+        {previewUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={previewUrl}
+            alt="Profilbild"
+            className="size-full object-cover"
+          />
+        ) : (
+          initials
+        )}
+        <span className="absolute inset-x-0 bottom-0 bg-sand-900/80 py-1 text-[10px] font-semibold uppercase tracking-wider">
+          {previewUrl ? "Aendern" : "Hochladen"}
+        </span>
+      </button>
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) onFileSelected(file);
+        }}
+      />
+      {previewUrl ? (
+        <button
+          type="button"
+          onClick={onClear}
+          className="text-xs font-medium text-sand-500 underline underline-offset-2"
+        >
+          Bild entfernen
+        </button>
+      ) : null}
+    </div>
+  );
+}

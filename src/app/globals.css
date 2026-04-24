@@ -1,0 +1,104 @@
+@import "tailwindcss";
+
+@theme inline {
+  --font-sans: var(--font-sans);
+
+  --color-page: #f6f1e8;
+  --color-cream: #fffaf2;
+  --color-sand-50: #f8f3ea;
+  --color-sand-100: #eee4d4;
+  --color-sand-200: #dccdb5;
+  --color-sand-300: #c4af8c;
+  --color-sand-400: #a48760;
+  --color-sand-500: #83694a;
+  --color-sand-600: #645039;
+  --color-sand-700: #4f3f2e;
+  --color-sand-800: #372c20;
+  --color-sand-900: #241b13;
+  --color-sand-950: #14100b;
+  --color-coral: #df6d57;
+  --color-coral-strong: #c95945;
+  --color-coral-soft: #fbe5df;
+
+  --radius-card: 1.75rem;
+  --radius-pill: 999px;
+
+  --shadow-card-raised: 0 20px 40px -24px rgba(36, 27, 19, 0.22),
+    0 2px 4px -2px rgba(36, 27, 19, 0.08);
+  --shadow-card-flat: 0 1px 2px rgba(36, 27, 19, 0.04),
+    0 4px 12px -8px rgba(36, 27, 19, 0.06);
+}
+
+:root {
+  color-scheme: light;
+  --nav-height: 4.5rem;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background:
+    radial-gradient(circle at 0% 0%, rgba(223, 109, 87, 0.12), transparent 42%),
+    radial-gradient(circle at 100% 100%, rgba(196, 175, 140, 0.18), transparent 38%),
+    linear-gradient(180deg, #fffaf2 0%, #f6f1e8 54%, #efe5d4 100%);
+  background-attachment: fixed;
+  min-height: 100%;
+}
+
+body {
+  min-height: 100dvh;
+  margin: 0;
+  background: transparent;
+  color: var(--color-sand-900);
+  font-family: var(--font-sans), sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-feature-settings: "ss01", "cv11";
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* Let the browser know which inputs should be treated as touch-friendly */
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+}
+
+.safe-area-bottom {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+
+.pb-nav {
+  padding-bottom: calc(var(--nav-height) + env(safe-area-inset-bottom, 0px) + 1.5rem);
+}
+
+.radius-card {
+  border-radius: var(--radius-card);
+}
+
+.shadow-card-flat {
+  box-shadow: var(--shadow-card-flat);
+}
+
+.shadow-card-raised {
+  box-shadow: var(--shadow-card-raised);
+}
+
+/* Subtle focus ring for keyboard/button users */
+@media (hover: hover) {
+  button:focus-visible,
+  a:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible,
+  select:focus-visible {
+    outline: 2px solid var(--color-coral);
+    outline-offset: 2px;
+  }
+}

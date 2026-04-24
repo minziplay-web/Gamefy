@@ -1,0 +1,685 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function userRecord(userId) {
+      return get(/databases/$(database)/documents/users/$(userId));
+    }
+
+    function questionRecord(questionId) {
+      return get(/databases/$(database)/documents/questions/$(questionId));
+    }
+
+    function isActiveMember() {
+      return isSignedIn() && userRecord(request.auth.uid).data.isActive == true;
+    }
+
+    function isAdmin() {
+      return isActiveMember() && userRecord(request.auth.uid).data.role == "admin";
+    }
+
+    function sessionRecord(sessionId) {
+      return get(/databases/$(database)/documents/liveSessions/$(sessionId));
+    }
+
+    function dailyRunRecord(dateKey) {
+      return get(/databases/$(database)/documents/dailyRuns/$(dateKey));
+    }
+
+    function liveParticipantRecord(sessionId, userId) {
+      return get(/databases/$(database)/documents/liveSessions/$(sessionId)/participants/$(userId));
+    }
+
+    function isOwnAnswerDoc(answerId) {
+      return isSignedIn() && answerId.matches('.*_' + request.auth.uid + '$');
+    }
+
+    function questionInDailyRun(dateKey, questionId) {
+      return exists(/databases/$(database)/documents/dailyRuns/$(dateKey))
+        && questionId in dailyRunRecord(dateKey).data.questionIds;
+    }
+
+    function isActiveDailyRun(dateKey) {
+      return exists(/databases/$(database)/documents/dailyRuns/$(dateKey))
+        && dailyRunRecord(dateKey).data.status == "active";
+    }
+
+    function isConnectedSessionParticipant(sessionId) {
+      return isSignedIn()
+        && exists(/databases/$(database)/documents/liveSessions/$(sessionId)/participants/$(request.auth.uid))
+        && liveParticipantRecord(sessionId, request.auth.uid).data.connected == true;
+    }
+
+    function liveQuestionMatchesSessionItem(sessionId, questionIndex, questionId) {
+      return exists(/databases/$(database)/documents/liveSessions/$(sessionId))
+        && questionIndex >= 0
+        && questionIndex < sessionRecord(sessionId).data.questionIds.size()
+        && sessionRecord(sessionId).data.questionIds[questionIndex] == questionId;
+    }
+
+    function isCurrentLiveQuestion(sessionId, questionIndex) {
+      return exists(/databases/$(database)/documents/liveSessions/$(sessionId))
+        && sessionRecord(sessionId).data.status == "question"
+        && sessionRecord(sessionId).data.currentQuestionIndex == questionIndex;
+    }
+
+    function isKnownQuestionType(questionType) {
+      return questionType in [
+        "single_choice",
+        "open_text",
+        "duel_1v1",
+        "duel_2v2",
+        "either_or",
+      ];
+    }
+
+    function hasOnlyAllowedAggregateFields(data) {
+      return data.keys().hasOnly([
+        "dateKey",
+        "sessionId",
+        "questionId",
+        "questionIndex",
+        "questionType",
+        "counts",
+        "textAnswers",
+        "duelContext",
+        "updatedAt",
+      ]);
+    }
+
+    function hasValidEitherOrCounts(data) {
+      return !("counts" in data)
+        || data.counts.keys().hasOnly(["option_0", "option_1"]);
+    }
+
+    function hasValidDuel1v1Counts(data) {
+      return !("counts" in data)
+        || data.counts.keys().hasOnly(["left", "right"]);
+    }
+
+    function hasValidDuel2v2Counts(data) {
+      return !("counts" in data)
+        || data.counts.keys().hasOnly(["teamA", "teamB"]);
+    }
+
+    function hasNoDuelContext(data) {
+      return !("duelContext" in data);
+    }
+
+    function hasValidDuel1v1Context(data) {
+      return "duelContext" in data
+        && data.duelContext.keys().hasOnly(["memberIds"])
+        && data.duelContext.memberIds.size() == 2;
+    }
+
+    function hasValidDuel2v2Context(data) {
+      return "duelContext" in data
+        && data.duelContext.keys().hasOnly(["teamA", "teamB"])
+        && data.duelContext.teamA.size() == 2
+        && data.duelContext.teamB.size() == 2;
+    }
+
+    function hasValidAggregatePayload(data) {
+      return hasOnlyAllowedAggregateFields(data)
+        && isKnownQuestionType(data.questionType)
+        && hasValidEitherOrCounts(data)
+        && (
+          data.questionType != "duel_1v1"
+          || (hasValidDuel1v1Counts(data) && hasValidDuel1v1Context(data))
+        )
+        && (
+          data.questionType != "duel_2v2"
+          || (hasValidDuel2v2Counts(data) && hasValidDuel2v2Context(data))
+        )
+        && (
+          data.questionType in ["single_choice", "open_text", "either_or"]
+          ? hasNoDuelContext(data)
+          : true
+        );
+    }
+
+    function hasOnlyDailyAnswerFields(data) {
+      return data.keys().hasOnly([
+        "dateKey",
+        "questionId",
+        "userId",
+        "questionType",
+        "anonymous",
+        "selectedUserId",
+        "selectedOptionIndex",
+        "selectedSide",
+        "selectedTeam",
+        "textAnswer",
+        "duelContext",
+        "createdAt",
+      ]);
+    }
+
+    function hasOnlyDailyPrivateAnswerFields(data) {
+      return data.keys().hasOnly([
+        "dateKey",
+        "questionId",
+        "userId",
+        "questionType",
+        "anonymous",
+        "selectedUserId",
+        "selectedOptionIndex",
+        "selectedSide",
+        "selectedTeam",
+        "textAnswer",
+        "duelContext",
+        "createdAt",
+        "updatedAt",
+      ]);
+    }
+
+    function hasOnlyLiveAnswerFields(data) {
+      return data.keys().hasOnly([
+        "sessionId",
+        "questionId",
+        "questionIndex",
+        "userId",
+        "anonymous",
+        "selectedUserId",
+        "selectedOptionIndex",
+        "selectedSide",
+        "selectedTeam",
+        "textAnswer",
+        "duelContext",
+        "submittedAt",
+      ]);
+    }
+
+    function hasOnlyLivePrivateAnswerFields(data) {
+      return data.keys().hasOnly([
+        "sessionId",
+        "questionId",
+        "questionIndex",
+        "userId",
+        "questionType",
+        "anonymous",
+        "selectedUserId",
+        "selectedOptionIndex",
+        "selectedSide",
+        "selectedTeam",
+        "textAnswer",
+        "duelContext",
+        "submittedAt",
+        "updatedAt",
+      ]);
+    }
+
+    function hasValidSingleChoiceAnswer(data) {
+      return "selectedUserId" in data
+        && !("selectedOptionIndex" in data)
+        && !("selectedSide" in data)
+        && !("selectedTeam" in data)
+        && !("textAnswer" in data)
+        && hasNoDuelContext(data);
+    }
+
+    function hasValidOpenTextAnswer(data) {
+      return "textAnswer" in data
+        && !("selectedUserId" in data)
+        && !("selectedOptionIndex" in data)
+        && !("selectedSide" in data)
+        && !("selectedTeam" in data)
+        && hasNoDuelContext(data);
+    }
+
+    function hasValidEitherOrAnswer(data) {
+      return "selectedOptionIndex" in data
+        && data.selectedOptionIndex in [0, 1]
+        && !("selectedUserId" in data)
+        && !("selectedSide" in data)
+        && !("selectedTeam" in data)
+        && !("textAnswer" in data)
+        && hasNoDuelContext(data);
+    }
+
+    function hasValidDuel1v1Answer(data) {
+      return "selectedSide" in data
+        && data.selectedSide in ["left", "right"]
+        && !("selectedUserId" in data)
+        && !("selectedOptionIndex" in data)
+        && !("selectedTeam" in data)
+        && !("textAnswer" in data)
+        && hasValidDuel1v1Context(data);
+    }
+
+    function hasValidDuel2v2Answer(data) {
+      return "selectedTeam" in data
+        && data.selectedTeam in ["teamA", "teamB"]
+        && !("selectedUserId" in data)
+        && !("selectedOptionIndex" in data)
+        && !("selectedSide" in data)
+        && !("textAnswer" in data)
+        && hasValidDuel2v2Context(data);
+    }
+
+    function hasValidAnswerPayloadForType(questionType, data) {
+      return isKnownQuestionType(questionType)
+        && (
+          (questionType == "single_choice" && hasValidSingleChoiceAnswer(data))
+          || (questionType == "open_text" && hasValidOpenTextAnswer(data))
+          || (questionType == "either_or" && hasValidEitherOrAnswer(data))
+          || (questionType == "duel_1v1" && hasValidDuel1v1Answer(data))
+          || (questionType == "duel_2v2" && hasValidDuel2v2Answer(data))
+        );
+    }
+
+    function isKnownTargetMode(targetMode) {
+      return targetMode in ["daily", "live", "both"];
+    }
+
+    function isKnownRevealPolicy(revealPolicy) {
+      return revealPolicy in ["after_answer", "after_day_end"];
+    }
+
+    function hasOnlyQuestionFields(data) {
+      return data.keys().hasOnly([
+        "text",
+        "category",
+        "type",
+        "anonymous",
+        "targetMode",
+        "active",
+        "options",
+        "createdAt",
+        "createdBy",
+        "updatedAt",
+      ]);
+    }
+
+    function hasValidQuestionPayload(data) {
+      return hasOnlyQuestionFields(data)
+        && isKnownQuestionType(data.type)
+        && isKnownTargetMode(data.targetMode)
+        && (data.anonymous == true || data.anonymous == false)
+        && (data.active == true || data.active == false)
+        && (
+          data.type == "either_or"
+          ? ("options" in data && data.options.size() == 2)
+          : !("options" in data)
+        );
+    }
+
+    function hasOnlyDailyRunFields(data) {
+      return data.keys().hasOnly([
+        "dateKey",
+        "timezone",
+        "status",
+        "questionCount",
+        "revealPolicy",
+        "questionIds",
+        "items",
+        "createdAt",
+        "createdBy",
+        "updatedAt",
+      ]);
+    }
+
+    function hasValidDailyRunPayload(data, dateKey) {
+      return hasOnlyDailyRunFields(data)
+        && data.dateKey == dateKey
+        && data.timezone == "Europe/Berlin"
+        && data.status in ["scheduled", "active", "closed"]
+        && isKnownRevealPolicy(data.revealPolicy)
+        && data.questionCount == data.questionIds.size();
+    }
+
+    function hasOnlyLobbyCodeFields(data) {
+      return data.keys().hasOnly([
+        "code",
+        "sessionId",
+        "active",
+        "createdAt",
+        "updatedAt",
+      ]);
+    }
+
+    function hasValidLobbyCodeCreate(data, code) {
+      return hasOnlyLobbyCodeFields(data)
+        && data.code == code
+        && data.active == true;
+    }
+
+    function hasValidLobbyCodeUpdate(data) {
+      return hasOnlyLobbyCodeFields(data)
+        && data.code == resource.data.code
+        && data.sessionId == resource.data.sessionId
+        && data.createdAt == resource.data.createdAt
+        && (data.active == true || data.active == false);
+    }
+
+    function hasOnlyAppConfigFields(data) {
+      return data.keys().hasOnly([
+        "timezone",
+        "dailyQuestionCount",
+        "dailyRevealPolicy",
+        "onboardingEnabled",
+        "liveDefaultQuestionDurationSec",
+        "liveDefaultRevealDurationSec",
+        "updatedAt",
+      ]);
+    }
+
+    function hasValidAppConfigPayload(data) {
+      return hasOnlyAppConfigFields(data)
+        && data.timezone == "Europe/Berlin"
+        && isKnownRevealPolicy(data.dailyRevealPolicy)
+        && (data.onboardingEnabled == true || data.onboardingEnabled == false)
+        && data.dailyQuestionCount > 0
+        && data.liveDefaultQuestionDurationSec > 0
+        && data.liveDefaultRevealDurationSec > 0;
+    }
+
+    function hasOnlyLiveSessionFields(data) {
+      return data.keys().hasOnly([
+        "hostUserId",
+        "code",
+        "status",
+        "categories",
+        "questionIds",
+        "currentQuestionIndex",
+        "questionDurationSec",
+        "revealDurationSec",
+        "createdAt",
+        "startedAt",
+        "phaseStartedAt",
+        "finishedAt",
+        "items",
+      ]);
+    }
+
+    function hasStableLiveSessionConfig() {
+      return request.resource.data.hostUserId == resource.data.hostUserId
+        && request.resource.data.code == resource.data.code
+        && request.resource.data.categories == resource.data.categories
+        && request.resource.data.questionIds == resource.data.questionIds
+        && request.resource.data.questionDurationSec == resource.data.questionDurationSec
+        && request.resource.data.revealDurationSec == resource.data.revealDurationSec
+        && request.resource.data.createdAt == resource.data.createdAt;
+    }
+
+    function isValidLiveSessionCreate() {
+      return hasOnlyLiveSessionFields(request.resource.data)
+        && request.resource.data.hostUserId == request.auth.uid
+        && request.resource.data.status == "lobby"
+        && request.resource.data.currentQuestionIndex == 0
+        && request.resource.data.startedAt == null
+        && request.resource.data.phaseStartedAt == null
+        && request.resource.data.finishedAt == null;
+    }
+
+    function isAllowedLiveSessionUpdate() {
+      return hasOnlyLiveSessionFields(request.resource.data)
+        && hasStableLiveSessionConfig()
+        && (
+          (
+            resource.data.status == "lobby"
+            && request.resource.data.status == "question"
+            && request.resource.data.currentQuestionIndex >= 0
+            && request.resource.data.startedAt != null
+            && request.resource.data.phaseStartedAt != null
+            && request.resource.data.finishedAt == null
+          )
+          || (
+            resource.data.status == "lobby"
+            && request.resource.data.status == "finished"
+            && request.resource.data.currentQuestionIndex == resource.data.currentQuestionIndex
+            && request.resource.data.startedAt == resource.data.startedAt
+            && request.resource.data.phaseStartedAt != null
+            && request.resource.data.finishedAt != null
+          )
+          || (
+            resource.data.status == "question"
+            && request.resource.data.status == "reveal"
+            && request.resource.data.currentQuestionIndex == resource.data.currentQuestionIndex
+            && request.resource.data.startedAt == resource.data.startedAt
+            && request.resource.data.phaseStartedAt != null
+            && request.resource.data.finishedAt == resource.data.finishedAt
+          )
+          || (
+            resource.data.status == "question"
+            && request.resource.data.status == "finished"
+            && request.resource.data.currentQuestionIndex == resource.data.currentQuestionIndex
+            && request.resource.data.startedAt == resource.data.startedAt
+            && request.resource.data.phaseStartedAt != null
+            && request.resource.data.finishedAt != null
+          )
+          || (
+            resource.data.status == "reveal"
+            && request.resource.data.status == "question"
+            && request.resource.data.currentQuestionIndex > resource.data.currentQuestionIndex
+            && request.resource.data.startedAt == resource.data.startedAt
+            && request.resource.data.phaseStartedAt != null
+            && request.resource.data.finishedAt == resource.data.finishedAt
+          )
+          || (
+            resource.data.status == "reveal"
+            && request.resource.data.status == "finished"
+            && request.resource.data.currentQuestionIndex == resource.data.currentQuestionIndex
+            && request.resource.data.startedAt == resource.data.startedAt
+            && request.resource.data.phaseStartedAt != null
+            && request.resource.data.finishedAt != null
+          )
+        );
+    }
+
+    function hasOnlyLiveParticipantFields(data) {
+      return data.keys().hasOnly([
+        "userId",
+        "displayName",
+        "photoURL",
+        "joinedAt",
+        "isHost",
+        "connected",
+      ]);
+    }
+
+    function hasCanonicalParticipantProfile(userId) {
+      return request.resource.data.userId == userId
+        && request.resource.data.displayName == userRecord(userId).data.displayName
+        && request.resource.data.photoURL == userRecord(userId).data.photoURL
+        && (request.resource.data.connected == true || request.resource.data.connected == false);
+    }
+
+    match /users/{userId} {
+      allow read: if (isSignedIn() && request.auth.uid == userId) || isActiveMember();
+      allow create: if isSignedIn()
+        && request.auth.uid == userId
+        && request.resource.data.role == "member"
+        && request.resource.data.isActive == true;
+      allow update: if isAdmin()
+        || (
+          isSignedIn()
+          && request.auth.uid == userId
+          && request.resource.data.role == resource.data.role
+          && request.resource.data.isActive == resource.data.isActive
+        );
+    }
+
+    match /questions/{questionId} {
+      allow read: if isActiveMember();
+      allow create, update: if isAdmin()
+        && hasValidQuestionPayload(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /dailyRuns/{dateKey} {
+      allow read: if isActiveMember();
+      allow create, update: if isAdmin()
+        && hasValidDailyRunPayload(request.resource.data, dateKey);
+      allow delete: if isAdmin();
+    }
+
+    match /dailyAnswers/{answerId} {
+      allow read: if isActiveMember();
+      allow create, update: if isActiveMember()
+        && isOwnAnswerDoc(answerId)
+        && hasOnlyDailyAnswerFields(request.resource.data)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.anonymous == false
+        && request.resource.data.questionType == questionRecord(request.resource.data.questionId).data.type
+        && isActiveDailyRun(request.resource.data.dateKey)
+        && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId)
+        && hasValidAnswerPayloadForType(request.resource.data.questionType, request.resource.data);
+      allow delete: if isAdmin()
+        || (isSignedIn() && resource != null && resource.data.userId == request.auth.uid);
+    }
+
+    match /dailyPrivateAnswers/{answerId} {
+      allow read: if isAdmin()
+        || (isActiveMember() && resource != null && resource.data.userId == request.auth.uid)
+        || isOwnAnswerDoc(answerId);
+      allow create, update: if isActiveMember()
+        && isOwnAnswerDoc(answerId)
+        && hasOnlyDailyPrivateAnswerFields(request.resource.data)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.questionType == questionRecord(request.resource.data.questionId).data.type
+        && isActiveDailyRun(request.resource.data.dateKey)
+        && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId)
+        && hasValidAnswerPayloadForType(request.resource.data.questionType, request.resource.data);
+      allow delete: if isAdmin()
+        || (resource != null && isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    match /dailyAnonymousAggregates/{docId} {
+      allow read: if isActiveMember();
+      allow create, update: if isActiveMember()
+        && request.resource.data.dateKey + "_" + request.resource.data.questionId == docId
+        && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId)
+        && hasValidAggregatePayload(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /dailyFirstAnswers/{docId} {
+      allow read: if isActiveMember();
+      allow create: if isActiveMember()
+        && request.resource.data.dateKey + "_" + request.resource.data.questionId == docId
+        && request.resource.data.userId == request.auth.uid
+        && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId);
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    match /liveSessions/{sessionId} {
+      allow read: if isActiveMember();
+      allow create: if isAdmin()
+        && request.resource.data.hostUserId == request.auth.uid
+        && isValidLiveSessionCreate();
+      allow update: if isAdmin()
+        && resource.data.hostUserId == request.auth.uid
+        && isAllowedLiveSessionUpdate();
+      allow delete: if isAdmin() && resource.data.hostUserId == request.auth.uid;
+
+      match /participants/{userId} {
+        allow read: if isActiveMember();
+        allow create: if isActiveMember()
+          && request.auth.uid == userId
+          && hasOnlyLiveParticipantFields(request.resource.data)
+          && hasCanonicalParticipantProfile(userId)
+          && request.resource.data.joinedAt != null
+          && request.resource.data.isHost == (sessionRecord(sessionId).data.hostUserId == request.auth.uid);
+        allow update: if isActiveMember()
+          && request.auth.uid == userId
+          && hasOnlyLiveParticipantFields(request.resource.data)
+          && hasCanonicalParticipantProfile(userId)
+          && request.resource.data.joinedAt == resource.data.joinedAt
+          && request.resource.data.isHost == resource.data.isHost;
+        allow delete: if isAdmin()
+          || (isSignedIn() && request.auth.uid == userId);
+      }
+    }
+
+    match /liveLobbyCodes/{code} {
+      allow read: if isActiveMember();
+      allow create: if isAdmin()
+        && hasValidLobbyCodeCreate(request.resource.data, code);
+      allow update: if isAdmin()
+        && hasValidLobbyCodeUpdate(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /liveAnswers/{answerId} {
+      allow read: if isActiveMember();
+      allow create, update: if isActiveMember()
+        && isOwnAnswerDoc(answerId)
+        && hasOnlyLiveAnswerFields(request.resource.data)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.anonymous == false
+        && request.resource.data.questionIndex >= 0
+        && liveQuestionMatchesSessionItem(
+          request.resource.data.sessionId,
+          request.resource.data.questionIndex,
+          request.resource.data.questionId
+        )
+        && isCurrentLiveQuestion(
+          request.resource.data.sessionId,
+          request.resource.data.questionIndex
+        )
+        && isConnectedSessionParticipant(request.resource.data.sessionId)
+        && hasValidAnswerPayloadForType(
+          questionRecord(request.resource.data.questionId).data.type,
+          request.resource.data
+        );
+      allow delete: if isAdmin()
+        || (resource != null && isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    match /livePrivateAnswers/{answerId} {
+      allow read: if isAdmin()
+        || (isActiveMember() && resource != null && resource.data.userId == request.auth.uid)
+        || isOwnAnswerDoc(answerId);
+      allow create, update: if isActiveMember()
+        && isOwnAnswerDoc(answerId)
+        && hasOnlyLivePrivateAnswerFields(request.resource.data)
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.questionType == questionRecord(request.resource.data.questionId).data.type
+        && request.resource.data.questionIndex >= 0
+        && liveQuestionMatchesSessionItem(
+          request.resource.data.sessionId,
+          request.resource.data.questionIndex,
+          request.resource.data.questionId
+        )
+        && isCurrentLiveQuestion(
+          request.resource.data.sessionId,
+          request.resource.data.questionIndex
+        )
+        && isConnectedSessionParticipant(request.resource.data.sessionId)
+        && hasValidAnswerPayloadForType(request.resource.data.questionType, request.resource.data);
+      allow delete: if isAdmin()
+        || (resource != null && isSignedIn() && resource.data.userId == request.auth.uid);
+    }
+
+    match /liveAnonymousAggregates/{docId} {
+      allow read: if isActiveMember();
+      allow create, update: if isActiveMember()
+        && request.resource.data.sessionId + "_" + request.resource.data.questionIndex == docId
+        && liveQuestionMatchesSessionItem(
+          request.resource.data.sessionId,
+          request.resource.data.questionIndex,
+          request.resource.data.questionId
+        )
+        && isConnectedSessionParticipant(request.resource.data.sessionId)
+        && hasValidAggregatePayload(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /userStats/{userId} {
+      allow read: if isActiveMember();
+      allow create, update: if isAdmin();
+    }
+
+    match /appConfig/{configId} {
+      allow read: if isActiveMember();
+      allow create, update: if isAdmin()
+        && hasValidAppConfigPayload(request.resource.data);
+    }
+  }
+}
