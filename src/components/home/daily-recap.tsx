@@ -5,7 +5,17 @@ import { CategoryBadge } from "@/components/ui/category-badge";
 import { QuestionReveal } from "@/components/daily/question-reveal";
 import type { DailyRecapItem } from "@/lib/types/frontend";
 
-export function DailyRecap({ items }: { items: DailyRecapItem[] }) {
+export function DailyRecap({
+  items,
+  onVoteMemeCaption,
+}: {
+  items: DailyRecapItem[];
+  onVoteMemeCaption?: (
+    item: DailyRecapItem,
+    authorUserId: string,
+    value: boolean,
+  ) => Promise<void>;
+}) {
   if (items.length === 0) return null;
 
   return (
@@ -37,7 +47,15 @@ export function DailyRecap({ items }: { items: DailyRecapItem[] }) {
               <h3 className="text-base font-semibold leading-snug text-sand-900">
                 {item.questionText}
               </h3>
-              <QuestionReveal result={item.result} />
+              <QuestionReveal
+                result={item.result}
+                onVoteMemeCaption={
+                  onVoteMemeCaption
+                    ? (authorUserId, value) =>
+                        onVoteMemeCaption(item, authorUserId, value)
+                    : undefined
+                }
+              />
             </Card>
           </li>
         ))}

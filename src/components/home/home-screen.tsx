@@ -6,9 +6,19 @@ import { ErrorBanner } from "@/components/ui/error-banner";
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { SkeletonCard } from "@/components/ui/skeleton";
 import { LIVE_MODE_ENABLED } from "@/lib/config/features";
-import type { HomeViewState } from "@/lib/types/frontend";
+import type { DailyRecapItem, HomeViewState } from "@/lib/types/frontend";
 
-export function HomeScreen({ state }: { state: HomeViewState }) {
+export function HomeScreen({
+  state,
+  onVoteMemeCaption,
+}: {
+  state: HomeViewState;
+  onVoteMemeCaption?: (
+    item: DailyRecapItem,
+    authorUserId: string,
+    value: boolean,
+  ) => Promise<void>;
+}) {
   if (state.status === "loading") {
     return (
       <div className="space-y-4">
@@ -42,10 +52,16 @@ export function HomeScreen({ state }: { state: HomeViewState }) {
 
       <DailyCallout teaser={state.dailyTeaser} />
       {state.dailyRecap && state.dailyRecap.length > 0 ? (
-        <DailyRecap items={state.dailyRecap} />
+        <DailyRecap
+          items={state.dailyRecap}
+          onVoteMemeCaption={onVoteMemeCaption}
+        />
       ) : null}
       {state.pastDailies && state.pastDailies.length > 0 ? (
-        <PastDailies entries={state.pastDailies} />
+        <PastDailies
+          entries={state.pastDailies}
+          onVoteMemeCaption={onVoteMemeCaption}
+        />
       ) : null}
       {LIVE_MODE_ENABLED ? (
         <LiveCallout

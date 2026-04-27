@@ -17,6 +17,7 @@ export const mockHome: HomeViewState = {
   },
   dailyRecap: [
     {
+      dateKey: "2026-04-23",
       questionId: "q1",
       questionText: "Wer würde am ehesten spontan einen Flug buchen?",
       category: "pure_fun",
@@ -35,6 +36,7 @@ export const mockHome: HomeViewState = {
       },
     },
     {
+      dateKey: "2026-04-23",
       questionId: "q3",
       questionText: "Wer ist spontaner?",
       category: "hot_takes",
@@ -54,6 +56,7 @@ export const mockHome: HomeViewState = {
       status: "closed",
       items: [
         {
+          dateKey: "2026-04-22",
           questionId: "q7",
           questionText: "Wer wäre der beste Roadtrip-Buddy?",
           category: "pure_fun",
@@ -76,6 +79,7 @@ export const mockHome: HomeViewState = {
       status: "closed",
       items: [
         {
+          dateKey: "2026-04-21",
           questionId: "q8",
           questionText: "Würdest du eher nie wieder feiern oder nie wieder verreisen?",
           category: "would_you_rather",

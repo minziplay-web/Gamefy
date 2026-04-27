@@ -9,9 +9,23 @@ import { CategoryBadge } from "@/components/ui/category-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatBerlinDateLabel } from "@/lib/mapping/date";
 import { useDailyViewState } from "@/lib/firebase/daily";
-import type { DailyQuestionCardState, HomePastDailyReview } from "@/lib/types/frontend";
+import type {
+  DailyQuestionCardState,
+  DailyRecapItem,
+  HomePastDailyReview,
+} from "@/lib/types/frontend";
 
-export function PastDailies({ entries }: { entries: HomePastDailyReview[] }) {
+export function PastDailies({
+  entries,
+  onVoteMemeCaption,
+}: {
+  entries: HomePastDailyReview[];
+  onVoteMemeCaption?: (
+    item: DailyRecapItem,
+    authorUserId: string,
+    value: boolean,
+  ) => Promise<void>;
+}) {
   const [openDateKey, setOpenDateKey] = useState<string | null>(entries[0]?.dateKey ?? null);
 
   if (entries.length === 0) {
@@ -77,7 +91,12 @@ export function PastDailies({ entries }: { entries: HomePastDailyReview[] }) {
                 </div>
               </button>
 
-              {open ? <PastDailyReviewContent entry={entry} /> : null}
+              {open ? (
+                <PastDailyReviewContent
+                  entry={entry}
+                  onVoteMemeCaption={onVoteMemeCaption}
+                />
+              ) : null}
             </li>
           );
         })}
@@ -88,8 +107,14 @@ export function PastDailies({ entries }: { entries: HomePastDailyReview[] }) {
 
 function PastDailyReviewContent({
   entry,
+  onVoteMemeCaption,
 }: {
   entry: HomePastDailyReview;
+  onVoteMemeCaption?: (
+    item: DailyRecapItem,
+    authorUserId: string,
+    value: boolean,
+  ) => Promise<void>;
 }) {
   const isIncomplete = entry.totalInRun > 0 && entry.answeredByMe < entry.totalInRun;
 
@@ -146,7 +171,15 @@ function PastDailyReviewContent({
               <h3 className="text-base font-semibold leading-snug text-sand-900">
                 {item.questionText}
               </h3>
-              <QuestionReveal result={item.result} />
+              <QuestionReveal
+                result={item.result}
+                onVoteMemeCaption={
+                  onVoteMemeCaption
+                    ? (authorUserId, value) =>
+                        onVoteMemeCaption(item, authorUserId, value)
+                    : undefined
+                }
+              />
             </Card>
           </li>
         ))}
@@ -180,7 +213,25 @@ function PastDailyReviewContent({
             <h3 className="text-base font-semibold leading-snug text-sand-900">
               {card.question.text}
             </h3>
-            <QuestionReveal result={card.result} />
+            <QuestionReveal
+              result={card.result}
+              onVoteMemeCaption={
+                onVoteMemeCaption
+                  ? (authorUserId, value) =>
+                      onVoteMemeCaption(
+                        {
+                          dateKey: entry.dateKey,
+                          questionId: card.question.questionId,
+                          questionText: card.question.text,
+                          category: card.question.category,
+                          result: card.result,
+                        },
+                        authorUserId,
+                        value,
+                      )
+                  : undefined
+              }
+            />
           </Card>
         </li>
       ))}

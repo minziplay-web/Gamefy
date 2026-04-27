@@ -107,6 +107,7 @@ export interface HomeGreeting {
 }
 
 export interface DailyRecapItem {
+  dateKey: DateKey;
   questionId: QuestionId;
   questionText: string;
   category: Category;

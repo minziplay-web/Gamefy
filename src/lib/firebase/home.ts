@@ -190,6 +190,7 @@ export function useHomeViewState(): HomeViewState {
 
           return [
             {
+              dateKey: runToRender.dateKey,
               questionId: question.questionId,
               questionText: question.text,
               category: question.category,
