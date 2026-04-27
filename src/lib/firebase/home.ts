@@ -199,6 +199,7 @@ export function useHomeViewState(): HomeViewState {
                 myAnswer,
                 publicAnswers: allPublicAnswers.get(reviewKey) ?? [],
                 memeVotes: allMemeVotes.get(reviewKey) ?? [],
+                currentUserId: authState.user.userId,
                 members: memberMap,
               }),
             },

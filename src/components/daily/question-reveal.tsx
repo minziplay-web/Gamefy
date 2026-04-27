@@ -85,6 +85,9 @@ function MemeCaptionReveal({
       );
 
     const winner = ranked[0];
+    const winnerAuthorId = winner.entry.author?.userId;
+    const winnerLocal = winnerAuthorId ? localVotes[winnerAuthorId] : undefined;
+    const winnerLiked = winnerLocal?.iVoted ?? winner.entry.iVoted ?? false;
 
     return (
       <div className="flex flex-col gap-3">
@@ -116,8 +119,14 @@ function MemeCaptionReveal({
                 </span>
               )}
             </div>
-            <span className="anim-heart-glow inline-flex shrink-0 items-center gap-1.5 rounded-full bg-coral px-3 py-1 text-sm font-bold text-white">
-              <span aria-hidden>❤️</span>
+            <span
+              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold ${
+                winnerLiked
+                  ? "anim-heart-glow bg-coral text-white"
+                  : "border border-sand-200 bg-white text-sand-700"
+              }`}
+            >
+              <span aria-hidden>{winnerLiked ? "❤️" : "🤍"}</span>
               <span className="tabular-nums">{winner.count}</span>
             </span>
           </div>
