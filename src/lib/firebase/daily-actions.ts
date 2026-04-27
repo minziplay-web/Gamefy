@@ -18,6 +18,7 @@ import {
 } from "@/lib/firebase/collections";
 import { assertValidDraftForQuestion } from "@/lib/mapping/answer-guards";
 import { resolveDailyRunStatus } from "@/lib/mapping/daily-run";
+import { berlinDateKey } from "@/lib/mapping/date";
 import type {
   AppUser,
   DailyAnswerDraft,
@@ -70,7 +71,9 @@ export async function submitDailyAnswer(params: {
     }
 
     const run = runSnap.data() as DailyRunDoc;
-    if (resolveDailyRunStatus(run) !== "active") {
+    const runStatus = resolveDailyRunStatus(run);
+    const canCatchUpClosedRun = dateKey < berlinDateKey() && runStatus === "closed";
+    if (runStatus !== "active" && !canCatchUpClosedRun) {
       throw new Error("Diese Daily ist nicht mehr aktiv.");
     }
     if (!(run.questionIds ?? []).includes(question.questionId)) {
@@ -91,7 +94,6 @@ export async function submitDailyAnswer(params: {
       questionId: question.questionId,
       userId: user.userId,
       questionType: question.type,
-      anonymous: false,
       ...mapDraftPayload(draft, question),
       createdAt: previousPrivate?.createdAt ?? serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -122,7 +124,6 @@ export async function submitDailyAnswer(params: {
       questionId: question.questionId,
       userId: user.userId,
       questionType: question.type,
-      anonymous: false,
       ...mapDraftPayload(draft, question),
       createdAt: previousPrivate?.createdAt ?? serverTimestamp(),
     };
@@ -167,8 +168,10 @@ export async function submitMemeCaptionVote(params: {
     }
 
     const run = runSnap.data() as DailyRunDoc;
-    if (resolveDailyRunStatus(run) !== "active") {
-      throw new Error("Diese Daily ist nicht mehr aktiv.");
+    const runStatus = resolveDailyRunStatus(run);
+    const canVoteOnClosedRun = dateKey < berlinDateKey() && runStatus === "closed";
+    if (runStatus !== "active" && !canVoteOnClosedRun) {
+      throw new Error("Für diese Daily können keine Herzen mehr vergeben werden.");
     }
     if (!(run.questionIds ?? []).includes(questionId)) {
       throw new Error("Diese Frage gehört nicht mehr zum aktuellen Daily-Run.");
@@ -194,6 +197,8 @@ function mapDraftPayload(draft: DailyAnswerDraft, question: DailyQuestion) {
   switch (draft.type) {
     case "single_choice":
       return { selectedUserId: draft.selectedUserId };
+    case "multi_choice":
+      return { selectedUserIds: draft.selectedUserIds };
     case "open_text":
       return { textAnswer: draft.textAnswer.trim() };
     case "duel_1v1":
