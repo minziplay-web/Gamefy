@@ -16,7 +16,6 @@ export interface QuestionDoc {
   text: string;
   category: Category;
   type: QuestionType;
-  anonymous: boolean;
   targetMode: TargetMode;
   active: boolean;
   dailyLocked?: boolean;
@@ -34,7 +33,6 @@ export interface DailyRunItemDoc {
   questionSnapshot?: {
     text: string;
     category: Category;
-    anonymous: boolean;
     options?: string[];
     imagePath?: string;
   };
@@ -63,8 +61,8 @@ export interface DailyAnswerDoc {
   questionId: string;
   userId: string;
   questionType: QuestionType;
-  anonymous: false;
   selectedUserId?: string;
+  selectedUserIds?: string[];
   selectedOptionIndex?: number;
   selectedSide?: "left" | "right";
   selectedTeam?: "teamA" | "teamB";
@@ -82,8 +80,8 @@ export interface DailyPrivateAnswerDoc {
   questionId: string;
   userId: string;
   questionType: QuestionType;
-  anonymous: boolean;
   selectedUserId?: string;
+  selectedUserIds?: string[];
   selectedOptionIndex?: number;
   selectedSide?: "left" | "right";
   selectedTeam?: "teamA" | "teamB";
@@ -94,20 +92,6 @@ export interface DailyPrivateAnswerDoc {
     teamB?: string[];
   };
   createdAt?: unknown;
-  updatedAt?: unknown;
-}
-
-export interface DailyAnonymousAggregateDoc {
-  dateKey: string;
-  questionId: string;
-  questionType: QuestionType;
-  counts?: Record<string, number>;
-  textAnswers?: string[];
-  duelContext?: {
-    memberIds?: string[];
-    teamA?: string[];
-    teamB?: string[];
-  };
   updatedAt?: unknown;
 }
 
@@ -181,8 +165,8 @@ export interface LiveAnswerDoc {
   questionId: string;
   questionIndex: number;
   userId: string;
-  anonymous: false;
   selectedUserId?: string;
+  selectedUserIds?: string[];
   selectedOptionIndex?: number;
   selectedSide?: "left" | "right";
   selectedTeam?: "teamA" | "teamB";
@@ -201,8 +185,8 @@ export interface LivePrivateAnswerDoc {
   questionIndex: number;
   userId: string;
   questionType: QuestionType;
-  anonymous: boolean;
   selectedUserId?: string;
+  selectedUserIds?: string[];
   selectedOptionIndex?: number;
   selectedSide?: "left" | "right";
   selectedTeam?: "teamA" | "teamB";
@@ -213,21 +197,6 @@ export interface LivePrivateAnswerDoc {
     teamB?: string[];
   };
   submittedAt?: unknown;
-  updatedAt?: unknown;
-}
-
-export interface LiveAnonymousAggregateDoc {
-  sessionId: string;
-  questionId: string;
-  questionIndex: number;
-  questionType: QuestionType;
-  counts?: Record<string, number>;
-  textAnswers?: string[];
-  duelContext?: {
-    memberIds?: string[];
-    teamA?: string[];
-    teamB?: string[];
-  };
   updatedAt?: unknown;
 }
 

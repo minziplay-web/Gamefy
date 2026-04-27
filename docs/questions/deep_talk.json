@@ -3,119 +3,102 @@
     "text": "Was schätzt du am meisten an unserer Gruppe?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Welche Seite von dir zeigst du in der Gruppe bisher nicht?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Was war bisher dein schwierigster Moment und wer hat dir geholfen?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wofür schämst du dich, obwohl du es eigentlich nicht müsstest?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wann hast du dich zuletzt richtig stolz auf dich selbst gefühlt?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Was hättest du gerne schon mit 18 gewusst?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wovor hast du insgeheim am meisten Angst?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Was ist dein größter unerfüllter Wunsch?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Gibt es etwas, wofür du dir selbst nie verziehen hast?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Welche Lüge erzählst du dir selbst am häufigsten?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Was würdest du jemandem sagen wollen, der nicht mehr da ist?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Was glaubst du, denken die anderen wirklich über dich?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Welche Phase deines Lebens würdest du gern noch einmal erleben?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wovon redest du selten, obwohl es dich oft beschäftigt?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wer wirkt nach außen stark, ist aber eigentlich verletzlich?",
     "category": "deep_talk",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Welche peinliche Sache aus deiner Vergangenheit beschäftigt dich heute noch?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Was war die dümmste Aktion, die du je deinem besten Freund gestanden hast?",
     "category": "deep_talk",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   }
 ]

@@ -2,11 +2,9 @@ import { berlinDateKey, compareDateKeys, shiftDateKey } from "@/lib/mapping/date
 import { resolveDailyRunStatus } from "@/lib/mapping/daily-run";
 import type { DateKey } from "@/lib/types/frontend";
 import type {
-  DailyAnonymousAggregateDoc,
   DailyAnswerDoc,
   DailyRunItemDoc,
   DailyRunDoc,
-  LiveAnonymousAggregateDoc,
   LiveAnswerDoc,
   LiveSessionDoc,
 } from "@/lib/types/firestore";
@@ -81,19 +79,15 @@ export function computeDuelStats(params: {
   userId: string;
   dailyRuns: DailyRunDoc[];
   dailyAnswers: DailyAnswerDoc[];
-  dailyAnonymousAggregates: DailyAnonymousAggregateDoc[];
   liveSessions: Array<LiveSessionDoc & { id: string }>;
   liveAnswers: LiveAnswerDoc[];
-  liveAnonymousAggregates: LiveAnonymousAggregateDoc[];
 }): DuelStats {
   const {
     userId,
     dailyRuns,
     dailyAnswers,
-    dailyAnonymousAggregates,
     liveSessions,
     liveAnswers,
-    liveAnonymousAggregates,
   } = params;
 
   let wins = 0;
@@ -106,13 +100,6 @@ export function computeDuelStats(params: {
     list.push(answer);
     dailyAnswersByKey.set(key, list);
   }
-
-  const dailyAggregatesByKey = new Map<string, DailyAnonymousAggregateDoc>(
-    dailyAnonymousAggregates.map((aggregate) => [
-      `${aggregate.dateKey}_${aggregate.questionId}`,
-      aggregate,
-    ]),
-  );
 
   for (const run of dailyRuns) {
     if (resolveDailyRunStatus(run) !== "closed") {
@@ -129,7 +116,6 @@ export function computeDuelStats(params: {
       const outcome = getDuelOutcome({
         type: item.type,
         side,
-        aggregateCounts: dailyAggregatesByKey.get(key)?.counts,
         publicAnswers: dailyAnswersByKey.get(key),
       });
 
@@ -149,13 +135,6 @@ export function computeDuelStats(params: {
     liveAnswersByKey.set(key, list);
   }
 
-  const liveAggregatesByKey = new Map<string, LiveAnonymousAggregateDoc>(
-    liveAnonymousAggregates.map((aggregate) => [
-      `${aggregate.sessionId}_${aggregate.questionIndex}`,
-      aggregate,
-    ]),
-  );
-
   for (const session of liveSessions) {
     if (session.status !== "finished") {
       continue;
@@ -171,7 +150,6 @@ export function computeDuelStats(params: {
       const outcome = getDuelOutcome({
         type: item.type,
         side,
-        aggregateCounts: liveAggregatesByKey.get(key)?.counts,
         publicAnswers: liveAnswersByKey.get(key),
       });
 
@@ -271,18 +249,13 @@ function getUserDuelSide(
 function getDuelOutcome(params: {
   type: DailyAnswerDoc["questionType"];
   side: "left" | "right" | "teamA" | "teamB";
-  aggregateCounts?: Record<string, number>;
   publicAnswers?: Array<Pick<DailyAnswerDoc, "selectedSide" | "selectedTeam">>;
 }) {
-  const { type, side, aggregateCounts, publicAnswers = [] } = params;
+  const { type, side, publicAnswers = [] } = params;
 
   if (type === "duel_1v1") {
-    const leftVotes =
-      aggregateCounts?.left ??
-      publicAnswers.filter((answer) => answer.selectedSide === "left").length;
-    const rightVotes =
-      aggregateCounts?.right ??
-      publicAnswers.filter((answer) => answer.selectedSide === "right").length;
+    const leftVotes = publicAnswers.filter((answer) => answer.selectedSide === "left").length;
+    const rightVotes = publicAnswers.filter((answer) => answer.selectedSide === "right").length;
 
     return resolveSideOutcome({
       mine: side === "left" ? leftVotes : rightVotes,
@@ -291,12 +264,8 @@ function getDuelOutcome(params: {
   }
 
   if (type === "duel_2v2") {
-    const teamAVotes =
-      aggregateCounts?.teamA ??
-      publicAnswers.filter((answer) => answer.selectedTeam === "teamA").length;
-    const teamBVotes =
-      aggregateCounts?.teamB ??
-      publicAnswers.filter((answer) => answer.selectedTeam === "teamB").length;
+    const teamAVotes = publicAnswers.filter((answer) => answer.selectedTeam === "teamA").length;
+    const teamBVotes = publicAnswers.filter((answer) => answer.selectedTeam === "teamB").length;
 
     return resolveSideOutcome({
       mine: side === "teamA" ? teamAVotes : teamBVotes,

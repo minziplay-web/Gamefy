@@ -1,6 +1,5 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { CountdownRing } from "@/components/ui/countdown-ring";
@@ -31,11 +30,6 @@ export function LobbyLiveQuestion({
           </p>
           <div className="flex flex-wrap items-center gap-2">
             <CategoryBadge category={view.question.category} size="sm" />
-            {view.question.anonymous ? (
-              <Badge tone="neutral" size="sm">
-                Anonym
-              </Badge>
-            ) : null}
           </div>
         </div>
         <CountdownRing timing={countdown} />

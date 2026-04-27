@@ -10,6 +10,7 @@ import type {
 const TYPE_OPTIONS: Array<{ value: QuestionType | "all"; label: string }> = [
   { value: "all", label: "Alle Typen" },
   { value: "single_choice", label: "Single Choice" },
+  { value: "multi_choice", label: "Multi Choice" },
   { value: "open_text", label: "Freitext" },
   { value: "duel_1v1", label: "1v1" },
   { value: "duel_2v2", label: "2v2" },

@@ -31,7 +31,6 @@ export const mockLobby: LobbyViewState = {
         totalInRun: 8,
         type: "duel_1v1",
         category: "hot_takes",
-        anonymous: true,
         text: "Wer ist spontaner?",
         left: mockMembers[0],
         right: mockMembers[2],

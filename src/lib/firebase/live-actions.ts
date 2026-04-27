@@ -13,7 +13,6 @@ import {
 } from "firebase/firestore";
 
 import {
-  liveAnonymousAggregateDoc,
   liveAnswerDoc,
   liveLobbyCodeDoc,
   liveParticipantDoc,
@@ -40,7 +39,6 @@ import type {
 import type {
   DailyRunItemDoc,
   LiveAnswerDoc,
-  LiveAnonymousAggregateDoc,
   LiveLobbyCodeDoc,
   LiveParticipantDoc,
   LivePrivateAnswerDoc,
@@ -530,25 +528,18 @@ export async function submitLiveAnswer(params: {
   const answerId = `${sessionId}_${questionIndex}_${user.userId}`;
   const privateRef = livePrivateAnswerDoc(answerId);
   const publicRef = liveAnswerDoc(answerId);
-  const aggregateRef = liveAnonymousAggregateDoc(`${sessionId}_${questionIndex}`);
 
-  if (!privateRef || !publicRef || !aggregateRef) {
+  if (!privateRef || !publicRef) {
     throw new Error("Firestore ist nicht verfügbar.");
   }
 
   assertValidDraftForQuestion(question, draft);
 
   await runTransaction(privateRef.firestore, async (transaction) => {
-    const [previousPrivateSnap, aggregateSnap] = await Promise.all([
-      transaction.get(privateRef),
-      question.anonymous ? transaction.get(aggregateRef) : Promise.resolve(null),
-    ]);
+    const previousPrivateSnap = await transaction.get(privateRef);
 
     const previousPrivate = previousPrivateSnap.exists()
       ? (previousPrivateSnap.data() as LivePrivateAnswerDoc)
-      : null;
-    const aggregate = aggregateSnap?.exists()
-      ? (aggregateSnap.data() as LiveAnonymousAggregateDoc)
       : null;
 
     const nextPrivate: LivePrivateAnswerDoc = {
@@ -557,7 +548,6 @@ export async function submitLiveAnswer(params: {
       questionIndex,
       userId: user.userId,
       questionType: question.type,
-      anonymous: question.anonymous,
       ...mapDraftPayload(draft, question),
       submittedAt: previousPrivate?.submittedAt ?? serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -565,29 +555,15 @@ export async function submitLiveAnswer(params: {
 
     transaction.set(privateRef, nextPrivate, { merge: true });
 
-    if (question.anonymous) {
-      const previousDraft = previousPrivate ? mapPrivateAnswerToDraft(previousPrivate) : undefined;
-      const nextAggregate = buildNextAnonymousAggregate({
-        current: aggregate,
-        previousDraft,
-        nextDraft: draft,
-        question,
-        sessionId,
-        questionIndex,
-      });
-      transaction.set(aggregateRef, nextAggregate, { merge: true });
-    } else {
-      const nextPublic: LiveAnswerDoc = {
-        sessionId,
-        questionId: question.questionId,
-        questionIndex,
-        userId: user.userId,
-        anonymous: false,
-        ...mapDraftPayload(draft, question),
-        submittedAt: previousPrivate?.submittedAt ?? serverTimestamp(),
-      };
-      transaction.set(publicRef, nextPublic, { merge: true });
-    }
+    const nextPublic: LiveAnswerDoc = {
+      sessionId,
+      questionId: question.questionId,
+      questionIndex,
+      userId: user.userId,
+      ...mapDraftPayload(draft, question),
+      submittedAt: previousPrivate?.submittedAt ?? serverTimestamp(),
+    };
+    transaction.set(publicRef, nextPublic, { merge: true });
   });
 }
 
@@ -765,6 +741,8 @@ function mapDraftPayload(draft: DailyAnswerDraft, question: DailyQuestion) {
   switch (draft.type) {
     case "single_choice":
       return { selectedUserId: draft.selectedUserId };
+    case "multi_choice":
+      return { selectedUserIds: draft.selectedUserIds };
     case "open_text":
       return { textAnswer: draft.textAnswer.trim() };
     case "duel_1v1":
@@ -784,106 +762,6 @@ function mapDraftPayload(draft: DailyAnswerDraft, question: DailyQuestion) {
   }
 }
 
-function mapPrivateAnswerToDraft(answer: LivePrivateAnswerDoc): DailyAnswerDraft {
-  switch (answer.questionType) {
-    case "single_choice":
-      return {
-        type: "single_choice",
-        questionId: answer.questionId,
-        selectedUserId: answer.selectedUserId,
-      };
-    case "open_text":
-      return {
-        type: "open_text",
-        questionId: answer.questionId,
-        textAnswer: answer.textAnswer ?? "",
-      };
-    case "duel_1v1":
-      return {
-        type: "duel_1v1",
-        questionId: answer.questionId,
-        selectedSide: answer.selectedSide,
-      };
-    case "duel_2v2":
-      return {
-        type: "duel_2v2",
-        questionId: answer.questionId,
-        selectedTeam: answer.selectedTeam,
-      };
-    case "either_or":
-      return {
-        type: "either_or",
-        questionId: answer.questionId,
-        selectedOptionIndex:
-          answer.selectedOptionIndex === 0 || answer.selectedOptionIndex === 1
-            ? answer.selectedOptionIndex
-            : undefined,
-      };
-    case "meme_caption":
-      return {
-        type: "meme_caption",
-        questionId: answer.questionId,
-        textAnswer: answer.textAnswer ?? "",
-      };
-  }
-}
-
-function buildNextAnonymousAggregate(params: {
-  current: LiveAnonymousAggregateDoc | null;
-  previousDraft?: DailyAnswerDraft;
-  nextDraft: DailyAnswerDraft;
-  question: DailyQuestion;
-  sessionId: string;
-  questionIndex: number;
-}): LiveAnonymousAggregateDoc {
-  const { current, previousDraft, nextDraft, question, sessionId, questionIndex } =
-    params;
-  const counts = { ...(current?.counts ?? {}) };
-  const texts = [...(current?.textAnswers ?? [])];
-
-  const previousKey = previousDraft ? getAggregateCountKey(previousDraft) : undefined;
-  const nextKey = getAggregateCountKey(nextDraft);
-
-  if (previousKey && previousKey !== nextKey) {
-    counts[previousKey] = Math.max(0, (counts[previousKey] ?? 0) - 1);
-  }
-
-  if (nextKey) {
-    const increment = previousKey === nextKey ? 0 : 1;
-    counts[nextKey] = (counts[nextKey] ?? 0) + increment;
-  }
-
-  if (previousDraft?.type === "open_text" && previousDraft.textAnswer.trim()) {
-    removeOne(texts, previousDraft.textAnswer.trim());
-  }
-
-  if (nextDraft.type === "open_text" && nextDraft.textAnswer.trim()) {
-    texts.push(nextDraft.textAnswer.trim());
-  }
-
-  const nextAggregate: LiveAnonymousAggregateDoc = {
-    sessionId,
-    questionId: question.questionId,
-    questionIndex,
-    questionType: question.type,
-    counts,
-    updatedAt: serverTimestamp(),
-  };
-
-  if (question.type === "open_text") {
-    nextAggregate.textAnswers = texts;
-  } else if (current?.textAnswers) {
-    nextAggregate.textAnswers = current.textAnswers;
-  }
-
-  const duelContext = extractDuelContext(question);
-  if (duelContext) {
-    nextAggregate.duelContext = duelContext;
-  }
-
-  return nextAggregate;
-}
-
 function extractDuelContext(question: DailyQuestion) {
   if (question.type === "duel_1v1") {
     return {
@@ -899,30 +777,4 @@ function extractDuelContext(question: DailyQuestion) {
   }
 
   return undefined;
-}
-
-function getAggregateCountKey(draft: DailyAnswerDraft) {
-  switch (draft.type) {
-    case "single_choice":
-      return draft.selectedUserId;
-    case "duel_1v1":
-      return draft.selectedSide;
-    case "duel_2v2":
-      return draft.selectedTeam;
-    case "either_or":
-      return draft.selectedOptionIndex !== undefined
-        ? `option_${draft.selectedOptionIndex}`
-        : undefined;
-    case "open_text":
-      return undefined;
-    case "meme_caption":
-      return undefined;
-  }
-}
-
-function removeOne(values: string[], target: string) {
-  const index = values.indexOf(target);
-  if (index >= 0) {
-    values.splice(index, 1);
-  }
 }

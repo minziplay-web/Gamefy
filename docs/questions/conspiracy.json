@@ -3,77 +3,66 @@
     "text": "Wer glaubt heimlich am ehesten, dass die Mondlandung gefakt war?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat am ehesten eine YouTube-Watch-History voller dubioser Doku-Theorien?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde nach drei Bier am ehesten von Reptiloiden anfangen?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer könnte am ehesten Mitglied einer geheimen Loge sein und es nie zugeben?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat am ehesten Aluhut-Energie, ohne es zu merken?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde 5G ernsthaft für mehr halten als nur schnelles Internet?",
     "category": "conspiracy",
     "type": "duel_1v1",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat am ehesten schon mal ernsthaft den Begriff 'Lügenpresse' genutzt?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wäre am ehesten in einem Discord-Server für Flat-Earther aktiv?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer fällt am schnellsten auf eine WhatsApp-Kettennachricht rein?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde nach einem Espresso ungefragt erklären, wer wirklich Kennedy erschossen hat?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Würdet ihr eher glauben, dass Vögel Drohnen sind oder dass Pilze die Erde regieren?",
     "category": "conspiracy",
     "type": "either_or",
-    "anonymous": false,
     "targetMode": "both",
     "options": [
       "Vögel sind Drohnen",
@@ -84,49 +73,42 @@
     "text": "Wer würde am ehesten vor einer Sonnenfinsternis schnell Konserven hamstern?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat am ehesten heimlich Angst, dass das WLAN ihn überwacht?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wäre der überraschendste Insider in einer geheimen Verschwörung der Gruppe?",
     "category": "conspiracy",
     "type": "duel_1v1",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat schon mal eine wirre Theorie so überzeugend vorgetragen, dass alle kurz unsicher waren?",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Welche absurde Theorie würdest du heimlich gerne wahr finden?",
     "category": "conspiracy",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wer würde eher bei einem Klopfgeräusch denken: 'Das war Geheimdienst.'",
     "category": "conspiracy",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Würdest du eher erfahren, dass Aliens unter uns leben oder dass alle Promis nur AIs sind?",
     "category": "conspiracy",
     "type": "either_or",
-    "anonymous": false,
     "targetMode": "both",
     "options": [
       "Aliens unter uns",

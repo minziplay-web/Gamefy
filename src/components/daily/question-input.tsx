@@ -10,6 +10,7 @@ import type {
   Duel2v2Question,
   EitherOrQuestion,
   MemeCaptionQuestion,
+  MultiChoiceQuestion,
   OpenTextQuestion,
   SingleChoiceQuestion,
 } from "@/lib/types/frontend";
@@ -28,6 +29,15 @@ export function QuestionInput({ question, draft, disabled, onDraftChange }: Prop
         <SingleChoiceInput
           question={question}
           draft={draft as Extract<DailyAnswerDraft, { type: "single_choice" }> | undefined}
+          disabled={disabled}
+          onDraftChange={onDraftChange}
+        />
+      );
+    case "multi_choice":
+      return (
+        <MultiChoiceInput
+          question={question}
+          draft={draft as Extract<DailyAnswerDraft, { type: "multi_choice" }> | undefined}
           disabled={disabled}
           onDraftChange={onDraftChange}
         />
@@ -122,6 +132,77 @@ function SingleChoiceInput({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function MultiChoiceInput({
+  question,
+  draft,
+  disabled,
+  onDraftChange,
+}: {
+  question: MultiChoiceQuestion;
+  draft?: Extract<DailyAnswerDraft, { type: "multi_choice" }>;
+  disabled?: boolean;
+  onDraftChange: (next: DailyAnswerDraft) => void;
+}) {
+  const selected = new Set(draft?.selectedUserIds ?? []);
+
+  const toggle = (userId: string) => {
+    const next = new Set(selected);
+    if (next.has(userId)) {
+      next.delete(userId);
+    } else {
+      next.add(userId);
+    }
+    onDraftChange({
+      type: "multi_choice",
+      questionId: question.questionId,
+      selectedUserIds: Array.from(next),
+    });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between text-xs text-sand-500">
+        <span>Mehrfachauswahl möglich</span>
+        <span className="font-semibold tabular-nums text-sand-700">
+          {selected.size} gewählt
+        </span>
+      </div>
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {question.candidates.map((candidate) => {
+          const active = selected.has(candidate.userId);
+          return (
+            <button
+              key={candidate.userId}
+              type="button"
+              disabled={disabled}
+              aria-pressed={active}
+              onClick={() => toggle(candidate.userId)}
+              className={`relative flex min-h-28 flex-col items-center justify-center gap-2.5 rounded-2xl border-2 p-3 text-sm font-medium text-center transition ${
+                active
+                  ? "border-coral bg-coral/5 text-sand-900"
+                  : "border-sand-100 bg-white text-sand-700 hover:border-sand-200"
+              } disabled:opacity-60`}
+            >
+              {active ? (
+                <span
+                  aria-hidden
+                  className="absolute right-1.5 top-1.5 inline-flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-bold text-white"
+                >
+                  ✓
+                </span>
+              ) : null}
+              <AvatarCircle member={candidate} size="md" />
+              <span className="line-clamp-2 text-xs font-semibold leading-snug text-sand-800">
+                {candidate.displayName}
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }

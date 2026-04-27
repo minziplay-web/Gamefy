@@ -19,6 +19,7 @@ export type Category =
 
 export type QuestionType =
   | "single_choice"
+  | "multi_choice"
   | "open_text"
   | "duel_1v1"
   | "duel_2v2"
@@ -109,7 +110,6 @@ export interface DailyRecapItem {
   questionId: QuestionId;
   questionText: string;
   category: Category;
-  anonymous: boolean;
   result: QuestionResult;
 }
 
@@ -145,11 +145,15 @@ interface DailyQuestionBase {
   totalInRun: number;
   text: string;
   category: Category;
-  anonymous: boolean;
 }
 
 export interface SingleChoiceQuestion extends DailyQuestionBase {
   type: "single_choice";
+  candidates: MemberLite[];
+}
+
+export interface MultiChoiceQuestion extends DailyQuestionBase {
+  type: "multi_choice";
   candidates: MemberLite[];
 }
 
@@ -183,6 +187,7 @@ export interface MemeCaptionQuestion extends DailyQuestionBase {
 
 export type DailyQuestion =
   | SingleChoiceQuestion
+  | MultiChoiceQuestion
   | OpenTextQuestion
   | Duel1v1Question
   | Duel2v2Question
@@ -191,6 +196,7 @@ export type DailyQuestion =
 
 export type DailyAnswerDraft =
   | { type: "single_choice"; questionId: QuestionId; selectedUserId?: UserId }
+  | { type: "multi_choice"; questionId: QuestionId; selectedUserIds: UserId[] }
   | { type: "open_text"; questionId: QuestionId; textAnswer: string }
   | { type: "duel_1v1"; questionId: QuestionId; selectedSide?: "left" | "right" }
   | { type: "duel_2v2"; questionId: QuestionId; selectedTeam?: "teamA" | "teamB" }
@@ -200,7 +206,6 @@ export type DailyAnswerDraft =
 export interface SingleChoiceResult {
   questionType: "single_choice";
   totalVotes: number;
-  anonymous: boolean;
   counts: Array<{
     candidate: MemberLite;
     votes: number;
@@ -213,9 +218,23 @@ export interface SingleChoiceResult {
   }>;
 }
 
+export interface MultiChoiceResult {
+  questionType: "multi_choice";
+  totalVoters: number;
+  counts: Array<{
+    candidate: MemberLite;
+    votes: number;
+    percent: number;
+  }>;
+  myChoiceUserIds?: UserId[];
+  voterRows?: Array<{
+    voter: MemberLite;
+    target: MemberLite;
+  }>;
+}
+
 export interface OpenTextResult {
   questionType: "open_text";
-  anonymous: boolean;
   entries: Array<{
     text: string;
     author?: MemberLite;
@@ -224,7 +243,6 @@ export interface OpenTextResult {
 
 export interface Duel1v1Result {
   questionType: "duel_1v1";
-  anonymous: boolean;
   left: { member: MemberLite; votes: number; percent: number };
   right: { member: MemberLite; votes: number; percent: number };
   myChoice?: "left" | "right";
@@ -236,7 +254,6 @@ export interface Duel1v1Result {
 
 export interface Duel2v2Result {
   questionType: "duel_2v2";
-  anonymous: boolean;
   teamA: { members: [MemberLite, MemberLite]; votes: number; percent: number };
   teamB: { members: [MemberLite, MemberLite]; votes: number; percent: number };
   myChoice?: "teamA" | "teamB";
@@ -248,7 +265,6 @@ export interface Duel2v2Result {
 
 export interface EitherOrResult {
   questionType: "either_or";
-  anonymous: boolean;
   options: [
     { label: string; votes: number; percent: number },
     { label: string; votes: number; percent: number },
@@ -262,7 +278,6 @@ export interface EitherOrResult {
 
 export interface MemeCaptionResult {
   questionType: "meme_caption";
-  anonymous: boolean;
   imagePath: string;
   entries: Array<{
     text: string;
@@ -274,6 +289,7 @@ export interface MemeCaptionResult {
 
 export type QuestionResult =
   | SingleChoiceResult
+  | MultiChoiceResult
   | OpenTextResult
   | Duel1v1Result
   | Duel2v2Result
@@ -389,8 +405,7 @@ export interface LiveFinishedSummary {
     questionIndex: number;
     questionText: string;
     category: Category;
-    anonymous: boolean;
-    result: QuestionResult;
+      result: QuestionResult;
   }>;
 }
 
@@ -489,7 +504,6 @@ export interface AdminQuestionRow {
   text: string;
   category: Category;
   type: QuestionType;
-  anonymous: boolean;
   targetMode: TargetMode;
   active: boolean;
   dailyLocked: boolean;
@@ -542,7 +556,6 @@ export interface AdminDailyDiagnostics {
     playableItems: number;
     publicAnswers: number;
     privateAnswers: number;
-    anonymousAggregates: number;
     firstAnswerLocks: number;
   };
   issues: AdminDiagnosticIssue[];
@@ -554,7 +567,6 @@ export interface AdminRunActionResult {
   questionCount: number;
   deletedPublicAnswers: number;
   deletedPrivateAnswers: number;
-  deletedAnonymousAggregates: number;
   deletedFirstAnswerLocks: number;
 }
 
@@ -562,8 +574,13 @@ export interface AdminDailyDeleteResult {
   dateKey: DateKey;
   deletedPublicAnswers: number;
   deletedPrivateAnswers: number;
-  deletedAnonymousAggregates: number;
   deletedFirstAnswerLocks: number;
+}
+
+export interface AdminQuestionImportResult {
+  importedCount: number;
+  updatedCount: number;
+  skippedCount: number;
 }
 
 export interface AdminConfigDraft {
@@ -587,6 +604,7 @@ export type AdminViewState =
         filter: AdminQuestionFilter;
         importStatus: "idle" | "importing" | "success" | "error";
         importError?: string;
+        importMessage?: string;
       };
       dailyRuns: AdminDailyRunRow[];
       members: AdminMemberRow[];

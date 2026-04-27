@@ -3,119 +3,102 @@
     "text": "Wer verdient in zehn Jahren das meiste Geld?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde am ehesten morgen kündigen und ein Jahr Pause machen?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat den schrägsten Lebenstraum?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wird mit 40 immer noch jedes Wochenende feiern?",
     "category": "career_life",
     "type": "duel_1v1",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wird als Erster ein eigenes Business haben?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wandert am ehesten aus?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer bricht als Erster alles ab und startet komplett neu?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer arbeitet mit 65 noch, weil er nicht loslassen kann?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wird am ehesten im Lotto gewinnen und es keinem erzählen?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer könnte am ehesten in einem TED-Talk frei sprechen?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde sich für Ruhm auf Trash-TV blamieren?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wird am ehesten Reise-Influencer?",
     "category": "career_life",
     "type": "duel_1v1",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Was wäre dein eigentlicher Traumjob, wenn Geld keine Rolle spielen würde?",
     "category": "career_life",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Was würdest du tun, wenn du plötzlich Millionär wärst?",
     "category": "career_life",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wer würde am ehesten beim Vorstellungsgespräch falsch grüßen?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat schon mal in einer Mail aus Versehen den Chef geduzt?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat sich schon mal so blamiert, dass er den Job fast hingeschmissen hätte?",
     "category": "career_life",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   }
 ]

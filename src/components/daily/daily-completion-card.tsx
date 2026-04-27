@@ -20,13 +20,18 @@ export function DailyCompletionCard({
 
   return (
     <Card className="space-y-5 text-center">
-      <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-coral-soft text-2xl">
-        <span aria-hidden>{allAnswered ? "🎉" : "👋"}</span>
+      <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-coral text-3xl text-white shadow-card-flat">
+        <span aria-hidden>{allAnswered ? "✓" : "…"}</span>
       </div>
       <div className="space-y-2">
+        {allAnswered ? (
+          <p className="mx-auto inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+            Alles gespeichert
+          </p>
+        ) : null}
         <h2 className="text-xl font-semibold leading-tight text-sand-900">
           {allAnswered
-            ? "Fertig für heute!"
+            ? "Daily erfolgreich abgeschlossen"
             : missing === 1
               ? "Eine Frage fehlt dir noch"
               : `Noch ${missing} Fragen offen`}
@@ -34,16 +39,21 @@ export function DailyCompletionCard({
         <p className="text-sm leading-relaxed text-sand-700">
           {allAnswered
             ? revealPolicy === "after_answer"
-              ? "Du hast alle Fragen beantwortet. Morgen gibt es neue."
-              : "Alle Antworten gespeichert. Ergebnisse erscheinen nach Tagesende."
+              ? "Alle Antworten wurden abgeschickt und sicher gespeichert. Du kannst jetzt entspannt zurück zur Startseite."
+              : "Alle Antworten wurden abgeschickt und sicher gespeichert. Die Ergebnisse erscheinen nach Tagesende."
             : "Du kannst jederzeit zurück und die offenen Fragen beantworten."}
         </p>
       </div>
-      <p className="rounded-2xl bg-sand-50 px-4 py-3 text-sm font-semibold tabular-nums text-sand-800">
-        {answered} von {total} beantwortet
-      </p>
+      <div className="rounded-2xl bg-sand-50 px-4 py-4">
+        <p className="text-lg font-semibold tabular-nums text-sand-900">
+          {answered} / {total}
+        </p>
+        <p className="mt-1 text-xs font-medium uppercase tracking-[0.14em] text-sand-500">
+          Antworten gespeichert
+        </p>
+      </div>
       <Link href="/" className="block">
-        <Button className="w-full" variant="secondary">
+        <Button className="w-full" variant={allAnswered ? "primary" : "secondary"}>
           Zurück zum Home
         </Button>
       </Link>

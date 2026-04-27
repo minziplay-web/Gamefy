@@ -3,56 +3,48 @@
     "text": "Wer hat am ehesten schon mal in der Öffentlichkeit gefickt?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wäre im Bett am wildesten?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wäre überraschend gefühlvoll im Bett?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat am ehesten schon mal jemanden aus der Gruppe sexuell attraktiv gefunden?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wer hätte am ehesten Bock auf einen Dreier?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer schaut am meisten Porno?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat die wildeste Sex-Story zu erzählen?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Würdest du eher Sex mit deinem Ex oder mit einem Freund deines Ex?",
     "category": "dirty",
     "type": "either_or",
-    "anonymous": false,
     "targetMode": "both",
     "options": [
       "Mit dem Ex",
@@ -63,63 +55,54 @@
     "text": "Wer hatte den peinlichsten ersten Sex?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wer hatte am ehesten schon Sex im Elternhaus, während die Eltern da waren?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer ist am ehesten ein heimlicher BDSM-Fan?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat das exotischste Porno-Genre im Verlauf?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer landet als Erster im Swingerclub?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat am ehesten schon Geld für Sex bezahlt oder bekommen?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wer hatte am ehesten neulich ein richtiges Sex-Comeback nach langer Pause?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wäre am ehesten der laute Stöhner?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Würdest du eher Sex mit jemandem aus der Gruppe oder mit deinem Chef haben?",
     "category": "dirty",
     "type": "either_or",
-    "anonymous": false,
     "targetMode": "both",
     "options": [
       "Mit jemandem aus der Gruppe",
@@ -130,42 +113,36 @@
     "text": "Wer ruft beim Sex am ehesten den falschen Namen?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat schon mal beim Sex spontan losgelacht?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer ist schon mal beim Klick auf ein zwielichtiges Video erwischt worden?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat schon mal ein Sex-Spielzeug gekauft und es danach nie benutzt?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat schon mal beim Sex aus Versehen den falschen Namen genannt?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde Pornos am ehesten wie eine Sportübertragung kommentieren?",
     "category": "dirty",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   }
 ]

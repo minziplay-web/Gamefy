@@ -128,13 +128,11 @@ const finishedSummary: LiveFinishedSummary = {
           questionIndex: idx,
           questionText: card.question.text,
           category: card.question.category,
-          anonymous: card.question.anonymous,
           result:
             card.phase === "revealed"
               ? card.result
               : {
                   questionType: "single_choice",
-                  anonymous: card.question.anonymous,
                   totalVotes: 5,
                   myChoiceUserId: mockMembers[0].userId,
                   counts: mockMembers.slice(0, 5).map((candidate, i) => ({
@@ -192,7 +190,6 @@ export const lobbyVariants: Record<string, LobbyViewState> = {
             myAnswer: { type: "duel_1v1", questionId: "q3", selectedSide: "left" },
             result: {
               questionType: "duel_1v1",
-              anonymous: true,
               myChoice: "left",
               left: {
                 member: mockMembers[0],
@@ -355,9 +352,8 @@ export const adminVariants: Record<string, AdminViewState> = {
                 playableItems: 0,
                 publicAnswers: 0,
                 privateAnswers: 0,
-              anonymousAggregates: 0,
-              firstAnswerLocks: 0,
-            },
+                firstAnswerLocks: 0,
+              },
             issues: [],
           },
           },

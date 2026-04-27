@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 import { useAuth } from "@/lib/auth/auth-context";
 import {
-  liveAnonymousAggregatesCollection,
   liveAnswersCollection,
   liveParticipantsCollection,
   livePrivateAnswersCollection,
@@ -29,7 +28,6 @@ import type {
 import type {
   DailyRunItemDoc,
   LiveAnswerDoc,
-  LiveAnonymousAggregateDoc,
   LiveParticipantDoc,
   LivePrivateAnswerDoc,
   LiveSessionDoc,
@@ -71,7 +69,6 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
     const usersRef = usersCollection();
     const publicAnswersRef = liveAnswersCollection();
     const privateAnswersRef = livePrivateAnswersCollection();
-    const anonymousAggregatesRef = liveAnonymousAggregatesCollection();
 
     if (
       !sessionRef ||
@@ -79,8 +76,7 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
       !questionsRef ||
       !usersRef ||
       !publicAnswersRef ||
-      !privateAnswersRef ||
-      !anonymousAggregatesRef
+      !privateAnswersRef
     ) {
       queueMicrotask(() =>
         setState({ status: "error", message: "Firestore ist nicht verfügbar." }),
@@ -94,7 +90,6 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
     let members = new Map<string, MemberLite>();
     let myAnswers = new Map<number, LivePrivateAnswerDoc>();
     let publicAnswers = new Map<number, LiveAnswerDoc[]>();
-    let anonymousAggregates = new Map<number, LiveAnonymousAggregateDoc>();
 
     const emit = () => {
       if (!session || authState.status !== "authenticated") {
@@ -172,7 +167,6 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
               members,
               myAnswer: myAnswers.get(session.currentQuestionIndex),
               publicAnswers: publicAnswers.get(session.currentQuestionIndex) ?? [],
-              anonymousAggregate: anonymousAggregates.get(session.currentQuestionIndex),
             })
           : null;
 
@@ -187,7 +181,6 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
               questions,
               members,
               publicAnswers,
-              anonymousAggregates,
               myAnswers,
             })
           : null;
@@ -307,19 +300,6 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
         },
         handleError("Öffentliche Live-Antworten"),
       ),
-      onSnapshot(
-        query(anonymousAggregatesRef, where("sessionId", "==", sessionId)),
-        (snapshot) => {
-          anonymousAggregates = new Map(
-            snapshot.docs.map((doc) => {
-              const data = doc.data() as LiveAnonymousAggregateDoc;
-              return [data.questionIndex, data];
-            }),
-          );
-          emit();
-        },
-        handleError("Anonyme Live-Ergebnisse"),
-      ),
     ];
 
     return () => {
@@ -342,7 +322,6 @@ function buildLivePhase(params: {
   members: Map<string, MemberLite>;
   myAnswer?: LivePrivateAnswerDoc;
   publicAnswers: LiveAnswerDoc[];
-  anonymousAggregate?: LiveAnonymousAggregateDoc;
 }) {
   const {
     session,
@@ -354,7 +333,6 @@ function buildLivePhase(params: {
     members,
     myAnswer,
     publicAnswers,
-    anonymousAggregate,
   } = params;
 
   if (!currentItem) {
@@ -415,7 +393,6 @@ function buildLivePhase(params: {
       question,
       myAnswer: myDraft,
       publicAnswers,
-      anonymousAggregate,
       members,
     }),
     myAnswer: myDraft,
@@ -428,10 +405,9 @@ function buildFinishedSummary(params: {
   questions: Map<string, QuestionDoc>;
   members: Map<string, MemberLite>;
   publicAnswers: Map<number, LiveAnswerDoc[]>;
-  anonymousAggregates: Map<number, LiveAnonymousAggregateDoc>;
   myAnswers: Map<number, LivePrivateAnswerDoc>;
 }): LiveFinishedSummary {
-  const { items, questions, members, publicAnswers, anonymousAggregates, myAnswers } = params;
+  const { items, questions, members, publicAnswers, myAnswers } = params;
   const categoryCounts = new Map<Category, number>();
 
   for (const { item } of items) {
@@ -470,14 +446,12 @@ function buildFinishedSummary(params: {
           questionIndex: index,
           questionText: question.text,
           category: question.category,
-          anonymous: question.anonymous,
           result: mapLiveQuestionResult({
             question,
             myAnswer: myAnswers.get(rawIndex)
               ? mapLiveAnswerDraft(myAnswers.get(rawIndex)!)
               : undefined,
             publicAnswers: publicAnswers.get(rawIndex) ?? [],
-            anonymousAggregate: anonymousAggregates.get(rawIndex),
             members,
           }),
         },
@@ -501,12 +475,13 @@ function mapLiveQuestion(params: {
     totalInRun: total,
     text: question.text,
     category: question.category,
-    anonymous: question.anonymous,
   };
 
   switch (question.type) {
     case "single_choice":
       return { ...base, type: "single_choice", candidates: Array.from(members.values()) };
+    case "multi_choice":
+      return { ...base, type: "multi_choice", candidates: Array.from(members.values()) };
     case "open_text":
       return { ...base, type: "open_text", maxLength: 280 };
     case "either_or":
@@ -538,6 +513,12 @@ function mapLiveAnswerDraft(answer: LivePrivateAnswerDoc): DailyAnswerDraft {
   switch (answer.questionType) {
     case "single_choice":
       return { type: "single_choice", questionId: answer.questionId, selectedUserId: answer.selectedUserId };
+    case "multi_choice":
+      return {
+        type: "multi_choice",
+        questionId: answer.questionId,
+        selectedUserIds: Array.isArray(answer.selectedUserIds) ? answer.selectedUserIds : [],
+      };
     case "open_text":
       return { type: "open_text", questionId: answer.questionId, textAnswer: answer.textAnswer ?? "" };
     case "duel_1v1":
@@ -562,44 +543,68 @@ function mapLiveQuestionResult(params: {
   question: DailyQuestion;
   myAnswer?: DailyAnswerDraft;
   publicAnswers: LiveAnswerDoc[];
-  anonymousAggregate?: LiveAnonymousAggregateDoc;
   members?: Map<string, MemberLite>;
 }): QuestionResult {
-  const { question, myAnswer, publicAnswers, anonymousAggregate, members } = params;
+  const { question, myAnswer, publicAnswers, members } = params;
 
   switch (question.type) {
+    case "multi_choice": {
+      const validAnswers = publicAnswers.filter(
+        (answer) => Array.isArray(answer.selectedUserIds) && answer.selectedUserIds.length > 0,
+      );
+      const totalVoters = validAnswers.length;
+      return {
+        questionType: "multi_choice",
+        totalVoters,
+        counts: question.candidates.map((candidate) => {
+          const votes = validAnswers.filter((answer) =>
+            (answer.selectedUserIds ?? []).includes(candidate.userId),
+          ).length;
+          return {
+            candidate,
+            votes,
+            percent: totalVoters > 0 ? Math.round((votes / totalVoters) * 100) : 0,
+          };
+        }),
+        voterRows: validAnswers.flatMap((answer) => {
+          const voter = members?.get(answer.userId);
+          if (!voter) return [];
+          const targets = (answer.selectedUserIds ?? [])
+            .map((targetId) =>
+              question.candidates.find((candidate) => candidate.userId === targetId),
+            )
+            .filter((target): target is MemberLite => Boolean(target));
+          return targets.map((target) => ({ voter, target }));
+        }),
+        myChoiceUserIds:
+          myAnswer?.type === "multi_choice" ? myAnswer.selectedUserIds : undefined,
+      };
+    }
     case "single_choice": {
-      const totalVotes = question.anonymous
-        ? Object.values(anonymousAggregate?.counts ?? {}).reduce((sum, count) => sum + count, 0)
-        : publicAnswers.length;
+      const totalVotes = publicAnswers.length;
       return {
         questionType: "single_choice",
-        anonymous: question.anonymous,
         totalVotes,
         counts: question.candidates.map((candidate) => {
-          const votes = question.anonymous
-            ? anonymousAggregate?.counts?.[candidate.userId] ?? 0
-            : publicAnswers.filter((answer) => answer.selectedUserId === candidate.userId).length;
+          const votes = publicAnswers.filter(
+            (answer) => answer.selectedUserId === candidate.userId,
+          ).length;
           return {
             candidate,
             votes,
             percent: totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0,
           };
         }),
-        voterRows: question.anonymous
-          ? undefined
-          : publicAnswers
-              .map((answer) => {
-                const voter = members?.get(answer.userId);
-                const target = answer.selectedUserId
-                  ? question.candidates.find((candidate) => candidate.userId === answer.selectedUserId)
-                  : undefined;
-                if (!voter || !target) {
-                  return null;
-                }
-                return { voter, target };
-              })
-              .filter((row): row is { voter: MemberLite; target: MemberLite } => row !== null),
+        voterRows: publicAnswers
+          .map((answer) => {
+            const voter = members?.get(answer.userId);
+            const target = answer.selectedUserId
+              ? question.candidates.find((candidate) => candidate.userId === answer.selectedUserId)
+              : undefined;
+            if (!voter || !target) return null;
+            return { voter, target };
+          })
+          .filter((row): row is { voter: MemberLite; target: MemberLite } => row !== null),
         myChoiceUserId:
           myAnswer?.type === "single_choice" ? myAnswer.selectedUserId : undefined,
       };
@@ -607,22 +612,19 @@ function mapLiveQuestionResult(params: {
     case "open_text":
       return {
         questionType: "open_text",
-        anonymous: question.anonymous,
-        entries: question.anonymous
-          ? (anonymousAggregate?.textAnswers ?? []).map((text) => ({ text }))
-          : publicAnswers.filter((answer) => answer.textAnswer).map((answer) => ({ text: answer.textAnswer! })),
+        entries: publicAnswers
+          .filter((answer) => answer.textAnswer)
+          .map((answer) => ({
+            text: answer.textAnswer!,
+            author: members?.get(answer.userId),
+          })),
       };
     case "duel_1v1": {
-      const leftVotes = question.anonymous
-        ? anonymousAggregate?.counts?.left ?? 0
-        : publicAnswers.filter((answer) => answer.selectedSide === "left").length;
-      const rightVotes = question.anonymous
-        ? anonymousAggregate?.counts?.right ?? 0
-        : publicAnswers.filter((answer) => answer.selectedSide === "right").length;
+      const leftVotes = publicAnswers.filter((a) => a.selectedSide === "left").length;
+      const rightVotes = publicAnswers.filter((a) => a.selectedSide === "right").length;
       const totalVotes = leftVotes + rightVotes;
       return {
         questionType: "duel_1v1",
-        anonymous: question.anonymous,
         left: {
           member: question.left,
           votes: leftVotes,
@@ -633,35 +635,26 @@ function mapLiveQuestionResult(params: {
           votes: rightVotes,
           percent: totalVotes > 0 ? Math.round((rightVotes / totalVotes) * 100) : 0,
         },
-        voterRows: question.anonymous
-          ? undefined
-          : publicAnswers
-              .map((answer) => {
-                const voter = members?.get(answer.userId);
-                if (!voter || (answer.selectedSide !== "left" && answer.selectedSide !== "right")) {
-                  return null;
-                }
-                return { voter, side: answer.selectedSide };
-              })
-              .filter(
-                (
-                  row,
-                ): row is { voter: MemberLite; side: "left" | "right" } => row !== null,
-              ),
+        voterRows: publicAnswers
+          .map((answer) => {
+            const voter = members?.get(answer.userId);
+            if (!voter || (answer.selectedSide !== "left" && answer.selectedSide !== "right")) {
+              return null;
+            }
+            return { voter, side: answer.selectedSide };
+          })
+          .filter(
+            (row): row is { voter: MemberLite; side: "left" | "right" } => row !== null,
+          ),
         myChoice: myAnswer?.type === "duel_1v1" ? myAnswer.selectedSide : undefined,
       };
     }
     case "duel_2v2": {
-      const teamAVotes = question.anonymous
-        ? anonymousAggregate?.counts?.teamA ?? 0
-        : publicAnswers.filter((answer) => answer.selectedTeam === "teamA").length;
-      const teamBVotes = question.anonymous
-        ? anonymousAggregate?.counts?.teamB ?? 0
-        : publicAnswers.filter((answer) => answer.selectedTeam === "teamB").length;
+      const teamAVotes = publicAnswers.filter((a) => a.selectedTeam === "teamA").length;
+      const teamBVotes = publicAnswers.filter((a) => a.selectedTeam === "teamB").length;
       const totalVotes = teamAVotes + teamBVotes;
       return {
         questionType: "duel_2v2",
-        anonymous: question.anonymous,
         teamA: {
           members: question.teamA,
           votes: teamAVotes,
@@ -672,72 +665,65 @@ function mapLiveQuestionResult(params: {
           votes: teamBVotes,
           percent: totalVotes > 0 ? Math.round((teamBVotes / totalVotes) * 100) : 0,
         },
-        voterRows: question.anonymous
-          ? undefined
-          : publicAnswers
-              .map((answer) => {
-                const voter = members?.get(answer.userId);
-                if (!voter || (answer.selectedTeam !== "teamA" && answer.selectedTeam !== "teamB")) {
-                  return null;
-                }
-                return { voter, team: answer.selectedTeam };
-              })
-              .filter(
-                (
-                  row,
-                ): row is { voter: MemberLite; team: "teamA" | "teamB" } => row !== null,
-              ),
+        voterRows: publicAnswers
+          .map((answer) => {
+            const voter = members?.get(answer.userId);
+            if (!voter || (answer.selectedTeam !== "teamA" && answer.selectedTeam !== "teamB")) {
+              return null;
+            }
+            return { voter, team: answer.selectedTeam };
+          })
+          .filter(
+            (row): row is { voter: MemberLite; team: "teamA" | "teamB" } => row !== null,
+          ),
         myChoice: myAnswer?.type === "duel_2v2" ? myAnswer.selectedTeam : undefined,
       };
     }
     case "either_or": {
-      const option0Votes = question.anonymous
-        ? anonymousAggregate?.counts?.option_0 ?? 0
-        : publicAnswers.filter((answer) => answer.selectedOptionIndex === 0).length;
-      const option1Votes = question.anonymous
-        ? anonymousAggregate?.counts?.option_1 ?? 0
-        : publicAnswers.filter((answer) => answer.selectedOptionIndex === 1).length;
+      const option0Votes = publicAnswers.filter((a) => a.selectedOptionIndex === 0).length;
+      const option1Votes = publicAnswers.filter((a) => a.selectedOptionIndex === 1).length;
       const totalVotes = option0Votes + option1Votes;
       return {
         questionType: "either_or",
-        anonymous: question.anonymous,
         options: [
-          { label: question.options[0], votes: option0Votes, percent: totalVotes > 0 ? Math.round((option0Votes / totalVotes) * 100) : 0 },
-          { label: question.options[1], votes: option1Votes, percent: totalVotes > 0 ? Math.round((option1Votes / totalVotes) * 100) : 0 },
+          {
+            label: question.options[0],
+            votes: option0Votes,
+            percent: totalVotes > 0 ? Math.round((option0Votes / totalVotes) * 100) : 0,
+          },
+          {
+            label: question.options[1],
+            votes: option1Votes,
+            percent: totalVotes > 0 ? Math.round((option1Votes / totalVotes) * 100) : 0,
+          },
         ],
-        voterRows: question.anonymous
-          ? undefined
-          : publicAnswers
-              .map((answer) => {
-                const voter = members?.get(answer.userId);
-                const optionIndex =
-                  answer.selectedOptionIndex === 0 || answer.selectedOptionIndex === 1
-                    ? answer.selectedOptionIndex
-                    : undefined;
-                if (!voter || optionIndex === undefined) {
-                  return null;
-                }
-                return { voter, optionIndex };
-              })
-              .filter(
-                (row): row is { voter: MemberLite; optionIndex: 0 | 1 } => row !== null,
-              ),
-        myChoiceIndex: myAnswer?.type === "either_or" ? myAnswer.selectedOptionIndex : undefined,
+        voterRows: publicAnswers
+          .map((answer) => {
+            const voter = members?.get(answer.userId);
+            const optionIndex =
+              answer.selectedOptionIndex === 0 || answer.selectedOptionIndex === 1
+                ? answer.selectedOptionIndex
+                : undefined;
+            if (!voter || optionIndex === undefined) return null;
+            return { voter, optionIndex };
+          })
+          .filter(
+            (row): row is { voter: MemberLite; optionIndex: 0 | 1 } => row !== null,
+          ),
+        myChoiceIndex:
+          myAnswer?.type === "either_or" ? myAnswer.selectedOptionIndex : undefined,
       };
     }
     case "meme_caption":
       return {
         questionType: "meme_caption",
-        anonymous: question.anonymous,
         imagePath: question.imagePath,
-        entries: question.anonymous
-          ? (anonymousAggregate?.textAnswers ?? []).map((text) => ({ text }))
-          : publicAnswers
-              .filter((answer) => answer.textAnswer)
-              .map((answer) => ({
-                text: answer.textAnswer!,
-                author: members?.get(answer.userId),
-              })),
+        entries: publicAnswers
+          .filter((answer) => answer.textAnswer)
+          .map((answer) => ({
+            text: answer.textAnswer!,
+            author: members?.get(answer.userId),
+          })),
       };
   }
 }

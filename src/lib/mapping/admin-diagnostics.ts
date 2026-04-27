@@ -4,7 +4,6 @@ import type {
   AdminDiagnosticIssue,
 } from "@/lib/types/frontend";
 import type {
-  DailyAnonymousAggregateDoc,
   DailyPrivateAnswerDoc,
   DailyRunDoc,
   QuestionDoc,
@@ -17,7 +16,6 @@ export function analyzeTodayDailyDiagnostics(params: {
   activeMemberIds: Set<string>;
   publicAnswerCount: number;
   privateAnswers: DailyPrivateAnswerDoc[];
-  anonymousAggregates: DailyAnonymousAggregateDoc[];
   firstAnswerLockCount: number;
 }): AdminDailyDiagnostics {
   const {
@@ -27,7 +25,6 @@ export function analyzeTodayDailyDiagnostics(params: {
     activeMemberIds,
     publicAnswerCount,
     privateAnswers,
-    anonymousAggregates,
     firstAnswerLockCount,
   } = params;
 
@@ -37,7 +34,6 @@ export function analyzeTodayDailyDiagnostics(params: {
     if (
       publicAnswerCount > 0 ||
       privateAnswers.length > 0 ||
-      anonymousAggregates.length > 0 ||
       firstAnswerLockCount > 0
     ) {
       issues.push({
@@ -61,7 +57,6 @@ export function analyzeTodayDailyDiagnostics(params: {
         playableItems: 0,
         publicAnswers: publicAnswerCount,
         privateAnswers: privateAnswers.length,
-        anonymousAggregates: anonymousAggregates.length,
         firstAnswerLocks: firstAnswerLockCount,
       },
       issues,
@@ -121,7 +116,6 @@ export function analyzeTodayDailyDiagnostics(params: {
       playableItems: validated.playableItems.length,
       publicAnswers: publicAnswerCount,
       privateAnswers: privateAnswers.length,
-      anonymousAggregates: anonymousAggregates.length,
       firstAnswerLocks: firstAnswerLockCount,
     },
     issues,

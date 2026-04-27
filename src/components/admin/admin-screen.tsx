@@ -22,6 +22,7 @@ import type {
   AdminDailyDeleteResult,
   AdminDailyCategoryPlan,
   AdminQuestionFilter,
+  AdminQuestionImportResult,
   AdminMemberRow,
   AdminQuestionRow,
   AdminRunActionResult,
@@ -50,7 +51,7 @@ export function AdminScreen({
   onBulkSetActive?: (questionIds: string[], active: boolean) => Promise<void>;
   onBulkSetDailyLock?: (questionIds: string[], dailyLocked: boolean) => Promise<void>;
   onBulkDelete?: (questionIds: string[]) => Promise<void>;
-  onImportQuestions?: (raw: string) => Promise<void>;
+  onImportQuestions?: (raw: string) => Promise<AdminQuestionImportResult>;
   onCreateRun?: (
     mode: "create" | "replace",
     plan: AdminDailyCategoryPlan,
@@ -176,11 +177,26 @@ export function AdminScreen({
                   ...prev.questions,
                   importStatus: "importing",
                   importError: undefined,
+                  importMessage: undefined,
                 },
               }
             : prev,
         );
-        await onImportQuestions(raw);
+        const result = await onImportQuestions(raw);
+        setState((prev) =>
+          prev.status === "ready"
+            ? {
+                ...prev,
+                questions: {
+                  ...prev.questions,
+                  importStatus: "success",
+                  importError: undefined,
+                  importMessage: buildImportMessage(result),
+                },
+              }
+            : prev,
+        );
+        return;
       } else {
         JSON.parse(raw);
       }
@@ -192,6 +208,7 @@ export function AdminScreen({
                 ...prev.questions,
                 importStatus: "success",
                 importError: undefined,
+                importMessage: "Import erfolgreich.",
               },
             }
           : prev,
@@ -205,6 +222,7 @@ export function AdminScreen({
                 ...prev.questions,
                 importStatus: "error",
                 importError: getErrorMessage(error, "Import konnte nicht verarbeitet werden."),
+                importMessage: undefined,
               },
             }
           : prev,
@@ -276,7 +294,6 @@ export function AdminScreen({
         questionCount: state.status === "ready" ? state.config.draft.dailyQuestionCount : 0,
         deletedPublicAnswers: 0,
         deletedPrivateAnswers: 0,
-        deletedAnonymousAggregates: 0,
         deletedFirstAnswerLocks: 0,
       },
     });
@@ -322,8 +339,7 @@ export function AdminScreen({
             dateKey: target.dateKey,
             deletedPublicAnswers: 0,
             deletedPrivateAnswers: 0,
-            deletedAnonymousAggregates: 0,
-            deletedFirstAnswerLocks: 0,
+                deletedFirstAnswerLocks: 0,
           };
       setDeleteRunConfirm(null);
       setRunActionState({
@@ -459,6 +475,7 @@ export function AdminScreen({
           <AdminJsonImport
             status={state.questions.importStatus}
             error={state.questions.importError}
+            message={state.questions.importMessage}
             onImport={importQuestions}
           />
           <AdminQuestionList
@@ -600,6 +617,21 @@ export function AdminScreen({
   );
 }
 
+function buildImportMessage(result: AdminQuestionImportResult) {
+  const parts: string[] = [];
+  if (result.importedCount > 0) {
+    parts.push(`${result.importedCount} importiert`);
+  }
+  if (result.updatedCount > 0) {
+    parts.push(`${result.updatedCount} aktualisiert`);
+  }
+  if (result.skippedCount > 0) {
+    parts.push(`${result.skippedCount} übersprungen`);
+  }
+
+  return parts.length > 0 ? `${parts.join(", ")}.` : "Nichts geändert.";
+}
+
 function buildRunActionMessage(result: AdminRunActionResult) {
   if (result.mode === "create") {
     return `Run für ${result.dateKey} mit ${result.questionCount} Fragen erzeugt.`;
@@ -608,7 +640,6 @@ function buildRunActionMessage(result: AdminRunActionResult) {
   const clearedTotal =
     result.deletedPublicAnswers +
     result.deletedPrivateAnswers +
-    result.deletedAnonymousAggregates +
     result.deletedFirstAnswerLocks;
 
   if (clearedTotal === 0) {
@@ -621,9 +652,6 @@ function buildRunActionMessage(result: AdminRunActionResult) {
   }
   if (result.deletedPrivateAnswers > 0) {
     parts.push(`${result.deletedPrivateAnswers} private Antworten entfernt`);
-  }
-  if (result.deletedAnonymousAggregates > 0) {
-    parts.push(`${result.deletedAnonymousAggregates} anonyme Aggregates entfernt`);
   }
   if (result.deletedFirstAnswerLocks > 0) {
     parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);
@@ -647,9 +675,6 @@ function buildDeleteRunMessage(
   }
   if (result.deletedPrivateAnswers > 0) {
     parts.push(`${result.deletedPrivateAnswers} private Antworten entfernt`);
-  }
-  if (result.deletedAnonymousAggregates > 0) {
-    parts.push(`${result.deletedAnonymousAggregates} anonyme Aggregates entfernt`);
   }
   if (result.deletedFirstAnswerLocks > 0) {
     parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);

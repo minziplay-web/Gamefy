@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 
 import { useAuth } from "@/lib/auth/auth-context";
 import {
-  dailyAnonymousAggregatesCollection,
   dailyAnswersCollection,
   dailyFirstAnswersCollection,
   dailyPrivateAnswersCollection,
@@ -25,7 +24,6 @@ import { mockAdmin } from "@/lib/mocks";
 import type { AdminViewState } from "@/lib/types/frontend";
 import type {
   AppConfigDoc,
-  DailyAnonymousAggregateDoc,
   DailyPrivateAnswerDoc,
   DailyRunDoc,
   QuestionDoc,
@@ -75,7 +73,6 @@ export function useAdminViewState(): AdminViewState {
     const todayRunRef = dailyRunDoc(berlinDateKey());
     const dailyAnswersRef = dailyAnswersCollection();
     const dailyPrivateAnswersRef = dailyPrivateAnswersCollection();
-    const dailyAggregatesRef = dailyAnonymousAggregatesCollection();
     const dailyFirstAnswersRef = dailyFirstAnswersCollection();
 
     if (
@@ -86,7 +83,6 @@ export function useAdminViewState(): AdminViewState {
       !todayRunRef ||
       !dailyAnswersRef ||
       !dailyPrivateAnswersRef ||
-      !dailyAggregatesRef ||
       !dailyFirstAnswersRef
     ) {
       queueMicrotask(() =>
@@ -110,7 +106,6 @@ export function useAdminViewState(): AdminViewState {
     let todayRun: DailyRunDoc | null = null;
     let todayPublicAnswerCount = 0;
     let todayPrivateAnswers: DailyPrivateAnswerDoc[] = [];
-    let todayAnonymousAggregates: DailyAnonymousAggregateDoc[] = [];
     let todayFirstAnswerLockCount = 0;
 
     const emit = () => {
@@ -153,7 +148,6 @@ export function useAdminViewState(): AdminViewState {
             activeMemberIds: new Set(activeUsers.keys()),
             publicAnswerCount: todayPublicAnswerCount,
             privateAnswers: todayPrivateAnswers,
-            anonymousAggregates: todayAnonymousAggregates,
             firstAnswerLockCount: todayFirstAnswerLockCount,
           }),
         },
@@ -182,7 +176,6 @@ export function useAdminViewState(): AdminViewState {
               text: data.text,
               category: data.category,
               type: data.type,
-              anonymous: data.anonymous,
               targetMode: data.targetMode,
               active: data.active,
               dailyLocked: data.dailyLocked === true,
@@ -249,16 +242,6 @@ export function useAdminViewState(): AdminViewState {
           emit();
         },
         handleError("Admin-Heutige private Antworten"),
-      ),
-      onSnapshot(
-        query(dailyAggregatesRef, where("dateKey", "==", todayDateKey)),
-        (snapshot) => {
-          todayAnonymousAggregates = snapshot.docs.map(
-            (doc) => doc.data() as DailyAnonymousAggregateDoc,
-          );
-          emit();
-        },
-        handleError("Admin-Heutige anonyme Aggregate"),
       ),
       onSnapshot(
         query(dailyFirstAnswersRef, where("dateKey", "==", todayDateKey)),

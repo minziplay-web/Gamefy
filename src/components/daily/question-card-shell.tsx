@@ -21,6 +21,8 @@ function draftIsComplete(draft: DailyAnswerDraft | undefined): draft is DailyAns
   switch (draft.type) {
     case "single_choice":
       return Boolean(draft.selectedUserId);
+    case "multi_choice":
+      return draft.selectedUserIds.length > 0;
     case "open_text":
       return draft.textAnswer.trim().length > 0;
     case "duel_1v1":

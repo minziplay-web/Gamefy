@@ -4,7 +4,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Bossy_Boots.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -12,7 +11,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Bubble_Buddy.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -20,7 +18,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Doing_Time.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -28,7 +25,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/House_Fancy.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -36,7 +32,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Just_One_Bite.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -44,7 +39,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Krab_Borg.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -52,7 +46,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Krusty_Towers.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -60,7 +53,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Life_of_Crime.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -68,7 +60,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Nature_Pants.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -76,7 +67,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Night_Light.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -84,7 +74,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Procrastination.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -92,7 +81,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/SB-129.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -100,7 +88,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Sandy_SpongeBob_and_the_Worm.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -108,7 +95,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/SpongeGuard_on_Duty.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -116,7 +102,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Squidward_the_Unfriendly_Ghost.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -124,7 +109,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/Tea_at_the_Treedome.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -132,7 +116,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/The_Algaes_Always_Greener.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -140,7 +123,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/The_Bully.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -148,7 +130,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/To_Love_a_Patty.webp",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
@@ -156,7 +137,6 @@
     "category": "meme_it",
     "type": "meme_caption",
     "imagePath": "/memes/To_SquarePants_or_Not_to_SquarePants.webp",
-    "anonymous": false,
     "targetMode": "daily"
   }
 ]

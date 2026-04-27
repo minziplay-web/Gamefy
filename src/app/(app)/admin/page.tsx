@@ -36,7 +36,7 @@ export default function AdminPage() {
           throw new Error("Nicht eingeloggt.");
         }
 
-        await importQuestions(raw, authState.user.userId);
+        return importQuestions(raw, authState.user.userId);
       }}
       onCreateRun={async (mode, categoryPlan) => {
         if (authState.status !== "authenticated" || state.status !== "ready") {

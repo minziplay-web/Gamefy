@@ -3,112 +3,108 @@
     "text": "Was war für dich bisher der beste gemeinsame Moment der Gruppe?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Welcher peinliche Moment mit jemandem aus der Gruppe sitzt noch tief?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wer hat bisher die schrägste Story der Gruppe erlebt?",
     "category": "memories",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Welches gemeinsame Lied bringt dich sofort zurück?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Welche Nacht mit der Gruppe würdest du gern noch einmal erleben?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Welcher Insider aus alten Zeiten funktioniert immer noch?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wann habt ihr das letzte Mal so richtig weinend gelacht?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Welche Story wird von euch immer wieder erzählt, obwohl sie jeder kennt?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Welches Event der Gruppe darf nie in Vergessenheit geraten?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Welches Missgeschick ist heute ein echter Running Gag?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wer hat am meisten Nostalgie fürs Früher?",
     "category": "memories",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer wird als Erster zu viel weinen, wenn ihr alte Fotos anschaut?",
     "category": "memories",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "live"
   },
   {
     "text": "Wer erinnert sich an Dinge, die alle anderen längst vergessen haben?",
     "category": "memories",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Welche peinliche Gruppen-Aktion ist bis heute Legende?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wer war auf einer gemeinsamen Reise als Letzter heulend?",
     "category": "memories",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Welches gemeinsame Foto darf nie wieder ans Tageslicht?",
     "category": "memories",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
+  },
+  {
+    "text": "Mit wem verbindest du die chaotischsten Gruppenerinnerungen?",
+    "category": "memories",
+    "type": "multi_choice",
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer war schon mal Teil eines Moments, über den ihr heute noch lacht?",
+    "category": "memories",
+    "type": "multi_choice",
+    "targetMode": "both"
   }
 ]

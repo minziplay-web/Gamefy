@@ -49,16 +49,6 @@ export function dailyPrivateAnswerDoc(answerId: string) {
   return db ? doc(db, "dailyPrivateAnswers", answerId) : null;
 }
 
-export function dailyAnonymousAggregatesCollection() {
-  const { db } = getFirebaseServices();
-  return db ? collection(db, "dailyAnonymousAggregates") : null;
-}
-
-export function dailyAnonymousAggregateDoc(docId: string) {
-  const { db } = getFirebaseServices();
-  return db ? doc(db, "dailyAnonymousAggregates", docId) : null;
-}
-
 export function dailyFirstAnswerDoc(docId: string) {
   const { db } = getFirebaseServices();
   return db ? doc(db, "dailyFirstAnswers", docId) : null;
@@ -132,16 +122,6 @@ export function livePrivateAnswersCollection() {
 export function livePrivateAnswerDoc(answerId: string) {
   const { db } = getFirebaseServices();
   return db ? doc(db, "livePrivateAnswers", answerId) : null;
-}
-
-export function liveAnonymousAggregatesCollection() {
-  const { db } = getFirebaseServices();
-  return db ? collection(db, "liveAnonymousAggregates") : null;
-}
-
-export function liveAnonymousAggregateDoc(docId: string) {
-  const { db } = getFirebaseServices();
-  return db ? doc(db, "liveAnonymousAggregates", docId) : null;
 }
 
 export function userStatsCollection() {

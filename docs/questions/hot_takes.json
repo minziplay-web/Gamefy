@@ -3,147 +3,138 @@
     "text": "Wer flext am meisten, ohne es zu merken?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer beendet einen Streit am ehesten mit einem Witz?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer ist die unkonventionellste Person der Gruppe?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat den teuersten Geschmack?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat den heißesten Gossip auf Lager?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer ist spontaner?",
     "category": "hot_takes",
     "type": "duel_1v1",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde in einer Zombie-Apokalypse als Erster zum Helden werden?",
     "category": "hot_takes",
     "type": "duel_1v1",
-    "anonymous": false,
     "targetMode": "live"
   },
   {
     "text": "Wer reagiert am dramatischsten, wenn man seine Pommes klaut?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer ist der größte Soft-Drama-Fan?",
     "category": "hot_takes",
     "type": "duel_1v1",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer kennt den allerheißesten Gossip in der Gruppe?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat schon mal einer Lehrkraft ehrlich die Meinung gesagt?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer ist am ehesten in zwei Minuten zu schnell zu vertraut mit Fremden?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer könnte stundenlang über sein Lieblingsthema reden, ohne Pause zu machen?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat heimlich am meisten Glück verdient?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde am ehesten ein Buch über sich selbst schreiben?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer ist in einer Krise als Erster zur Stelle?",
     "category": "hot_takes",
     "type": "duel_1v1",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Welche Seite der Gruppe würdest du am liebsten ändern, wenn du könntest?",
     "category": "hot_takes",
     "type": "open_text",
-    "anonymous": false,
     "targetMode": "daily"
   },
   {
     "text": "Wer würde in einer stillen Bibliothek am ehesten aus Versehen pupsen?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde im Bewerbungsgespräch beim Schwitzen aus dem Fenster gucken und so tun, als sei nichts?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde am ehesten als Letzter merken, dass die Hose offen ist?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat den größten Geheim-Spleen, den keiner so richtig kennt?",
     "category": "hot_takes",
     "type": "single_choice",
-    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer würde bei einem Gruppenprojekt heimlich am ehesten das Ruder übernehmen?",
+    "category": "hot_takes",
+    "type": "multi_choice",
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat das größte Talent, überzeugend Unsinn zu erzählen?",
+    "category": "hot_takes",
+    "type": "multi_choice",
     "targetMode": "both"
   }
 ]

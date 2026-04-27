@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   dailyAnswersCollection,
-  dailyAnonymousAggregatesCollection,
   dailyMemeVotesCollection,
   dailyPrivateAnswersCollection,
   dailyRunDoc,
@@ -28,7 +27,6 @@ import type {
 } from "@/lib/types/frontend";
 import type {
   DailyAnswerDoc,
-  DailyAnonymousAggregateDoc,
   DailyMemeVoteDoc,
   DailyPrivateAnswerDoc,
   DailyRunItemDoc,
@@ -39,7 +37,7 @@ import type {
 
 type QuestionLike = Pick<
   QuestionDoc,
-  "text" | "category" | "type" | "anonymous" | "options" | "imagePath"
+  "text" | "category" | "type" | "options" | "imagePath"
 >;
 
 export function useDailyViewState(targetDateKey?: string): DailyViewState {
@@ -58,11 +56,11 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
       return;
     }
 
-    const dateKey = targetDateKey ?? berlinDateKey();
+    const todayDateKey = berlinDateKey();
+    const dateKey = targetDateKey ?? todayDateKey;
     const runRef = dailyRunDoc(dateKey);
     const answersRef = dailyAnswersCollection();
     const privateAnswersRef = dailyPrivateAnswersCollection();
-    const aggregatesRef = dailyAnonymousAggregatesCollection();
     const memeVotesRef = dailyMemeVotesCollection();
     const questionsRef = questionsCollection();
     const usersRef = usersCollection();
@@ -71,7 +69,6 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
       !runRef ||
       !answersRef ||
       !privateAnswersRef ||
-      !aggregatesRef ||
       !memeVotesRef ||
       !questionsRef ||
       !usersRef
@@ -85,9 +82,9 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
     let runData: DailyRunDoc | null = null;
     let questions = new Map<string, QuestionDoc>();
     let members = new Map<string, MemberLite>();
+    let activeMembers = new Map<string, MemberLite>();
     let myAnswers = new Map<string, DailyAnswerDoc>();
     let allPublicAnswers = new Map<string, DailyAnswerDoc[]>();
-    let anonymousAggregates = new Map<string, DailyAnonymousAggregateDoc>();
     let memeVotes = new Map<string, DailyMemeVoteDoc[]>();
 
     const emit = () => {
@@ -105,7 +102,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
       const validatedRun = validateDailyRun({
         run,
         questions,
-        activeMemberIds: new Set(members.keys()),
+        activeMemberIds: new Set(activeMembers.keys()),
       });
       const playableQuestionIds = new Set(
         validatedRun.playableItems.map((item) => item.questionId),
@@ -113,9 +110,9 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
       const answeredPlayableCount = Array.from(myAnswers.keys()).filter((questionId) =>
         playableQuestionIds.has(questionId),
       ).length;
+      const isCatchUpMode = dateKey < todayDateKey;
       const holdResultsUntilFinished =
-        dateKey === berlinDateKey() &&
-        effectiveRunStatus === "active" &&
+        (effectiveRunStatus === "active" || isCatchUpMode) &&
         answeredPlayableCount < validatedRun.playableItems.length;
 
       if (validatedRun.isUnplayable) {
@@ -137,13 +134,13 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
         }
 
         const question = mapDailyQuestion({
-          questionId: item.questionId,
-          question: questionDoc,
-          index,
-          total: validatedRun.playableItems.length,
-          members,
-          pairing: item.pairing,
-        });
+              questionId: item.questionId,
+              question: questionDoc,
+              index,
+              total: validatedRun.playableItems.length,
+              members: activeMembers,
+              pairing: item.pairing,
+            });
 
         if (!question) {
           return acc;
@@ -167,7 +164,6 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
             result: mapQuestionResult({
               question,
               publicAnswers: allPublicAnswers.get(item.questionId) ?? [],
-              anonymousAggregate: anonymousAggregates.get(item.questionId),
               memeVotes: memeVotes.get(item.questionId) ?? [],
               currentUserId: authState.user.userId,
               members,
@@ -194,7 +190,6 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
               question,
               myAnswer,
               publicAnswers: allPublicAnswers.get(item.questionId) ?? [],
-              anonymousAggregate: anonymousAggregates.get(item.questionId),
               memeVotes: memeVotes.get(item.questionId) ?? [],
               currentUserId: authState.user.userId,
               members,
@@ -250,16 +245,25 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
       onSnapshot(
         usersRef,
         (snapshot) => {
-          members = new Map(
-            snapshot.docs.map((doc) => [
-              doc.id,
-              {
-                userId: doc.id,
-                displayName: (doc.data() as UserDoc).displayName,
-                photoURL: (doc.data() as UserDoc).photoURL ?? null,
-              } satisfies MemberLite,
-            ]),
-          );
+          const nextMembers = new Map<string, MemberLite>();
+          const nextActiveMembers = new Map<string, MemberLite>();
+
+          for (const doc of snapshot.docs) {
+            const data = doc.data() as UserDoc;
+            const member = {
+              userId: doc.id,
+              displayName: data.displayName,
+              photoURL: data.photoURL ?? null,
+            } satisfies MemberLite;
+
+            nextMembers.set(doc.id, member);
+            if (data.isActive) {
+              nextActiveMembers.set(doc.id, member);
+            }
+          }
+
+          members = nextMembers;
+          activeMembers = nextActiveMembers;
           emit();
         },
         handleError("Mitglieder"),
@@ -274,13 +278,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
           myAnswers = new Map(
             snapshot.docs.map((doc) => {
               const data = doc.data() as DailyPrivateAnswerDoc;
-              return [
-                data.questionId,
-                {
-                  ...data,
-                  anonymous: false,
-                } as DailyAnswerDoc,
-              ];
+              return [data.questionId, data as DailyAnswerDoc];
             }),
           );
           emit();
@@ -301,19 +299,6 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
           emit();
         },
         handleError("Öffentliche Daily-Antworten"),
-      ),
-      onSnapshot(
-        query(aggregatesRef, where("dateKey", "==", dateKey)),
-        (snapshot) => {
-          anonymousAggregates = new Map(
-            snapshot.docs.map((doc) => {
-              const data = doc.data() as DailyAnonymousAggregateDoc;
-              return [data.questionId, data];
-            }),
-          );
-          emit();
-        },
-        handleError("Anonyme Daily-Ergebnisse"),
       ),
       onSnapshot(
         query(memeVotesRef, where("dateKey", "==", dateKey)),
@@ -357,7 +342,6 @@ export function mapDailyQuestion(params: {
     totalInRun: total,
     text: question.text,
     category: question.category,
-    anonymous: false,
   };
 
   switch (question.type) {
@@ -365,6 +349,12 @@ export function mapDailyQuestion(params: {
       return {
         ...base,
         type: "single_choice",
+        candidates: Array.from(members.values()),
+      };
+    case "multi_choice":
+      return {
+        ...base,
+        type: "multi_choice",
         candidates: Array.from(members.values()),
       };
     case "open_text":
@@ -424,6 +414,14 @@ export function mapDailyAnswerDraft(answer: DailyAnswerDoc): DailyAnswerDraft {
         questionId: answer.questionId,
         selectedUserId: answer.selectedUserId,
       };
+    case "multi_choice":
+      return {
+        type: "multi_choice",
+        questionId: answer.questionId,
+        selectedUserIds: Array.isArray(answer.selectedUserIds)
+          ? answer.selectedUserIds
+          : [],
+      };
     case "open_text":
       return {
         type: "open_text",
@@ -464,14 +462,46 @@ export function mapQuestionResult(params: {
   question: DailyQuestion;
   myAnswer?: DailyAnswerDraft;
   publicAnswers: DailyAnswerDoc[];
-  anonymousAggregate?: DailyAnonymousAggregateDoc;
   memeVotes?: DailyMemeVoteDoc[];
   currentUserId?: string;
   members?: Map<string, MemberLite>;
 }): QuestionResult {
-  const { question, myAnswer, publicAnswers, anonymousAggregate, memeVotes = [], currentUserId, members } = params;
+  const { question, myAnswer, publicAnswers, memeVotes = [], currentUserId, members } = params;
 
   switch (question.type) {
+    case "multi_choice": {
+      const validAnswers = publicAnswers.filter(
+        (answer) => Array.isArray(answer.selectedUserIds) && answer.selectedUserIds.length > 0,
+      );
+      const totalVoters = validAnswers.length;
+      const counts = question.candidates.map((candidate) => {
+        const votes = validAnswers.filter((answer) =>
+          (answer.selectedUserIds ?? []).includes(candidate.userId),
+        ).length;
+        return {
+          candidate,
+          votes,
+          percent: totalVoters > 0 ? Math.round((votes / totalVoters) * 100) : 0,
+        };
+      });
+      return {
+        questionType: "multi_choice",
+        totalVoters,
+        counts,
+        voterRows: validAnswers.flatMap((answer) => {
+          const voter = members?.get(answer.userId);
+          if (!voter) return [];
+          const targets = (answer.selectedUserIds ?? [])
+            .map((targetId) =>
+              question.candidates.find((candidate) => candidate.userId === targetId),
+            )
+            .filter((target): target is MemberLite => Boolean(target));
+          return targets.map((target) => ({ voter, target }));
+        }),
+        myChoiceUserIds:
+          myAnswer?.type === "multi_choice" ? myAnswer.selectedUserIds : undefined,
+      };
+    }
     case "single_choice": {
       const totalVotes = publicAnswers.length;
       const counts = question.candidates.map((candidate) => {
@@ -484,8 +514,7 @@ export function mapQuestionResult(params: {
       });
         return {
           questionType: "single_choice",
-          anonymous: false,
-          totalVotes,
+            totalVotes,
           counts,
           voterRows: publicAnswers
             .map((answer) => {
@@ -510,7 +539,6 @@ export function mapQuestionResult(params: {
     case "open_text":
       return {
         questionType: "open_text",
-        anonymous: false,
         entries: publicAnswers
           .filter((answer) => answer.textAnswer)
           .map((answer) => ({
@@ -524,7 +552,6 @@ export function mapQuestionResult(params: {
       const totalVotes = leftVotes + rightVotes;
       return {
         questionType: "duel_1v1",
-        anonymous: false,
         left: {
           member: question.left,
           votes: leftVotes,
@@ -558,7 +585,6 @@ export function mapQuestionResult(params: {
       const totalVotes = teamAVotes + teamBVotes;
       return {
         questionType: "duel_2v2",
-        anonymous: false,
         teamA: {
           members: question.teamA,
           votes: teamAVotes,
@@ -592,7 +618,6 @@ export function mapQuestionResult(params: {
       const totalVotes = option0Votes + option1Votes;
       return {
         questionType: "either_or",
-        anonymous: false,
         options: [
           {
             label: question.options[0],
@@ -629,7 +654,6 @@ export function mapQuestionResult(params: {
     case "meme_caption":
       return {
         questionType: "meme_caption",
-        anonymous: false,
         imagePath: question.imagePath,
         entries: publicAnswers
           .filter((answer) => answer.textAnswer)
@@ -666,7 +690,6 @@ function getQuestionSource(
     text: item.questionSnapshot.text,
     category: item.questionSnapshot.category,
     type: item.type,
-    anonymous: item.questionSnapshot.anonymous,
     options: item.questionSnapshot.options,
     imagePath: item.questionSnapshot.imagePath,
   };

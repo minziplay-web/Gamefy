@@ -17,13 +17,11 @@ import {
 
 import {
   appConfigDoc,
-  dailyAnonymousAggregatesCollection,
   dailyAnswersCollection,
   dailyFirstAnswersCollection,
   dailyPrivateAnswersCollection,
   dailyRunDoc,
   dailyRunsCollection,
-  liveAnonymousAggregatesCollection,
   liveAnswersCollection,
   liveLobbyCodesCollection,
   liveParticipantsCollection,
@@ -39,6 +37,7 @@ import type {
   AdminConfigDraft,
   AdminDailyCategoryPlan,
   AdminDailyDeleteResult,
+  AdminQuestionImportResult,
   AdminRunActionResult,
   Category,
   DateKey,
@@ -303,13 +302,63 @@ export async function importQuestions(raw: string, createdBy: string) {
     throw new Error("Firestore ist nicht verfügbar.");
   }
 
+  const existingSnapshot = await getDocs(questionsRef);
+  const existingExactKeys = new Set<string>();
+  const existingByIdentity = new Map<
+    string,
+    { id: string; data: QuestionDoc }
+  >();
+
+  for (const snapshot of existingSnapshot.docs) {
+    const data = snapshot.data() as QuestionDoc;
+    existingExactKeys.add(buildQuestionImportExactKey(data));
+    const identityKey = buildQuestionImportIdentityKey(data);
+    if (!existingByIdentity.has(identityKey)) {
+      existingByIdentity.set(identityKey, { id: snapshot.id, data });
+    }
+  }
+
+  const seenExactKeys = new Set<string>();
+  const seenIdentityTargets = new Map<string, string>();
   const batch = writeBatch(questionsRef.firestore);
+  let importedCount = 0;
+  let updatedCount = 0;
+  let skippedCount = 0;
 
   for (const item of items) {
+    const exactKey = buildQuestionImportExactKey(item);
+    if (existingExactKeys.has(exactKey) || seenExactKeys.has(exactKey)) {
+      skippedCount += 1;
+      continue;
+    }
+
+    const identityKey = buildQuestionImportIdentityKey(item);
+    const existing = existingByIdentity.get(identityKey);
+    const targetQuestionId =
+      seenIdentityTargets.get(identityKey) ?? existing?.id ?? null;
+
+    if (targetQuestionId) {
+      batch.set(
+        doc(questionsRef, targetQuestionId),
+        {
+          ...item,
+          active: true,
+          dailyLocked: false,
+          dailyLockedDateKey: null,
+          createdBy: existing?.data.createdBy ?? createdBy,
+          createdAt: existing?.data.createdAt ?? serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        },
+        { merge: false },
+      );
+      seenIdentityTargets.set(identityKey, targetQuestionId);
+      updatedCount += 1;
+      continue;
+    }
+
     const docRef = doc(questionsRef);
     batch.set(docRef, {
       ...item,
-      anonymous: false,
       active: true,
       dailyLocked: false,
       dailyLockedDateKey: null,
@@ -317,9 +366,20 @@ export async function importQuestions(raw: string, createdBy: string) {
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     });
+    seenIdentityTargets.set(identityKey, docRef.id);
+    seenExactKeys.add(exactKey);
+    importedCount += 1;
   }
 
-  await batch.commit();
+  if (importedCount > 0 || updatedCount > 0) {
+    await batch.commit();
+  }
+
+  return {
+    importedCount,
+    updatedCount,
+    skippedCount,
+  } satisfies AdminQuestionImportResult;
 }
 
 export async function createDailyRun(params: {
@@ -346,10 +406,9 @@ export async function deleteDailyRun(dateKey: string): Promise<AdminDailyDeleteR
   const runRef = dailyRunDoc(dateKey);
   const answersRef = dailyAnswersCollection();
   const privateAnswersRef = dailyPrivateAnswersCollection();
-  const aggregatesRef = dailyAnonymousAggregatesCollection();
   const firstAnswersRef = dailyFirstAnswersCollection();
 
-  if (!runRef || !answersRef || !privateAnswersRef || !aggregatesRef || !firstAnswersRef) {
+  if (!runRef || !answersRef || !privateAnswersRef || !firstAnswersRef) {
     throw new Error("Firestore ist nicht verfügbar.");
   }
 
@@ -358,7 +417,6 @@ export async function deleteDailyRun(dateKey: string): Promise<AdminDailyDeleteR
     runRef,
     answersRef,
     privateAnswersRef,
-    aggregatesRef,
     firstAnswersRef,
   });
 
@@ -378,7 +436,6 @@ export async function cleanupFinishedLiveSessions(params?: {
   const codesRef = liveLobbyCodesCollection();
   const publicAnswersRef = liveAnswersCollection();
   const privateAnswersRef = livePrivateAnswersCollection();
-  const aggregatesRef = liveAnonymousAggregatesCollection();
   const dailyRunsRef = dailyRunsCollection();
   const dailyFirstAnswersRef = dailyFirstAnswersCollection();
 
@@ -387,7 +444,6 @@ export async function cleanupFinishedLiveSessions(params?: {
     !codesRef ||
     !publicAnswersRef ||
     !privateAnswersRef ||
-    !aggregatesRef ||
     !dailyRunsRef ||
     !dailyFirstAnswersRef
   ) {
@@ -423,19 +479,17 @@ export async function cleanupFinishedLiveSessions(params?: {
       continue;
     }
 
-    const [participantsSnapshot, publicAnswersSnapshot, privateAnswersSnapshot, aggregatesSnapshot] =
+    const [participantsSnapshot, publicAnswersSnapshot, privateAnswersSnapshot] =
       await Promise.all([
         getDocs(participantsRef),
         getDocs(query(publicAnswersRef, where("sessionId", "==", session.id))),
         getDocs(query(privateAnswersRef, where("sessionId", "==", session.id))),
-        getDocs(query(aggregatesRef, where("sessionId", "==", session.id))),
       ]);
 
     const deletions = [
       ...participantsSnapshot.docs,
       ...publicAnswersSnapshot.docs,
       ...privateAnswersSnapshot.docs,
-      ...aggregatesSnapshot.docs,
     ];
 
     for (const chunk of chunkDocs(deletions, 450)) {
@@ -496,7 +550,6 @@ async function upsertDailyRun(params: {
   const runRef = dailyRunDoc(dateKey);
   const answersRef = dailyAnswersCollection();
   const privateAnswersRef = dailyPrivateAnswersCollection();
-  const aggregatesRef = dailyAnonymousAggregatesCollection();
   const firstAnswersRef = dailyFirstAnswersCollection();
 
   if (
@@ -505,7 +558,6 @@ async function upsertDailyRun(params: {
     !runRef ||
     !answersRef ||
     !privateAnswersRef ||
-    !aggregatesRef ||
     !firstAnswersRef
   ) {
     throw new Error("Firestore ist nicht verfügbar.");
@@ -561,7 +613,6 @@ async function upsertDailyRun(params: {
       runPayload,
       answersRef,
       privateAnswersRef,
-      aggregatesRef,
       firstAnswersRef,
     });
     return {
@@ -579,7 +630,6 @@ async function upsertDailyRun(params: {
     questionCount: runPayload.questionCount,
     deletedPublicAnswers: 0,
     deletedPrivateAnswers: 0,
-    deletedAnonymousAggregates: 0,
     deletedFirstAnswerLocks: 0,
   };
 }
@@ -669,7 +719,6 @@ function buildDailyRunPayload(params: {
     const questionSnapshot = {
       text: question.text,
       category: question.category,
-      anonymous: false,
       ...(question.options ? { options: question.options } : {}),
       ...(question.imagePath ? { imagePath: question.imagePath } : {}),
     };
@@ -712,13 +761,11 @@ async function replaceDailyRunAtomically(params: {
   runPayload: ReturnType<typeof buildDailyRunPayload>;
   answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
   privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
-  aggregatesRef: NonNullable<ReturnType<typeof dailyAnonymousAggregatesCollection>>;
   firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
 }): Promise<Pick<
   AdminRunActionResult,
   | "deletedPublicAnswers"
   | "deletedPrivateAnswers"
-  | "deletedAnonymousAggregates"
   | "deletedFirstAnswerLocks"
 >> {
   const {
@@ -727,14 +774,12 @@ async function replaceDailyRunAtomically(params: {
     runPayload,
     answersRef,
     privateAnswersRef,
-    aggregatesRef,
     firstAnswersRef,
   } = params;
   const deletionResult = await collectDailyRunDeletionData({
     dateKey,
     answersRef,
     privateAnswersRef,
-    aggregatesRef,
     firstAnswersRef,
   });
   const deletions = deletionResult.docs;
@@ -784,21 +829,18 @@ async function deleteDailyRunData(params: {
   runRef: NonNullable<ReturnType<typeof dailyRunDoc>>;
   answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
   privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
-  aggregatesRef: NonNullable<ReturnType<typeof dailyAnonymousAggregatesCollection>>;
   firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
 }): Promise<Pick<
   AdminDailyDeleteResult,
   | "deletedPublicAnswers"
   | "deletedPrivateAnswers"
-  | "deletedAnonymousAggregates"
   | "deletedFirstAnswerLocks"
 >> {
-  const { runRef, dateKey, answersRef, privateAnswersRef, aggregatesRef, firstAnswersRef } = params;
+  const { runRef, dateKey, answersRef, privateAnswersRef, firstAnswersRef } = params;
   const deletionResult = await collectDailyRunDeletionData({
     dateKey,
     answersRef,
     privateAnswersRef,
-    aggregatesRef,
     firstAnswersRef,
   });
   const { docs } = deletionResult;
@@ -829,15 +871,13 @@ async function collectDailyRunDeletionData(params: {
   dateKey: DateKey;
   answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
   privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
-  aggregatesRef: NonNullable<ReturnType<typeof dailyAnonymousAggregatesCollection>>;
   firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
 }) {
-  const { dateKey, answersRef, privateAnswersRef, aggregatesRef, firstAnswersRef } = params;
-  const [answersSnapshot, privateAnswersSnapshot, aggregatesSnapshot, firstAnswersSnapshot] =
+  const { dateKey, answersRef, privateAnswersRef, firstAnswersRef } = params;
+  const [answersSnapshot, privateAnswersSnapshot, firstAnswersSnapshot] =
     await Promise.all([
       getDocs(query(answersRef, where("dateKey", "==", dateKey))),
       getDocs(query(privateAnswersRef, where("dateKey", "==", dateKey))),
-      getDocs(query(aggregatesRef, where("dateKey", "==", dateKey))),
       getDocs(query(firstAnswersRef, where("dateKey", "==", dateKey))),
     ]);
 
@@ -845,13 +885,11 @@ async function collectDailyRunDeletionData(params: {
     docs: [
       ...answersSnapshot.docs,
       ...privateAnswersSnapshot.docs,
-      ...aggregatesSnapshot.docs,
       ...firstAnswersSnapshot.docs,
     ],
     counts: {
       deletedPublicAnswers: answersSnapshot.docs.length,
       deletedPrivateAnswers: privateAnswersSnapshot.docs.length,
-      deletedAnonymousAggregates: aggregatesSnapshot.docs.length,
       deletedFirstAnswerLocks: firstAnswersSnapshot.docs.length,
     },
   };
@@ -922,6 +960,34 @@ function chunkDocs<T>(items: T[], size: number) {
     chunks.push(items.slice(index, index + size));
   }
   return chunks;
+}
+
+function buildQuestionImportExactKey(
+  question: Pick<
+    QuestionDoc,
+    "text" | "category" | "type" | "targetMode" | "options" | "imagePath"
+  >,
+) {
+  return JSON.stringify({
+    text: question.text.trim().toLocaleLowerCase("de-DE"),
+    category: question.category,
+    type: question.type,
+    targetMode: question.targetMode,
+    options: question.options?.map((option) =>
+      option.trim().toLocaleLowerCase("de-DE"),
+    ) ?? null,
+    imagePath: question.imagePath?.trim() || null,
+  });
+}
+
+function buildQuestionImportIdentityKey(
+  question: Pick<QuestionDoc, "text" | "category" | "targetMode">,
+) {
+  return JSON.stringify({
+    text: question.text.trim().toLocaleLowerCase("de-DE"),
+    category: question.category,
+    targetMode: question.targetMode,
+  });
 }
 
 async function deleteDocInOwnBatch(target: ReturnType<typeof doc>) {

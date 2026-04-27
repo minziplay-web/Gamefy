@@ -3,28 +3,24 @@
     "text": "Wer hat das ungewöhnlichste Hobby?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer könnte ernsthaft Influencer werden?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer ist heimlich Nerd für irgendwas total Nischiges?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Würdest du eher nie wieder Sport machen oder nie wieder Serien schauen?",
     "category": "hobbies_interests",
     "type": "either_or",
-    "anonymous": false,
     "targetMode": "both",
     "options": [
       "Nie wieder Sport",
@@ -35,63 +31,54 @@
     "text": "Wer kauft sich ein teures Hobby und lässt es nach zwei Wochen liegen?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer könnte ernsthaft einen Marathon laufen?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer sucht sich im Urlaub die unerwartetste Stadtführung aus?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer könnte am ehesten ein eigenes Kochbuch schreiben?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat die seltsamste Musikvorliebe?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde sich sofort ein Boot kaufen, wenn er könnte?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde in einer Reality-Show am weitesten kommen?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer scrollt nachts heimlich stundenlang durch TikTok?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Würdest du eher nie wieder Konzerte oder nie wieder Restaurants besuchen?",
     "category": "hobbies_interests",
     "type": "either_or",
-    "anonymous": false,
     "targetMode": "both",
     "options": [
       "Nie wieder Konzerte",
@@ -102,28 +89,36 @@
     "text": "Wer würde Urlaub am liebsten in einer Bibliothek verbringen?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde sich beim Workout-Video selbst auf den Boden hauen?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer hat schon mal etwas gebacken, das selbst der Hund nicht wollte?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   },
   {
     "text": "Wer würde im Yoga-Kurs am ehesten einschlafen?",
     "category": "hobbies_interests",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "live"
+  },
+  {
+    "text": "Wer könnte sich komplett in ein neues Hobby reinnerden?",
+    "category": "hobbies_interests",
+    "type": "multi_choice",
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hätte am ehesten Lust auf einen komplett unnötigen, aber lustigen Workshop?",
+    "category": "hobbies_interests",
+    "type": "multi_choice",
+    "targetMode": "both"
   }
 ]

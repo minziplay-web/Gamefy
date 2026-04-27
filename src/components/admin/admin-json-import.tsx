@@ -10,7 +10,6 @@ const EXAMPLE = `[
     "text": "Wer würde am ehesten spontan einen Flug buchen?",
     "category": "pure_fun",
     "type": "single_choice",
-    "anonymous": false,
     "targetMode": "both"
   }
 ]`;
@@ -18,10 +17,12 @@ const EXAMPLE = `[
 export function AdminJsonImport({
   status,
   error,
+  message,
   onImport,
 }: {
   status: "idle" | "importing" | "success" | "error";
   error?: string;
+  message?: string;
   onImport: (raw: string) => void;
 }) {
   const [value, setValue] = useState("");
@@ -45,7 +46,7 @@ export function AdminJsonImport({
         <p className="text-xs text-rose-600">{error}</p>
       ) : null}
       {status === "success" ? (
-        <p className="text-xs text-emerald-700">Import erfolgreich.</p>
+        <p className="text-xs text-emerald-700">{message ?? "Import erfolgreich."}</p>
       ) : null}
       <Button
         className="w-full"

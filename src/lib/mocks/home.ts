@@ -20,11 +20,9 @@ export const mockHome: HomeViewState = {
       questionId: "q1",
       questionText: "Wer würde am ehesten spontan einen Flug buchen?",
       category: "pure_fun",
-      anonymous: false,
       result: {
         questionType: "single_choice",
-        anonymous: false,
-        totalVotes: 5,
+          totalVotes: 5,
         myChoiceUserId: "u_tim",
         counts: [
           { candidate: mockMembers[1], votes: 3, percent: 60 },
@@ -40,11 +38,9 @@ export const mockHome: HomeViewState = {
       questionId: "q3",
       questionText: "Wer ist spontaner?",
       category: "hot_takes",
-      anonymous: true,
       result: {
         questionType: "duel_1v1",
-        anonymous: true,
-        myChoice: "left",
+          myChoice: "left",
         left: { member: mockMembers[0], votes: 3, percent: 60 },
         right: { member: mockMembers[2], votes: 2, percent: 40 },
       },
@@ -61,11 +57,9 @@ export const mockHome: HomeViewState = {
           questionId: "q7",
           questionText: "Wer wäre der beste Roadtrip-Buddy?",
           category: "pure_fun",
-          anonymous: false,
-          result: {
+              result: {
             questionType: "single_choice",
-            anonymous: false,
-            totalVotes: 4,
+                  totalVotes: 4,
             counts: [
               { candidate: mockMembers[0], votes: 2, percent: 50 },
               { candidate: mockMembers[1], votes: 1, percent: 25 },
@@ -85,11 +79,9 @@ export const mockHome: HomeViewState = {
           questionId: "q8",
           questionText: "Würdest du eher nie wieder feiern oder nie wieder verreisen?",
           category: "would_you_rather",
-          anonymous: true,
-          result: {
+              result: {
             questionType: "either_or",
-            anonymous: true,
-            options: [
+                  options: [
               { label: "Nie wieder feiern", votes: 3, percent: 60 },
               { label: "Nie wieder verreisen", votes: 2, percent: 40 },
             ],

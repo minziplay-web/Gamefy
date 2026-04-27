@@ -6,7 +6,6 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   dailyAnswersCollection,
-  dailyAnonymousAggregatesCollection,
   dailyPrivateAnswersCollection,
   dailyRunsCollection,
   dailyRunDoc,
@@ -28,7 +27,6 @@ import { computeDailyStreakStats } from "@/lib/mapping/stats";
 import { mockHome } from "@/lib/mocks";
 import type { HomePastDailyReview, HomeViewState, MemberLite } from "@/lib/types/frontend";
 import type {
-  DailyAnonymousAggregateDoc,
   DailyAnswerDoc,
   DailyPrivateAnswerDoc,
   DailyRunDoc,
@@ -40,7 +38,7 @@ import type {
 
 type QuestionLike = Pick<
   QuestionDoc,
-  "text" | "category" | "type" | "anonymous" | "options"
+  "text" | "category" | "type" | "options"
 >;
 
 export function useHomeViewState(): HomeViewState {
@@ -62,7 +60,6 @@ export function useHomeViewState(): HomeViewState {
     const dateKey = berlinDateKey();
     const runRef = dailyRunDoc(dateKey);
     const answersRef = dailyAnswersCollection();
-    const aggregatesRef = dailyAnonymousAggregatesCollection();
     const privateAnswersRef = dailyPrivateAnswersCollection();
     const sessionsRef = liveSessionsCollection();
     const runsRef = dailyRunsCollection();
@@ -72,7 +69,6 @@ export function useHomeViewState(): HomeViewState {
     if (
       !runRef ||
       !answersRef ||
-      !aggregatesRef ||
       !privateAnswersRef ||
       !runsRef ||
       !sessionsRef ||
@@ -99,7 +95,6 @@ export function useHomeViewState(): HomeViewState {
     let allMyDailyAnswers: DailyPrivateAnswerDoc[] = [];
     let myDailyAnswers = new Map<string, DailyPrivateAnswerDoc>();
     let allPublicAnswers = new Map<string, DailyAnswerDoc[]>();
-    let anonymousAggregates = new Map<string, DailyAnonymousAggregateDoc>();
     let unsubscribeActiveParticipants: (() => void) | null = null;
 
     const emit = () => {
@@ -193,12 +188,10 @@ export function useHomeViewState(): HomeViewState {
               questionId: question.questionId,
               questionText: question.text,
               category: question.category,
-              anonymous: question.anonymous,
               result: mapQuestionResult({
                 question,
                 myAnswer,
                 publicAnswers: allPublicAnswers.get(reviewKey) ?? [],
-                anonymousAggregate: anonymousAggregates.get(reviewKey),
                 members: memberMap,
               }),
             },
@@ -336,19 +329,6 @@ export function useHomeViewState(): HomeViewState {
         handleError("Home-Daily-Ergebnisse"),
       ),
       onSnapshot(
-        aggregatesRef,
-        (snapshot) => {
-          anonymousAggregates = new Map(
-            snapshot.docs.map((doc) => {
-              const data = doc.data() as DailyAnonymousAggregateDoc;
-              return [`${data.dateKey}_${data.questionId}`, data];
-            }),
-          );
-          emit();
-        },
-        handleError("Home-Daily-Aggregate"),
-      ),
-      onSnapshot(
         questionsRef,
         (snapshot) => {
           questions = new Map(
@@ -445,7 +425,6 @@ function getQuestionSource(
     text: item.questionSnapshot.text,
     category: item.questionSnapshot.category,
     type: item.type,
-    anonymous: item.questionSnapshot.anonymous,
     options: item.questionSnapshot.options,
   };
 }

@@ -45,11 +45,6 @@ export function LobbyFinishedSummary({
           >
             <div className="flex items-center gap-2">
               <CategoryBadge category={round.category} size="sm" />
-              {round.anonymous ? (
-                <span className="rounded-full bg-sand-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-sand-600">
-                  Anonym
-                </span>
-              ) : null}
               <span className="ml-auto text-xs font-medium text-sand-500">
                 Frage {round.questionIndex + 1}
               </span>

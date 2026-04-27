@@ -5,12 +5,10 @@ import { useEffect, useState } from "react";
 
 import { useAuth } from "@/lib/auth/auth-context";
 import {
-  dailyAnonymousAggregatesCollection,
   dailyAnswersCollection,
   dailyFirstAnswersCollection,
   dailyPrivateAnswersCollection,
   dailyRunsCollection,
-  liveAnonymousAggregatesCollection,
   liveAnswersCollection,
   liveParticipantsGroup,
   livePrivateAnswersCollection,
@@ -29,12 +27,10 @@ import {
 import { mockProfile } from "@/lib/mocks";
 import type { DailyHistoryEntry, MemberLite, ProfileStats, ProfileViewState } from "@/lib/types/frontend";
 import type {
-  DailyAnonymousAggregateDoc,
   DailyAnswerDoc,
   DailyFirstAnswerDoc,
   DailyPrivateAnswerDoc,
   DailyRunDoc,
-  LiveAnonymousAggregateDoc,
   LiveAnswerDoc,
   LivePrivateAnswerDoc,
   LiveSessionDoc,
@@ -63,12 +59,10 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
     const privateAnswersRef = dailyPrivateAnswersCollection();
     const dailyAnswersRef = dailyAnswersCollection();
     const dailyFirstAnswersRef = dailyFirstAnswersCollection();
-    const dailyAggregatesRef = dailyAnonymousAggregatesCollection();
     const liveSessionsRef = liveSessionsCollection();
     const liveParticipantsRef = liveParticipantsGroup();
     const livePrivateAnswersRef = livePrivateAnswersCollection();
     const liveAnswersRef = liveAnswersCollection();
-    const liveAggregatesRef = liveAnonymousAggregatesCollection();
     const questionsRef = questionsCollection();
 
     if (
@@ -77,12 +71,10 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
       !privateAnswersRef ||
       !dailyAnswersRef ||
       !dailyFirstAnswersRef ||
-      !dailyAggregatesRef ||
       !liveSessionsRef ||
       !liveParticipantsRef ||
       !livePrivateAnswersRef ||
       !liveAnswersRef ||
-      !liveAggregatesRef ||
       !questionsRef
     ) {
       queueMicrotask(() =>
@@ -100,11 +92,9 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
     let myLiveAnswers: LivePrivateAnswerDoc[] = [];
     let dailyAnswers: DailyAnswerDoc[] = [];
     let dailyFirstAnswers: DailyFirstAnswerDoc[] = [];
-    let dailyAggregates: DailyAnonymousAggregateDoc[] = [];
     let liveSessions: Array<LiveSessionDoc & { id: string }> = [];
     let liveParticipantSessionIds: string[] = [];
     let liveAnswers: LiveAnswerDoc[] = [];
-    let liveAggregates: LiveAnonymousAggregateDoc[] = [];
     let questions = new Map<string, QuestionDoc>();
 
     const emit = () => {
@@ -118,10 +108,8 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
         userId: viewedUserId,
         dailyRuns,
         dailyAnswers,
-        dailyAnonymousAggregates: dailyAggregates,
         liveSessions,
         liveAnswers,
-        liveAnonymousAggregates: liveAggregates,
       });
       const questionCategories = new Map(
         Array.from(questions.entries()).map(([questionId, question]) => [
@@ -261,16 +249,6 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
         },
         handleError("Profil-First-Answers"),
       ),
-      onSnapshot(
-        dailyAggregatesRef,
-        (snapshot) => {
-          dailyAggregates = snapshot.docs.map(
-            (doc) => doc.data() as DailyAnonymousAggregateDoc,
-          );
-          emit();
-        },
-        handleError("Profil-Daily-Aggregate"),
-      ),
       ...(isSelfProfile
         ? [
             onSnapshot(
@@ -327,16 +305,6 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
           emit();
         },
         handleError("Profil-Live-Antworten"),
-      ),
-      onSnapshot(
-        liveAggregatesRef,
-        (snapshot) => {
-          liveAggregates = snapshot.docs.map(
-            (doc) => doc.data() as LiveAnonymousAggregateDoc,
-          );
-          emit();
-        },
-        handleError("Profil-Live-Aggregate"),
       ),
       onSnapshot(
         query(questionsRef, where("active", "==", true)),

@@ -35,6 +35,30 @@ export function assertValidDraftForQuestion(
       );
       return;
 
+    case "multi_choice": {
+      assert(
+        draft.type === "multi_choice",
+        "Multi-Choice-Antwort hat den falschen Typ.",
+      );
+      assert(
+        Array.isArray(draft.selectedUserIds) && draft.selectedUserIds.length > 0,
+        "Bitte mindestens eine Person auswählen.",
+      );
+      const candidateIds = new Set(question.candidates.map((c) => c.userId));
+      const uniqueIds = new Set(draft.selectedUserIds);
+      assert(
+        uniqueIds.size === draft.selectedUserIds.length,
+        "Doppelte Auswahl in der Antwort.",
+      );
+      for (const id of draft.selectedUserIds) {
+        assert(
+          candidateIds.has(id),
+          "Eine ausgewählte Person gehört nicht zu dieser Frage.",
+        );
+      }
+      return;
+    }
+
     case "open_text":
       assert(
         draft.type === "open_text",

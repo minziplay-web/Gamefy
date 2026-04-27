@@ -10,6 +10,7 @@ import type {
   EitherOrResult,
   MemberLite,
   MemeCaptionResult,
+  MultiChoiceResult,
   OpenTextResult,
   QuestionResult,
   SingleChoiceResult,
@@ -25,6 +26,8 @@ export function QuestionReveal({
   switch (result.questionType) {
     case "single_choice":
       return <SingleChoiceReveal result={result} />;
+    case "multi_choice":
+      return <MultiChoiceReveal result={result} />;
     case "open_text":
       return <OpenTextReveal result={result} />;
     case "duel_1v1":
@@ -85,7 +88,7 @@ function MemeCaptionReveal({
 
     return (
       <div className="flex flex-col gap-3">
-        <div className="anim-winner-pop space-y-3 rounded-2xl border-2 border-coral bg-gradient-to-br from-coral-soft/40 to-white p-4 shadow-card-raised">
+        <div className="anim-winner-pop space-y-3 rounded-2xl border-2 border-coral bg-linear-to-br from-coral-soft/40 to-white p-4 shadow-card-raised">
           <div className="flex items-center gap-2">
             <span className="anim-crown-bob text-xl" aria-hidden>
               👑
@@ -349,9 +352,68 @@ function SingleChoiceReveal({ result }: { result: SingleChoiceResult }) {
       {withVotes.map((row, idx) => {
         const isMine = row.candidate.userId === result.myChoiceUserId;
         const isTop = idx === 0;
-        const voters = result.anonymous
-          ? []
-          : (result.voterRows ?? [])
+        const voters = (result.voterRows ?? [])
+              .filter((voteRow) => voteRow.target.userId === row.candidate.userId)
+              .map((voteRow) => voteRow.voter);
+        const expanded = expandedId === row.candidate.userId;
+
+        return (
+          <RevealBar
+            key={row.candidate.userId}
+            member={row.candidate}
+            label={row.candidate.displayName}
+            votes={row.votes}
+            percent={row.percent}
+            highlight={isMine}
+            top={isTop}
+            voters={voters}
+            expanded={expanded}
+            onToggle={
+              voters.length > 0
+                ? () =>
+                    setExpandedId((curr) =>
+                      curr === row.candidate.userId ? null : row.candidate.userId,
+                    )
+                : undefined
+            }
+          />
+        );
+      })}
+      {hiddenCount > 0 ? (
+        <p className="px-1 text-[11px] text-sand-500">
+          {hiddenCount} weitere ohne Stimme
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+function MultiChoiceReveal({ result }: { result: MultiChoiceResult }) {
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  if (result.totalVoters === 0) {
+    return (
+      <p className="rounded-2xl bg-sand-50 px-3 py-3 text-sm text-sand-600">
+        Noch keine Stimmen abgegeben.
+      </p>
+    );
+  }
+
+  const sorted = [...result.counts].sort((a, b) => b.votes - a.votes);
+  const withVotes = sorted.filter((row) => row.votes > 0);
+  const hiddenCount = sorted.length - withVotes.length;
+  const myChoices = new Set(result.myChoiceUserIds ?? []);
+
+  return (
+    <div className="space-y-2">
+      <p className="px-1 text-[11px] text-sand-500">
+        {result.totalVoters} {result.totalVoters === 1 ? "Antwort" : "Antworten"} ·
+        Mehrfachauswahl
+      </p>
+      {withVotes.map((row, idx) => {
+        const isMine = myChoices.has(row.candidate.userId);
+        const isTop = idx === 0;
+        const voters = (result.voterRows ?? [])
               .filter((voteRow) => voteRow.target.userId === row.candidate.userId)
               .map((voteRow) => voteRow.voter);
         const expanded = expandedId === row.candidate.userId;
@@ -433,11 +495,9 @@ function Duel1v1Reveal({ result }: { result: Duel1v1Result }) {
   const rightWins = !leftWins && result.right.votes > 0;
 
   const votersFor = (side: "left" | "right") =>
-    result.anonymous
-      ? []
-      : (result.voterRows ?? [])
-          .filter((row) => row.side === side)
-          .map((row) => row.voter);
+    (result.voterRows ?? [])
+      .filter((row) => row.side === side)
+      .map((row) => row.voter);
 
   return (
     <div className="space-y-3">
@@ -539,11 +599,9 @@ function Duel2v2Reveal({ result }: { result: Duel2v2Result }) {
   const [expandedTeam, setExpandedTeam] = useState<"teamA" | "teamB" | null>(null);
 
   const votersFor = (team: "teamA" | "teamB") =>
-    result.anonymous
-      ? []
-      : (result.voterRows ?? [])
-          .filter((row) => row.team === team)
-          .map((row) => row.voter);
+    (result.voterRows ?? [])
+      .filter((row) => row.team === team)
+      .map((row) => row.voter);
 
   return (
     <div className="grid grid-cols-2 gap-3">
@@ -712,9 +770,7 @@ function EitherOrReveal({ result }: { result: EitherOrResult }) {
       {result.options.map((opt, idx) => {
         const optionIndex = idx as 0 | 1;
         const isMine = idx === result.myChoiceIndex;
-        const voters = result.anonymous
-          ? []
-          : (result.voterRows ?? [])
+        const voters = (result.voterRows ?? [])
               .filter((row) => row.optionIndex === optionIndex)
               .map((row) => row.voter);
         const canToggle = voters.length > 0;

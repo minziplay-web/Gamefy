@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 import { QuestionReveal } from "@/components/daily/question-reveal";
@@ -90,6 +91,24 @@ function PastDailyReviewContent({
 }: {
   entry: HomePastDailyReview;
 }) {
+  const isIncomplete = entry.totalInRun > 0 && entry.answeredByMe < entry.totalInRun;
+
+  if (isIncomplete) {
+    return (
+      <Card tone="raised" className="space-y-3 px-4 py-4">
+        <p className="text-sm text-sand-700">
+          Du hast dieses Daily noch nicht fertig beantwortet.
+        </p>
+        <Link
+          href={`/daily?date=${entry.dateKey}`}
+          className="inline-flex w-full items-center justify-center rounded-2xl bg-coral px-4 py-3 text-sm font-semibold text-white shadow-card-flat transition hover:bg-coral/90"
+        >
+          Daily nachholen
+        </Link>
+      </Card>
+    );
+  }
+
   const state = useDailyViewState(entry.dateKey);
 
   if (state.status === "loading") {

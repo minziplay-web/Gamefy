@@ -11,6 +11,7 @@ import type { AdminQuestionRow, Category, QuestionType } from "@/lib/types/front
 
 const TYPE_LABELS: Record<QuestionType, string> = {
   single_choice: "Single Choice",
+  multi_choice: "Multi Choice",
   open_text: "Freitext",
   duel_1v1: "1v1",
   duel_2v2: "2v2",
