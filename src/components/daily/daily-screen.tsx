@@ -74,6 +74,21 @@ export function DailyScreen({
     });
   }, [currentIndex, showCompletion]);
 
+  useEffect(() => {
+    if (state.status !== "ready") {
+      return;
+    }
+
+    const allAnswered = state.cards.every(
+      (card) =>
+        card.phase === "submitted_waiting_reveal" || card.phase === "revealed",
+    );
+
+    if (allAnswered) {
+      setShowCompletion(true);
+    }
+  }, [state]);
+
   if (state.status === "loading") {
     return (
       <div className="space-y-4">
@@ -246,7 +261,6 @@ export function DailyScreen({
     (card) =>
       card.phase === "submitted_waiting_reveal" || card.phase === "revealed",
   );
-  const allRevealed = state.cards.every((card) => card.phase === "revealed");
   const isLast = currentIndex === totalCards - 1;
   const isCurrentAnswered =
     currentCard?.phase === "submitted_waiting_reveal" ||
@@ -271,9 +285,7 @@ export function DailyScreen({
           state.runStatus === "closed"
             ? "Diese Daily ist abgeschlossen."
             : showCompletion
-              ? allRevealed
-                ? "Hier sind die Ergebnisse von heute."
-                : "Deine Antworten sind gespeichert."
+              ? "Fertig. Deine Antworten wurden erfolgreich gespeichert."
               : "Antwort abgeben, dann weiter zur nächsten Frage."
         }
       />
@@ -296,27 +308,7 @@ export function DailyScreen({
         </div>
       ) : null}
 
-      {showCompletion && allRevealed ? (
-        <div className="space-y-4">
-          {state.cards.map((card) => (
-            <QuestionCardShell
-              key={card.question.questionId}
-              state={card}
-              onDraftChange={() => undefined}
-              onSubmit={() => undefined}
-              onVoteMemeCaption={
-                onVoteMemeCaption
-                  ? (authorUserId, value) => onVoteMemeCaption(card, authorUserId, value)
-                  : undefined
-              }
-            />
-          ))}
-          <DailyCompletionCard
-            cards={state.cards}
-            revealPolicy={state.revealPolicy}
-          />
-        </div>
-      ) : showCompletion || !currentCard ? (
+      {showCompletion || !currentCard ? (
         <DailyCompletionCard
           cards={state.cards}
           revealPolicy={state.revealPolicy}
@@ -419,16 +411,30 @@ function mockResultFor(
       }));
       return {
         questionType: "single_choice",
-        anonymous: q.anonymous,
         totalVotes: 4,
         myChoiceUserId: myId,
+        counts,
+      };
+    }
+    case "multi_choice": {
+      const myIds =
+        draft.type === "multi_choice" ? draft.selectedUserIds : [];
+      const myIdSet = new Set(myIds);
+      const counts = q.candidates.map((c, i) => ({
+        candidate: c,
+        votes: myIdSet.has(c.userId) ? 3 : i < 2 ? 1 : 0,
+        percent: myIdSet.has(c.userId) ? 75 : i < 2 ? 25 : 0,
+      }));
+      return {
+        questionType: "multi_choice",
+        totalVoters: 4,
+        myChoiceUserIds: myIds,
         counts,
       };
     }
     case "open_text":
       return {
         questionType: "open_text",
-        anonymous: q.anonymous,
         entries: [
           {
             text:
@@ -440,7 +446,6 @@ function mockResultFor(
       const mine = draft.type === "duel_1v1" ? draft.selectedSide : undefined;
       return {
         questionType: "duel_1v1",
-        anonymous: q.anonymous,
         myChoice: mine,
         left: {
           member: q.left,
@@ -458,7 +463,6 @@ function mockResultFor(
       const mine = draft.type === "duel_2v2" ? draft.selectedTeam : undefined;
       return {
         questionType: "duel_2v2",
-        anonymous: q.anonymous,
         myChoice: mine,
         teamA: {
           members: q.teamA,
@@ -477,7 +481,6 @@ function mockResultFor(
         draft.type === "either_or" ? draft.selectedOptionIndex : undefined;
       return {
         questionType: "either_or",
-        anonymous: q.anonymous,
         myChoiceIndex: mine,
         options: [
           {
@@ -496,7 +499,6 @@ function mockResultFor(
     case "meme_caption":
       return {
         questionType: "meme_caption",
-        anonymous: q.anonymous,
         imagePath: q.imagePath,
         entries: [
           {
