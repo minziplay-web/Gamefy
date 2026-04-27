@@ -17,22 +17,24 @@ export function MemeImage({
         draggable={false}
       />
       {caption ? (
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 flex justify-center px-3 pb-3">
-          <span
-            className="text-center font-black uppercase leading-tight text-white"
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 px-3 pb-3">
+          <p
+            className="text-center uppercase"
             style={{
               fontFamily:
-                "Impact, 'Haettenschweiler', 'Arial Narrow Bold', 'Anton', sans-serif",
-              fontSize: "clamp(20px, 6.5vw, 38px)",
-              letterSpacing: "0.02em",
+                '"Arial Black", "Helvetica Black", "Helvetica Neue", system-ui, sans-serif',
+              fontSize: "clamp(14px, 3.8vw, 22px)",
+              fontWeight: 900,
+              lineHeight: 1.1,
+              letterSpacing: "0.01em",
+              color: "white",
+              WebkitTextStroke: "2.5px black",
+              paintOrder: "stroke fill",
               wordBreak: "break-word",
-              WebkitTextStroke: "1.5px black",
-              textShadow:
-                "-2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 4px rgba(0,0,0,0.5)",
             }}
           >
             {caption}
-          </span>
+          </p>
         </div>
       ) : null}
     </div>
