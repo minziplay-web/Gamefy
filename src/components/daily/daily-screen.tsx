@@ -433,7 +433,6 @@ function mockResultFor(
       }));
       return {
         questionType: "single_choice",
-        anonymous: false,
         totalVotes: 4,
         myChoiceUserId: myId,
         counts,
@@ -442,7 +441,6 @@ function mockResultFor(
     case "open_text":
       return {
         questionType: "open_text",
-        anonymous: false,
         entries: [
           {
             text:
@@ -454,7 +452,6 @@ function mockResultFor(
       const mine = draft.type === "duel_1v1" ? draft.selectedSide : undefined;
       return {
         questionType: "duel_1v1",
-        anonymous: false,
         myChoice: mine,
         left: {
           member: q.left,
@@ -472,7 +469,6 @@ function mockResultFor(
       const mine = draft.type === "duel_2v2" ? draft.selectedTeam : undefined;
       return {
         questionType: "duel_2v2",
-        anonymous: false,
         myChoice: mine,
         teamA: {
           members: q.teamA,
@@ -491,7 +487,6 @@ function mockResultFor(
         draft.type === "either_or" ? draft.selectedOptionIndex : undefined;
       return {
         questionType: "either_or",
-        anonymous: false,
         myChoiceIndex: mine,
         options: [
           {
@@ -510,7 +505,6 @@ function mockResultFor(
     case "meme_caption":
       return {
         questionType: "meme_caption",
-        anonymous: false,
         imagePath: q.imagePath,
         entries: [
           {
@@ -522,4 +516,6 @@ function mockResultFor(
         ],
       };
   }
+
+  throw new Error("Unbekannter Fragetyp im Daily-Mock.");
 }
