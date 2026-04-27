@@ -370,8 +370,6 @@ service cloud.firestore {
         && request.resource.data.active == resource.data.active
         && request.resource.data.options == resource.data.options
         && request.resource.data.imagePath == resource.data.imagePath
-        && request.resource.data.createdAt == resource.data.createdAt
-        && request.resource.data.createdBy == resource.data.createdBy
         && request.resource.data.dailyLocked == true
         && resource.data.dailyLocked != true
         && request.resource.data.dailyLockedDateKey is string
@@ -672,8 +670,11 @@ service cloud.firestore {
           request.resource.data.authorUserId
         ).data.questionType == "meme_caption";
       allow update: if false;
-      allow delete: if isActiveMember()
-        && resource.data.voterUserId == request.auth.uid;
+      allow delete: if isAdmin()
+        || (
+          isActiveMember()
+          && resource.data.voterUserId == request.auth.uid
+        );
     }
 
     match /liveSessions/{sessionId} {

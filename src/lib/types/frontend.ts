@@ -526,6 +526,12 @@ export interface AdminDailyRunRow {
   status: "scheduled" | "active" | "closed";
   questionCount: number;
   createdByDisplayName: string;
+  items?: Array<{
+    questionId: QuestionId;
+    text: string;
+    category: Category;
+    type: QuestionType;
+  }>;
 }
 
 export interface AdminDailyCategoryPlan {
@@ -576,6 +582,18 @@ export interface AdminDailyDeleteResult {
   deletedPublicAnswers: number;
   deletedPrivateAnswers: number;
   deletedFirstAnswerLocks: number;
+}
+
+export interface AdminDailyQuestionRerollResult {
+  dateKey: DateKey;
+  replacedQuestionId: QuestionId;
+  replacementQuestionId: QuestionId;
+  replacementQuestionText: string;
+  replacementCategory: Category;
+  deletedPublicAnswers: number;
+  deletedPrivateAnswers: number;
+  deletedFirstAnswerLocks: number;
+  deletedMemeVotes: number;
 }
 
 export interface AdminQuestionImportResult {

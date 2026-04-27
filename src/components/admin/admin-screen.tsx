@@ -21,6 +21,7 @@ import { berlinDateKey } from "@/lib/mapping/date";
 import type {
   AdminDailyDeleteResult,
   AdminDailyCategoryPlan,
+  AdminDailyQuestionRerollResult,
   AdminQuestionFilter,
   AdminQuestionImportResult,
   AdminMemberRow,
@@ -41,6 +42,7 @@ export function AdminScreen({
   onImportQuestions,
   onCreateRun,
   onDeleteRun,
+  onRerollQuestion,
   onDeactivateUser,
   onSaveConfig,
 }: {
@@ -57,6 +59,10 @@ export function AdminScreen({
     plan: AdminDailyCategoryPlan,
   ) => Promise<AdminRunActionResult>;
   onDeleteRun?: (dateKey: string) => Promise<AdminDailyDeleteResult>;
+  onRerollQuestion?: (
+    dateKey: string,
+    questionId: string,
+  ) => Promise<AdminDailyQuestionRerollResult>;
   onDeactivateUser?: (userId: string) => Promise<void>;
   onSaveConfig?: (
     draft: Extract<AdminViewState, { status: "ready" }>["config"]["draft"],
@@ -68,12 +74,18 @@ export function AdminScreen({
     dateKey: string;
     mode: "delete" | "reset";
   } | null>(null);
+  const [rerollConfirm, setRerollConfirm] = useState<{
+    dateKey: string;
+    questionId: string;
+    text: string;
+  } | null>(null);
   const [memberToRemove, setMemberToRemove] = useState<AdminMemberRow | null>(null);
   const [runActionState, setRunActionState] = useState<{
     status: "idle" | "running" | "success" | "error";
     message?: string;
     result?: AdminRunActionResult;
     deletedRun?: AdminDailyDeleteResult;
+    rerollResult?: AdminDailyQuestionRerollResult;
   }>({
     status: "idle",
   });
@@ -236,6 +248,7 @@ export function AdminScreen({
       message: undefined,
       result: prev.result,
       deletedRun: prev.deletedRun,
+      rerollResult: prev.rerollResult,
     }));
 
     if (onCreateRun) {
@@ -259,6 +272,8 @@ export function AdminScreen({
               : "Der Run konnte nicht erzeugt werden.",
           ),
           result: prev.result,
+          deletedRun: prev.deletedRun,
+          rerollResult: prev.rerollResult,
         }));
         throw new Error("run_action_failed");
       }
@@ -339,13 +354,14 @@ export function AdminScreen({
             dateKey: target.dateKey,
             deletedPublicAnswers: 0,
             deletedPrivateAnswers: 0,
-                deletedFirstAnswerLocks: 0,
+            deletedFirstAnswerLocks: 0,
           };
       setDeleteRunConfirm(null);
       setRunActionState({
         status: "success",
         message: buildDeleteRunMessage(target.mode, result),
         deletedRun: result,
+        rerollResult: undefined,
       });
     } catch (error) {
       setRunActionState((prev) => ({
@@ -358,6 +374,40 @@ export function AdminScreen({
         ),
         result: prev.result,
         deletedRun: prev.deletedRun,
+        rerollResult: prev.rerollResult,
+      }));
+    }
+  };
+
+  const confirmRerollQuestion = async () => {
+    const target = rerollConfirm;
+    if (!target || !onRerollQuestion) {
+      return;
+    }
+
+    setRunActionState((prev) => ({
+      status: "running",
+      message: undefined,
+      result: prev.result,
+      deletedRun: prev.deletedRun,
+      rerollResult: prev.rerollResult,
+    }));
+
+    try {
+      const result = await onRerollQuestion(target.dateKey, target.questionId);
+      setRerollConfirm(null);
+      setRunActionState({
+        status: "success",
+        message: buildRerollQuestionMessage(result),
+        rerollResult: result,
+      });
+    } catch (error) {
+      setRunActionState((prev) => ({
+        status: "error",
+        message: getErrorMessage(error, "Die Frage konnte nicht neu gewürfelt werden."),
+        result: prev.result,
+        deletedRun: prev.deletedRun,
+        rerollResult: prev.rerollResult,
       }));
     }
   };
@@ -526,6 +576,9 @@ export function AdminScreen({
           <AdminDailyList
             runs={state.dailyRuns}
             onCreate={requestCreateRun}
+            onRerollQuestion={(dateKey, questionId, text) =>
+              setRerollConfirm({ dateKey, questionId, text })
+            }
             onDeleteRun={(dateKey) =>
               setDeleteRunConfirm({
                 dateKey,
@@ -613,6 +666,21 @@ export function AdminScreen({
         onConfirm={() => void confirmDeleteRun()}
         loading={runActionState.status === "running"}
       />
+      <ConfirmDialog
+        open={rerollConfirm !== null}
+        title="Frage neu würfeln?"
+        description={
+          rerollConfirm
+            ? `„${rerollConfirm.text}“ wird aus dem heutigen Daily entfernt. Alle Antworten und Meme-Herzen zu dieser Frage werden gelöscht, damit die neue Frage wieder offen für alle ist.`
+            : ""
+        }
+        confirmLabel="Neu würfeln"
+        cancelLabel="Abbrechen"
+        tone="destructive"
+        onCancel={() => setRerollConfirm(null)}
+        onConfirm={() => void confirmRerollQuestion()}
+        loading={runActionState.status === "running"}
+      />
     </div>
   );
 }
@@ -678,6 +746,27 @@ function buildDeleteRunMessage(
   }
   if (result.deletedFirstAnswerLocks > 0) {
     parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);
+  }
+
+  return parts.join(" · ");
+}
+
+function buildRerollQuestionMessage(result: AdminDailyQuestionRerollResult) {
+  const parts = [
+    `Frage neu gewürfelt. Neu drin: ${result.replacementQuestionText}.`,
+  ];
+
+  if (result.deletedPublicAnswers > 0) {
+    parts.push(`${result.deletedPublicAnswers} öffentliche Antworten entfernt`);
+  }
+  if (result.deletedPrivateAnswers > 0) {
+    parts.push(`${result.deletedPrivateAnswers} private Antworten entfernt`);
+  }
+  if (result.deletedFirstAnswerLocks > 0) {
+    parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);
+  }
+  if (result.deletedMemeVotes > 0) {
+    parts.push(`${result.deletedMemeVotes} Herzen entfernt`);
   }
 
   return parts.join(" · ");

@@ -59,6 +59,8 @@ export async function submitDailyAnswer(params: {
 
   assertValidDraftForQuestion(question, draft);
 
+  let shouldTryFirstAnswerLock = false;
+
   await runTransaction(privateRef.firestore, async (transaction) => {
     const [runSnap, previousPrivateSnap, firstAnswerSnap] = await Promise.all([
       transaction.get(runRef),
@@ -88,6 +90,7 @@ export async function submitDailyAnswer(params: {
       : null;
     const firstSubmit = previousPrivate === null;
     const isFirstAnswerForQuestion = !firstAnswer && firstSubmit;
+    shouldTryFirstAnswerLock = isFirstAnswerForQuestion;
 
     const nextPrivate: DailyPrivateAnswerDoc = {
       dateKey,
@@ -101,7 +104,30 @@ export async function submitDailyAnswer(params: {
 
     transaction.set(privateRef, nextPrivate, { merge: true });
 
-    if (isFirstAnswerForQuestion) {
+    const nextPublic: DailyAnswerDoc = {
+      dateKey,
+      questionId: question.questionId,
+      userId: user.userId,
+      questionType: question.type,
+      ...mapDraftPayload(draft, question),
+      createdAt: previousPrivate?.createdAt ?? serverTimestamp(),
+    };
+
+    transaction.set(publicRef, nextPublic, { merge: true });
+  });
+
+  if (!shouldTryFirstAnswerLock) {
+    return;
+  }
+
+  try {
+    await runTransaction(privateRef.firestore, async (transaction) => {
+      const firstAnswerSnap = await transaction.get(firstAnswerRef);
+
+      if (firstAnswerSnap.exists()) {
+        return;
+      }
+
       transaction.set(firstAnswerRef, {
         dateKey,
         questionId: question.questionId,
@@ -117,19 +143,10 @@ export async function submitDailyAnswer(params: {
         },
         { merge: true },
       );
-    }
-
-    const nextPublic: DailyAnswerDoc = {
-      dateKey,
-      questionId: question.questionId,
-      userId: user.userId,
-      questionType: question.type,
-      ...mapDraftPayload(draft, question),
-      createdAt: previousPrivate?.createdAt ?? serverTimestamp(),
-    };
-
-    transaction.set(publicRef, nextPublic, { merge: true });
-  });
+    });
+  } catch {
+    // The answer itself is already saved. Locking is a best-effort follow-up.
+  }
 }
 
 export async function submitMemeCaptionVote(params: {

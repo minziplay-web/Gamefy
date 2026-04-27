@@ -22,6 +22,7 @@ export function AdminDailyList({
   onCreate,
   onDeleteRun,
   onResetToday,
+  onRerollQuestion,
   todayDateKey,
   runActionStatus = "idle",
   runActionMessage,
@@ -30,6 +31,7 @@ export function AdminDailyList({
   onCreate: () => void;
   onDeleteRun?: (dateKey: DateKey) => void;
   onResetToday?: () => void;
+  onRerollQuestion?: (dateKey: DateKey, questionId: string, text: string) => void;
   todayDateKey?: DateKey;
   runActionStatus?: "idle" | "running" | "success" | "error";
   runActionMessage?: string;
@@ -50,6 +52,40 @@ export function AdminDailyList({
               Für heute existiert bereits ein Run mit {todayRun.questionCount} Fragen.
             </p>
           </div>
+          {todayRun.items && todayRun.items.length > 0 ? (
+            <div className="space-y-2 rounded-2xl border border-amber-200/80 bg-white/80 p-3">
+              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sand-500">
+                Heutige Fragen
+              </p>
+              <ul className="space-y-2">
+                {todayRun.items.map((item, index) => (
+                  <li
+                    key={item.questionId}
+                    className="flex items-start justify-between gap-3 rounded-2xl border border-sand-200 bg-sand-50/70 px-3 py-3"
+                  >
+                    <div className="min-w-0 space-y-1">
+                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sand-500">
+                        Frage {index + 1}
+                      </p>
+                      <p className="text-sm font-medium leading-6 text-sand-900">
+                        {item.text}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      className="shrink-0 px-3 text-amber-900"
+                      onClick={() =>
+                        onRerollQuestion?.(todayRun.dateKey, item.questionId, item.text)
+                      }
+                      disabled={runActionStatus === "running" || !onRerollQuestion}
+                    >
+                      Neu würfeln
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : null}
           <Button
             className="w-full"
             variant="secondary"

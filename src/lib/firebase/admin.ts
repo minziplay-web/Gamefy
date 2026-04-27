@@ -206,11 +206,25 @@ export function useAdminViewState(): AdminViewState {
             const createdByName = data.createdBy
               ? activeUsers.get(data.createdBy)?.displayName
               : undefined;
+            const items =
+              data.items?.map((item) => ({
+                questionId: item.questionId,
+                text:
+                  item.questionSnapshot?.text ??
+                  questions.get(item.questionId)?.text ??
+                  "Unbekannte Frage",
+                category:
+                  item.questionSnapshot?.category ??
+                  questions.get(item.questionId)?.category ??
+                  "pure_fun",
+                type: item.type,
+              })) ?? [];
             return {
               dateKey: data.dateKey,
               status: resolveDailyRunStatus(data),
               questionCount: data.questionCount,
               createdByDisplayName: createdByName ?? "Admin",
+              items,
             };
           });
           emit();

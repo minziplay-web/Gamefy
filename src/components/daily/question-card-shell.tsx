@@ -81,7 +81,7 @@ function CardBody({
   if (state.phase === "submitted_waiting_reveal") {
     return (
       <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/70 px-4 py-3 text-sm font-medium text-emerald-800">
-        Antwort abgegeben. Ergebnis kommt nach Tagesende.
+        Antwort abgegeben. Ergebnis auf der Homepage!
       </div>
     );
   }

@@ -11,6 +11,7 @@ import {
   deactivateUser,
   importQuestions,
   replaceDailyRun,
+  rerollDailyRunQuestion,
   saveAdminConfig,
   toggleQuestionDailyLock,
   toggleQuestionActive,
@@ -63,6 +64,13 @@ export default function AdminPage() {
         }
 
         return deleteDailyRun(dateKey);
+      }}
+      onRerollQuestion={async (dateKey, questionId) => {
+        if (authState.status !== "authenticated" || state.status !== "ready") {
+          throw new Error("Nicht bereit.");
+        }
+
+        return rerollDailyRunQuestion({ dateKey, questionId });
       }}
       onDeactivateUser={async (userId) => {
         if (authState.status !== "authenticated" || state.status !== "ready") {

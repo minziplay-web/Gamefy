@@ -19,6 +19,7 @@ import {
   appConfigDoc,
   dailyAnswersCollection,
   dailyFirstAnswersCollection,
+  dailyMemeVotesCollection,
   dailyPrivateAnswersCollection,
   dailyRunDoc,
   dailyRunsCollection,
@@ -37,6 +38,7 @@ import type {
   AdminConfigDraft,
   AdminDailyCategoryPlan,
   AdminDailyDeleteResult,
+  AdminDailyQuestionRerollResult,
   AdminQuestionImportResult,
   AdminRunActionResult,
   Category,
@@ -407,8 +409,9 @@ export async function deleteDailyRun(dateKey: string): Promise<AdminDailyDeleteR
   const answersRef = dailyAnswersCollection();
   const privateAnswersRef = dailyPrivateAnswersCollection();
   const firstAnswersRef = dailyFirstAnswersCollection();
+  const memeVotesRef = dailyMemeVotesCollection();
 
-  if (!runRef || !answersRef || !privateAnswersRef || !firstAnswersRef) {
+  if (!runRef || !answersRef || !privateAnswersRef || !firstAnswersRef || !memeVotesRef) {
     throw new Error("Firestore ist nicht verfügbar.");
   }
 
@@ -418,11 +421,151 @@ export async function deleteDailyRun(dateKey: string): Promise<AdminDailyDeleteR
     answersRef,
     privateAnswersRef,
     firstAnswersRef,
+    memeVotesRef,
   });
 
   return {
     dateKey,
     ...deletionResult,
+  };
+}
+
+export async function rerollDailyRunQuestion(params: {
+  dateKey: DateKey;
+  questionId: string;
+}): Promise<AdminDailyQuestionRerollResult> {
+  const { dateKey, questionId } = params;
+  const runRef = dailyRunDoc(dateKey);
+  const runsRef = dailyRunsCollection();
+  const questionsRef = questionsCollection();
+  const usersRef = usersCollection();
+  const answersRef = dailyAnswersCollection();
+  const privateAnswersRef = dailyPrivateAnswersCollection();
+  const firstAnswersRef = dailyFirstAnswersCollection();
+  const memeVotesRef = dailyMemeVotesCollection();
+  const configRef = appConfigDoc();
+
+  if (
+    !runRef ||
+    !runsRef ||
+    !questionsRef ||
+    !usersRef ||
+    !answersRef ||
+    !privateAnswersRef ||
+    !firstAnswersRef ||
+    !memeVotesRef ||
+    !configRef
+  ) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  const [runSnapshot, questionSnapshot, userSnapshot, configSnapshot] = await Promise.all([
+    getDoc(runRef),
+    getDocs(query(questionsRef, where("active", "==", true))),
+    getDocs(query(usersRef, where("isActive", "==", true))),
+    getDoc(configRef),
+  ]);
+
+  if (!runSnapshot.exists()) {
+    throw new Error("Der Daily-Run wurde nicht gefunden.");
+  }
+
+  const run = runSnapshot.data() as DailyRunDoc;
+  const items: DailyRunDoc["items"] =
+    run.items ??
+    run.questionIds.map((existingQuestionId) => ({
+      questionId: existingQuestionId,
+      type: questionSnapshot.docs.find((doc) => doc.id === existingQuestionId)?.data()
+        ?.type ?? "open_text",
+    }));
+  const targetIndex = items.findIndex((item) => item.questionId === questionId);
+
+  if (targetIndex === -1) {
+    throw new Error("Diese Frage gehört nicht zu diesem Daily.");
+  }
+
+  const targetItem = items[targetIndex];
+  const targetQuestion = questionSnapshot.docs
+    .map((snapshot) => ({ questionId: snapshot.id, ...(snapshot.data() as QuestionDoc) }))
+    .find((question) => question.questionId === questionId);
+  const targetCategory =
+    targetItem.questionSnapshot?.category ?? targetQuestion?.category;
+
+  if (!targetCategory) {
+    throw new Error("Die Kategorie der Frage konnte nicht bestimmt werden.");
+  }
+
+  const activeUserIds = userSnapshot.docs.map((snapshot) => snapshot.id);
+  const config = configSnapshot.data() as { dailyIncludedCategories?: Category[] } | undefined;
+  const includedCategories =
+    config?.dailyIncludedCategories && config.dailyIncludedCategories.length > 0
+      ? config.dailyIncludedCategories
+      : DEFAULT_DAILY_CATEGORIES;
+
+  if (!includedCategories.includes(targetCategory)) {
+    throw new Error("Diese Kategorie ist aktuell nicht für Daily-Fragen freigegeben.");
+  }
+
+  const eligibleQuestions = questionSnapshot.docs
+    .map((snapshot) => ({ questionId: snapshot.id, ...(snapshot.data() as QuestionDoc) }))
+    .filter(
+      (question) =>
+        (question.targetMode === "daily" || question.targetMode === "both") &&
+        question.dailyLocked !== true &&
+        question.category === targetCategory &&
+        question.questionId !== questionId &&
+        !run.questionIds.includes(question.questionId) &&
+        canUseQuestionInDaily(question.type, activeUserIds.length),
+    );
+
+  if (eligibleQuestions.length === 0) {
+    throw new Error("Für diese Kategorie gibt es gerade keine weitere freigegebene Ersatzfrage.");
+  }
+
+  const replacementQuestion = shuffle(eligibleQuestions)[0];
+  const replacementItem = buildDailyRunItem(replacementQuestion, activeUserIds);
+  const nextItems = items.map((item, index) =>
+    index === targetIndex ? replacementItem : item,
+  );
+  const nextPayload: DailyRunDoc = {
+    ...run,
+    questionIds: nextItems.map((item) => item.questionId),
+    items: nextItems,
+    questionCount: nextItems.length,
+    updatedAt: serverTimestamp(),
+  };
+
+  assertValidDailyRunPayload(nextPayload);
+
+  await setDoc(runRef, nextPayload, { merge: false });
+
+  const deletionResult = await collectDailyQuestionDeletionData({
+    dateKey,
+    questionId,
+    answersRef,
+    privateAnswersRef,
+    firstAnswersRef,
+    memeVotesRef,
+  });
+
+  for (const chunk of chunkDocs(deletionResult.docs, 450)) {
+    const batch = writeBatch(runRef.firestore);
+    for (const entry of chunk) {
+      batch.delete(entry.ref);
+    }
+    await batch.commit();
+  }
+
+  return {
+    dateKey,
+    replacedQuestionId: questionId,
+    replacementQuestionId: replacementQuestion.questionId,
+    replacementQuestionText: replacementQuestion.text,
+    replacementCategory: replacementQuestion.category,
+    deletedPublicAnswers: deletionResult.counts.deletedPublicAnswers,
+    deletedPrivateAnswers: deletionResult.counts.deletedPrivateAnswers,
+    deletedFirstAnswerLocks: deletionResult.counts.deletedFirstAnswerLocks,
+    deletedMemeVotes: deletionResult.counts.deletedMemeVotes,
   };
 }
 
@@ -551,6 +694,7 @@ async function upsertDailyRun(params: {
   const answersRef = dailyAnswersCollection();
   const privateAnswersRef = dailyPrivateAnswersCollection();
   const firstAnswersRef = dailyFirstAnswersCollection();
+  const memeVotesRef = dailyMemeVotesCollection();
 
   if (
     !questionsRef ||
@@ -558,7 +702,8 @@ async function upsertDailyRun(params: {
     !runRef ||
     !answersRef ||
     !privateAnswersRef ||
-    !firstAnswersRef
+    !firstAnswersRef ||
+    !memeVotesRef
   ) {
     throw new Error("Firestore ist nicht verfügbar.");
   }
@@ -614,6 +759,7 @@ async function upsertDailyRun(params: {
       answersRef,
       privateAnswersRef,
       firstAnswersRef,
+      memeVotesRef,
     });
     return {
       mode: "replace",
@@ -714,28 +860,7 @@ function buildDailyRunPayload(params: {
     return shuffle(categoryQuestions)[0];
   });
 
-  const items = selectedQuestions.map((question) => {
-    const pairing = buildPairing(question.type, userIds);
-    const questionSnapshot = {
-      text: question.text,
-      category: question.category,
-      ...(question.options ? { options: question.options } : {}),
-      ...(question.imagePath ? { imagePath: question.imagePath } : {}),
-    };
-
-    return pairing
-      ? {
-          questionId: question.questionId,
-          type: question.type,
-          questionSnapshot,
-          pairing,
-        }
-      : {
-          questionId: question.questionId,
-          type: question.type,
-          questionSnapshot,
-        };
-  });
+  const items = selectedQuestions.map((question) => buildDailyRunItem(question, userIds));
 
   const payload = {
     dateKey,
@@ -762,6 +887,7 @@ async function replaceDailyRunAtomically(params: {
   answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
   privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
   firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
+  memeVotesRef: NonNullable<ReturnType<typeof dailyMemeVotesCollection>>;
 }): Promise<Pick<
   AdminRunActionResult,
   | "deletedPublicAnswers"
@@ -775,12 +901,14 @@ async function replaceDailyRunAtomically(params: {
     answersRef,
     privateAnswersRef,
     firstAnswersRef,
+    memeVotesRef,
   } = params;
   const deletionResult = await collectDailyRunDeletionData({
     dateKey,
     answersRef,
     privateAnswersRef,
     firstAnswersRef,
+    memeVotesRef,
   });
   const deletions = deletionResult.docs;
 
@@ -830,18 +958,21 @@ async function deleteDailyRunData(params: {
   answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
   privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
   firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
+  memeVotesRef: NonNullable<ReturnType<typeof dailyMemeVotesCollection>>;
 }): Promise<Pick<
   AdminDailyDeleteResult,
   | "deletedPublicAnswers"
   | "deletedPrivateAnswers"
   | "deletedFirstAnswerLocks"
 >> {
-  const { runRef, dateKey, answersRef, privateAnswersRef, firstAnswersRef } = params;
+  const { runRef, dateKey, answersRef, privateAnswersRef, firstAnswersRef, memeVotesRef } =
+    params;
   const deletionResult = await collectDailyRunDeletionData({
     dateKey,
     answersRef,
     privateAnswersRef,
     firstAnswersRef,
+    memeVotesRef,
   });
   const { docs } = deletionResult;
 
@@ -867,18 +998,46 @@ async function deleteDailyRunData(params: {
   return deletionResult.counts;
 }
 
-async function collectDailyRunDeletionData(params: {
+async function collectDailyQuestionDeletionData(params: {
   dateKey: DateKey;
+  questionId: string;
   answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
   privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
   firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
+  memeVotesRef: NonNullable<ReturnType<typeof dailyMemeVotesCollection>>;
 }) {
-  const { dateKey, answersRef, privateAnswersRef, firstAnswersRef } = params;
-  const [answersSnapshot, privateAnswersSnapshot, firstAnswersSnapshot] =
+  const { dateKey, questionId, answersRef, privateAnswersRef, firstAnswersRef, memeVotesRef } =
+    params;
+  const [answersSnapshot, privateAnswersSnapshot, firstAnswersSnapshot, memeVotesSnapshot] =
     await Promise.all([
-      getDocs(query(answersRef, where("dateKey", "==", dateKey))),
-      getDocs(query(privateAnswersRef, where("dateKey", "==", dateKey))),
-      getDocs(query(firstAnswersRef, where("dateKey", "==", dateKey))),
+      getDocs(
+        query(
+          answersRef,
+          where("dateKey", "==", dateKey),
+          where("questionId", "==", questionId),
+        ),
+      ),
+      getDocs(
+        query(
+          privateAnswersRef,
+          where("dateKey", "==", dateKey),
+          where("questionId", "==", questionId),
+        ),
+      ),
+      getDocs(
+        query(
+          firstAnswersRef,
+          where("dateKey", "==", dateKey),
+          where("questionId", "==", questionId),
+        ),
+      ),
+      getDocs(
+        query(
+          memeVotesRef,
+          where("dateKey", "==", dateKey),
+          where("questionId", "==", questionId),
+        ),
+      ),
     ]);
 
   return {
@@ -886,6 +1045,39 @@ async function collectDailyRunDeletionData(params: {
       ...answersSnapshot.docs,
       ...privateAnswersSnapshot.docs,
       ...firstAnswersSnapshot.docs,
+      ...memeVotesSnapshot.docs,
+    ],
+    counts: {
+      deletedPublicAnswers: answersSnapshot.docs.length,
+      deletedPrivateAnswers: privateAnswersSnapshot.docs.length,
+      deletedFirstAnswerLocks: firstAnswersSnapshot.docs.length,
+      deletedMemeVotes: memeVotesSnapshot.docs.length,
+    },
+  };
+}
+
+async function collectDailyRunDeletionData(params: {
+  dateKey: DateKey;
+  answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
+  privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
+  firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
+  memeVotesRef: NonNullable<ReturnType<typeof dailyMemeVotesCollection>>;
+}) {
+  const { dateKey, answersRef, privateAnswersRef, firstAnswersRef, memeVotesRef } = params;
+  const [answersSnapshot, privateAnswersSnapshot, firstAnswersSnapshot, memeVotesSnapshot] =
+    await Promise.all([
+      getDocs(query(answersRef, where("dateKey", "==", dateKey))),
+      getDocs(query(privateAnswersRef, where("dateKey", "==", dateKey))),
+      getDocs(query(firstAnswersRef, where("dateKey", "==", dateKey))),
+      getDocs(query(memeVotesRef, where("dateKey", "==", dateKey))),
+    ]);
+
+  return {
+    docs: [
+      ...answersSnapshot.docs,
+      ...privateAnswersSnapshot.docs,
+      ...firstAnswersSnapshot.docs,
+      ...memeVotesSnapshot.docs,
     ],
     counts: {
       deletedPublicAnswers: answersSnapshot.docs.length,
@@ -912,6 +1104,32 @@ function buildPairing(type: QuestionType, userIds: string[]) {
   }
 
   return undefined;
+}
+
+function buildDailyRunItem(
+  question: { questionId: string } & QuestionDoc,
+  userIds: string[],
+) {
+  const pairing = buildPairing(question.type, userIds);
+  const questionSnapshot = {
+    text: question.text,
+    category: question.category,
+    ...(question.options ? { options: question.options } : {}),
+    ...(question.imagePath ? { imagePath: question.imagePath } : {}),
+  };
+
+  return pairing
+    ? {
+        questionId: question.questionId,
+        type: question.type,
+        questionSnapshot,
+        pairing,
+      }
+    : {
+        questionId: question.questionId,
+        type: question.type,
+        questionSnapshot,
+      };
 }
 
 function canUseQuestionInDaily(type: QuestionType, memberCount: number) {
