@@ -336,6 +336,27 @@ service cloud.firestore {
         );
     }
 
+    function isAllowedQuestionDailyLockUpdate(questionId) {
+      return isActiveMember()
+        && resource != null
+        && hasValidQuestionPayload(request.resource.data)
+        && request.resource.data.text == resource.data.text
+        && request.resource.data.category == resource.data.category
+        && request.resource.data.type == resource.data.type
+        && request.resource.data.anonymous == resource.data.anonymous
+        && request.resource.data.targetMode == resource.data.targetMode
+        && request.resource.data.active == resource.data.active
+        && request.resource.data.options == resource.data.options
+        && request.resource.data.imagePath == resource.data.imagePath
+        && request.resource.data.createdAt == resource.data.createdAt
+        && request.resource.data.createdBy == resource.data.createdBy
+        && request.resource.data.dailyLocked == true
+        && resource.data.dailyLocked != true
+        && request.resource.data.dailyLockedDateKey is string
+        && isActiveDailyRun(request.resource.data.dailyLockedDateKey)
+        && questionInDailyRun(request.resource.data.dailyLockedDateKey, questionId);
+    }
+
     function hasOnlyDailyRunFields(data) {
       return data.keys().hasOnly([
         "dateKey",
@@ -544,8 +565,10 @@ service cloud.firestore {
 
     match /questions/{questionId} {
       allow read: if isActiveMember();
-      allow create, update: if isAdmin()
+      allow create: if isAdmin()
         && hasValidQuestionPayload(request.resource.data);
+      allow update: if (isAdmin() && hasValidQuestionPayload(request.resource.data))
+        || isAllowedQuestionDailyLockUpdate(questionId);
       allow delete: if isAdmin();
     }
 
