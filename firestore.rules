@@ -660,13 +660,17 @@ service cloud.firestore {
           + request.resource.data.voterUserId
         && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId)
         && isAnswerableDailyRun(request.resource.data.dateKey)
-        && questionRecord(request.resource.data.questionId).data.type == "meme_caption"
         && exists(/databases/$(database)/documents/dailyAnswers/$(request.resource.data.dateKey + "_" + request.resource.data.questionId + "_" + request.resource.data.authorUserId))
         && dailyAnswerRecord(
           request.resource.data.dateKey,
           request.resource.data.questionId,
           request.resource.data.authorUserId
-        ).data.userId == request.resource.data.authorUserId;
+        ).data.userId == request.resource.data.authorUserId
+        && dailyAnswerRecord(
+          request.resource.data.dateKey,
+          request.resource.data.questionId,
+          request.resource.data.authorUserId
+        ).data.questionType == "meme_caption";
       allow update: if false;
       allow delete: if isActiveMember()
         && resource.data.voterUserId == request.auth.uid;
