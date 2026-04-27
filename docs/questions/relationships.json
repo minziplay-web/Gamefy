@@ -1,0 +1,142 @@
+[
+  {
+    "text": "Wer aus der Gruppe heiratet als Letzter?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer schreibt seinem Ex am ehesten noch Jahre später?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer plant beim ersten Date schon heimlich das erste gemeinsame Wochenende?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer macht in einer Beziehung am ehesten den extra Schritt?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wem würdest du dein Kind zum Babysitten anvertrauen?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat das schönste Lächeln in der Gruppe?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer wäre die beste Schwiegermutter oder der beste Schwiegervater?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat die beste Ehe-Prognose?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer würde in einer Fernbeziehung die meisten Sprachnachrichten schicken?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer ist in einer Beziehung am loyalsten in stressigen Phasen?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer guckt im Café am ehesten heimlich, was die anderen essen?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer plant beim ersten Date schon das erste gemeinsame Wochenende?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer verliebt sich am schnellsten?",
+    "category": "relationships",
+    "type": "duel_1v1",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer würde für Liebe wirklich alles aufgeben?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer ist in der Freundschaft der loyalste?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat schon mal einem Date heimlich Knoblauchatem entgegen geatmet?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat schon mal eine Sprachnachricht für den Crush an die eigene Mutter geschickt?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hätte beim Date am ehesten Spinat zwischen den Zähnen und es nicht bemerken?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat schon mal einen Date-Spot ausgesucht, der dann komplett geschlossen war?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat sich schon mal beim Date in der Toilette versteckt, um zu fliehen?",
+    "category": "relationships",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  }
+]

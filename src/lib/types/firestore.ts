@@ -19,7 +19,10 @@ export interface QuestionDoc {
   anonymous: boolean;
   targetMode: TargetMode;
   active: boolean;
+  dailyLocked?: boolean;
+  dailyLockedDateKey?: string | null;
   options?: string[];
+  imagePath?: string;
   createdAt?: unknown;
   createdBy?: string;
   updatedAt?: unknown;
@@ -28,6 +31,13 @@ export interface QuestionDoc {
 export interface DailyRunItemDoc {
   questionId: string;
   type: QuestionType;
+  questionSnapshot?: {
+    text: string;
+    category: Category;
+    anonymous: boolean;
+    options?: string[];
+    imagePath?: string;
+  };
   pairing?: {
     memberIds?: [string, string];
     teamA?: [string, string];
@@ -105,6 +115,14 @@ export interface DailyFirstAnswerDoc {
   dateKey: string;
   questionId: string;
   userId: string;
+  createdAt?: unknown;
+}
+
+export interface DailyMemeVoteDoc {
+  dateKey: string;
+  questionId: string;
+  authorUserId: string;
+  voterUserId: string;
   createdAt?: unknown;
 }
 
@@ -226,6 +244,8 @@ export interface AppConfigDoc {
   dailyQuestionCount: number;
   dailyRevealPolicy: RevealPolicy;
   onboardingEnabled: boolean;
+  dailyIncludedCategories?: Category[];
+  dailyForcedCategories?: Category[];
   liveDefaultQuestionDurationSec: number;
   liveDefaultRevealDurationSec: number;
   updatedAt?: unknown;

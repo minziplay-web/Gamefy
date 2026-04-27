@@ -234,6 +234,7 @@ const emptyProfileStats: ProfileStats = {
   live: { roundsPlayed: 0, roundsHosted: 0, answersSubmitted: 0 },
   duels: { wins: 0, losses: 0, winRatePercent: null },
   publicVotesReceived: { total: 0, byCategory: {} },
+  specialRelationships: [],
   categoryActivity: {},
 };
 
@@ -247,6 +248,10 @@ const partialProfileStats: ProfileStats = {
   live: { roundsPlayed: 0, roundsHosted: 0, answersSubmitted: 0 },
   duels: { wins: 0, losses: 0, winRatePercent: null },
   publicVotesReceived: { total: 0, byCategory: {} },
+  specialRelationships: [
+    { member: mockMembers[1], votes: 3 },
+    { member: mockMembers[2], votes: 2 },
+  ],
   categoryActivity: { pure_fun: 2, deep_talk: 1 },
 };
 
@@ -312,19 +317,6 @@ export const adminVariants: Record<string, AdminViewState> = {
                 },
               ],
             },
-            activeLive: mockAdmin.diagnostics.activeLive
-              ? {
-                  ...mockAdmin.diagnostics.activeLive,
-                  state: "warning",
-                  issues: [
-                    {
-                      severity: "warning",
-                      code: "question_phase_stalled",
-                      message: "Question-Phase läuft überdurchschnittlich lang.",
-                    },
-                  ],
-                }
-              : null,
           },
         }
       : mockAdmin,
@@ -345,19 +337,6 @@ export const adminVariants: Record<string, AdminViewState> = {
                 },
               ],
             },
-            activeLive: mockAdmin.diagnostics.activeLive
-              ? {
-                  ...mockAdmin.diagnostics.activeLive,
-                  state: "error",
-                  issues: [
-                    {
-                      severity: "error",
-                      code: "current_index_out_of_bounds",
-                      message: "Session-Index liegt ausserhalb der Items.",
-                    },
-                  ],
-                }
-              : null,
           },
         }
       : mockAdmin,
@@ -376,12 +355,11 @@ export const adminVariants: Record<string, AdminViewState> = {
                 playableItems: 0,
                 publicAnswers: 0,
                 privateAnswers: 0,
-                anonymousAggregates: 0,
-                firstAnswerLocks: 0,
-              },
-              issues: [],
+              anonymousAggregates: 0,
+              firstAnswerLocks: 0,
             },
-            activeLive: null,
+            issues: [],
+          },
           },
         }
       : mockAdmin,

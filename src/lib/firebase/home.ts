@@ -8,6 +8,7 @@ import {
   dailyAnswersCollection,
   dailyAnonymousAggregatesCollection,
   dailyPrivateAnswersCollection,
+  dailyRunsCollection,
   dailyRunDoc,
   liveParticipantsCollection,
   liveSessionsCollection,
@@ -25,7 +26,7 @@ import { resolveDailyRunStatus, validateDailyRun } from "@/lib/mapping/daily-run
 import { formatBerlinDateLabel, berlinDateKey } from "@/lib/mapping/date";
 import { computeDailyStreakStats } from "@/lib/mapping/stats";
 import { mockHome } from "@/lib/mocks";
-import type { HomeViewState } from "@/lib/types/frontend";
+import type { HomePastDailyReview, HomeViewState, MemberLite } from "@/lib/types/frontend";
 import type {
   DailyAnonymousAggregateDoc,
   DailyAnswerDoc,
@@ -36,6 +37,11 @@ import type {
   QuestionDoc,
   UserDoc,
 } from "@/lib/types/firestore";
+
+type QuestionLike = Pick<
+  QuestionDoc,
+  "text" | "category" | "type" | "anonymous" | "options"
+>;
 
 export function useHomeViewState(): HomeViewState {
   const { authState, isMockMode } = useAuth();
@@ -59,6 +65,7 @@ export function useHomeViewState(): HomeViewState {
     const aggregatesRef = dailyAnonymousAggregatesCollection();
     const privateAnswersRef = dailyPrivateAnswersCollection();
     const sessionsRef = liveSessionsCollection();
+    const runsRef = dailyRunsCollection();
     const questionsRef = questionsCollection();
     const usersRef = usersCollection();
 
@@ -67,6 +74,7 @@ export function useHomeViewState(): HomeViewState {
       !answersRef ||
       !aggregatesRef ||
       !privateAnswersRef ||
+      !runsRef ||
       !sessionsRef ||
       !questionsRef ||
       !usersRef
@@ -81,12 +89,14 @@ export function useHomeViewState(): HomeViewState {
     let answerQuestionIds = new Set<string>();
     let streakCurrent = 0;
     let activeSession: (LiveSessionDoc & { id?: string }) | null = null;
+    let recentRuns: DailyRunDoc[] = [];
     let activeSessionParticipantCount = 0;
     let iAmParticipantInActiveSession = false;
     let questions = new Map<string, QuestionDoc>();
     let users = new Map<string, UserDoc>();
     let activeMemberIds = new Set<string>();
     let answeredDateKeys = new Set<string>();
+    let allMyDailyAnswers: DailyPrivateAnswerDoc[] = [];
     let myDailyAnswers = new Map<string, DailyPrivateAnswerDoc>();
     let allPublicAnswers = new Map<string, DailyAnswerDoc[]>();
     let anonymousAggregates = new Map<string, DailyAnonymousAggregateDoc>();
@@ -102,79 +112,117 @@ export function useHomeViewState(): HomeViewState {
         : null;
       const run = runData;
       const visibleQuestionIds = validatedRun?.playableItems.map((item) => item.questionId) ?? [];
-      const dailyRecap =
-        run && validatedRun
-          ? validatedRun.playableItems
-              .flatMap((item, index) => {
-                const questionDoc = questions.get(item.questionId);
-                if (!questionDoc) {
-                  return [];
-                }
+      const memberMap = new Map(
+        Array.from(users.entries()).map(([userId, user]) => [
+          userId,
+          {
+            userId,
+            displayName: user.displayName,
+            photoURL: user.photoURL ?? null,
+          } satisfies MemberLite,
+        ]),
+      );
 
-                const question = mapDailyQuestion({
-                  questionId: item.questionId,
-                  question: questionDoc,
-                  index,
-                  total: validatedRun.playableItems.length,
-                  members: new Map(
-                    Array.from(users.entries()).map(([userId, user]) => [
-                      userId,
-                      {
-                        userId,
-                        displayName: user.displayName,
-                        photoURL: user.photoURL ?? null,
-                      },
-                    ]),
-                  ),
-                  pairing: item.pairing,
-                });
+      const buildReviewItems = (
+        runToRender: DailyRunDoc,
+        mode: "today" | "past" = "today",
+      ) => {
+        const validated = validateDailyRun({
+          run: runToRender,
+          questions,
+          activeMemberIds,
+        });
 
-                if (!question) {
-                  return [];
-                }
+        const reviewItems =
+          mode === "past"
+            ? runToRender.items ??
+              runToRender.questionIds.map((questionId) => ({
+                questionId,
+                type: questions.get(questionId)?.type ?? "open_text",
+                pairing: undefined,
+              }))
+            : validated.playableItems;
 
-                const myAnswerDoc = myDailyAnswers.get(item.questionId);
-                const myAnswer = myAnswerDoc
-                  ? mapDailyAnswerDraft(myAnswerDoc as DailyAnswerDoc)
-                  : undefined;
-                const reveal = shouldReveal({
-                  revealPolicy: run.revealPolicy,
-                  runStatus: resolveDailyRunStatus(run),
-                  dateKey: run.dateKey,
+        if (mode === "today" && validated.isUnplayable) {
+          return [];
+        }
+
+        return reviewItems.flatMap((item, index) => {
+          const questionDoc = getQuestionSource(item, questions);
+          if (!questionDoc) {
+            return [];
+          }
+
+          const question = mapDailyQuestion({
+            questionId: item.questionId,
+            question: questionDoc,
+            index,
+            total: reviewItems.length,
+            members: memberMap,
+            pairing: item.pairing,
+          });
+
+          if (!question) {
+            return [];
+          }
+
+          const reviewKey = `${runToRender.dateKey}_${item.questionId}`;
+          const myAnswerDoc = allMyDailyAnswers.find(
+            (answer) =>
+              answer.dateKey === runToRender.dateKey && answer.questionId === item.questionId,
+          );
+          const myAnswer = myAnswerDoc
+            ? mapDailyAnswerDraft(myAnswerDoc as DailyAnswerDoc)
+            : undefined;
+          const reveal =
+            mode === "past"
+              ? true
+              : shouldReveal({
+                  revealPolicy: runToRender.revealPolicy,
+                  runStatus: resolveDailyRunStatus(runToRender),
+                  dateKey: runToRender.dateKey,
                   hasOwnAnswer: Boolean(myAnswer),
                 });
 
-                if (!reveal) {
-                  return [];
-                }
+          if (!reveal) {
+            return [];
+          }
 
-                return [
-                  {
-                    questionId: question.questionId,
-                    questionText: question.text,
-                    category: question.category,
-                    anonymous: question.anonymous,
-                    result: mapQuestionResult({
-                      question,
-                      myAnswer,
-                      publicAnswers: allPublicAnswers.get(item.questionId) ?? [],
-                      anonymousAggregate: anonymousAggregates.get(item.questionId),
-                      members: new Map(
-                        Array.from(users.entries()).map(([userId, user]) => [
-                          userId,
-                          {
-                            userId,
-                            displayName: user.displayName,
-                            photoURL: user.photoURL ?? null,
-                          },
-                        ]),
-                      ),
-                    }),
-                  },
-                ];
-              })
-              .slice(0, 5)
+          return [
+            {
+              questionId: question.questionId,
+              questionText: question.text,
+              category: question.category,
+              anonymous: question.anonymous,
+              result: mapQuestionResult({
+                question,
+                myAnswer,
+                publicAnswers: allPublicAnswers.get(reviewKey) ?? [],
+                anonymousAggregate: anonymousAggregates.get(reviewKey),
+                members: memberMap,
+              }),
+            },
+          ];
+        });
+      };
+
+      const dailyRecap =
+        run && validatedRun
+          ? buildReviewItems(run, "today").slice(0, 5)
           : [];
+
+      const pastDailies: HomePastDailyReview[] = recentRuns
+        .filter((run) => run.dateKey < dateKey)
+        .slice(0, 5)
+        .map((run) => ({
+          dateKey: run.dateKey,
+          totalInRun: run.questionCount,
+          answeredByMe: allMyDailyAnswers.filter(
+            (answer) => answer.dateKey === run.dateKey,
+          ).length,
+          status: resolveDailyRunStatus(run),
+          items: buildReviewItems(run, "past"),
+        }));
 
       setState({
         status: "ready",
@@ -197,6 +245,7 @@ export function useHomeViewState(): HomeViewState {
             }
           : null,
         dailyRecap,
+        pastDailies,
         activeLiveSession: activeSession
           ? {
               sessionId: activeSession.id ?? "",
@@ -240,14 +289,16 @@ export function useHomeViewState(): HomeViewState {
           where("userId", "==", authState.user.userId),
         ),
         (snapshot) => {
+          allMyDailyAnswers = snapshot.docs.map(
+            (doc) => doc.data() as DailyPrivateAnswerDoc,
+          );
           myDailyAnswers = new Map(
-            snapshot.docs
-              .map((doc) => doc.data() as DailyPrivateAnswerDoc)
+            allMyDailyAnswers
               .filter((answer) => answer.dateKey === dateKey)
               .map((answer) => [answer.questionId, answer]),
           );
           answeredDateKeys = new Set(
-            snapshot.docs.map((doc) => (doc.data() as DailyPrivateAnswerDoc).dateKey),
+            allMyDailyAnswers.map((answer) => answer.dateKey),
           );
           answerQuestionIds = new Set(
             snapshot.docs
@@ -261,14 +312,23 @@ export function useHomeViewState(): HomeViewState {
         handleError("Home-Eigene Antworten"),
       ),
       onSnapshot(
-        query(answersRef, where("dateKey", "==", dateKey)),
+        query(runsRef, orderBy("dateKey", "desc"), limit(6)),
+        (snapshot) => {
+          recentRuns = snapshot.docs.map((doc) => doc.data() as DailyRunDoc);
+          emit();
+        },
+        handleError("Home-Daily-Verlauf"),
+      ),
+      onSnapshot(
+        answersRef,
         (snapshot) => {
           allPublicAnswers = snapshot.docs
             .map((doc) => doc.data() as DailyAnswerDoc)
             .reduce<Map<string, DailyAnswerDoc[]>>((acc, answer) => {
-              const existing = acc.get(answer.questionId) ?? [];
+              const key = `${answer.dateKey}_${answer.questionId}`;
+              const existing = acc.get(key) ?? [];
               existing.push(answer);
-              acc.set(answer.questionId, existing);
+              acc.set(key, existing);
               return acc;
             }, new Map());
           emit();
@@ -276,12 +336,12 @@ export function useHomeViewState(): HomeViewState {
         handleError("Home-Daily-Ergebnisse"),
       ),
       onSnapshot(
-        query(aggregatesRef, where("dateKey", "==", dateKey)),
+        aggregatesRef,
         (snapshot) => {
           anonymousAggregates = new Map(
             snapshot.docs.map((doc) => {
               const data = doc.data() as DailyAnonymousAggregateDoc;
-              return [data.questionId, data];
+              return [`${data.dateKey}_${data.questionId}`, data];
             }),
           );
           emit();
@@ -289,7 +349,7 @@ export function useHomeViewState(): HomeViewState {
         handleError("Home-Daily-Aggregate"),
       ),
       onSnapshot(
-        query(questionsRef, where("active", "==", true)),
+        questionsRef,
         (snapshot) => {
           questions = new Map(
             snapshot.docs.map((doc) => [doc.id, doc.data() as QuestionDoc]),
@@ -299,7 +359,7 @@ export function useHomeViewState(): HomeViewState {
         handleError("Home-Fragen"),
       ),
       onSnapshot(
-        query(usersRef, where("isActive", "==", true)),
+        usersRef,
         (snapshot) => {
           users = new Map(
             snapshot.docs.map((doc) => [doc.id, doc.data() as UserDoc]),
@@ -367,3 +427,27 @@ export function useHomeViewState(): HomeViewState {
 
   return state;
 }
+
+function getQuestionSource(
+  item: DailyRunItemDocLike,
+  questions: Map<string, QuestionDoc>,
+): QuestionLike | null {
+  const liveQuestion = questions.get(item.questionId);
+  if (liveQuestion) {
+    return liveQuestion;
+  }
+
+  if (!item.questionSnapshot) {
+    return null;
+  }
+
+  return {
+    text: item.questionSnapshot.text,
+    category: item.questionSnapshot.category,
+    type: item.type,
+    anonymous: item.questionSnapshot.anonymous,
+    options: item.questionSnapshot.options,
+  };
+}
+
+type DailyRunItemDocLike = NonNullable<DailyRunDoc["items"]>[number];

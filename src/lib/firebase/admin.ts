@@ -12,14 +12,10 @@ import {
   dailyRunDoc,
   appConfigDoc,
   dailyRunsCollection,
-  liveParticipantsCollection,
-  liveLobbyCodesCollection,
-  liveSessionsCollection,
   questionsCollection,
   usersCollection,
 } from "@/lib/firebase/collections";
 import {
-  analyzeActiveLiveDiagnostics,
   analyzeTodayDailyDiagnostics,
 } from "@/lib/mapping/admin-diagnostics";
 import { resolveDailyRunStatus } from "@/lib/mapping/daily-run";
@@ -32,12 +28,24 @@ import type {
   DailyAnonymousAggregateDoc,
   DailyPrivateAnswerDoc,
   DailyRunDoc,
-  LiveParticipantDoc,
-  LiveLobbyCodeDoc,
-  LiveSessionDoc,
   QuestionDoc,
   UserDoc,
 } from "@/lib/types/firestore";
+
+const DEFAULT_DAILY_CATEGORIES = [
+  "hot_takes",
+  "pure_fun",
+  "deep_talk",
+  "memories",
+  "career_life",
+  "relationships",
+  "hobbies_interests",
+  "dirty",
+  "group_knowledge",
+  "would_you_rather",
+  "conspiracy",
+  "meme_it",
+] as const;
 
 export function useAdminViewState(): AdminViewState {
   const { authState, isMockMode } = useAuth();
@@ -69,8 +77,6 @@ export function useAdminViewState(): AdminViewState {
     const dailyPrivateAnswersRef = dailyPrivateAnswersCollection();
     const dailyAggregatesRef = dailyAnonymousAggregatesCollection();
     const dailyFirstAnswersRef = dailyFirstAnswersCollection();
-    const liveSessionsRef = liveSessionsCollection();
-    const liveLobbyCodesRef = liveLobbyCodesCollection();
 
     if (
       !questionsRef ||
@@ -81,9 +87,7 @@ export function useAdminViewState(): AdminViewState {
       !dailyAnswersRef ||
       !dailyPrivateAnswersRef ||
       !dailyAggregatesRef ||
-      !dailyFirstAnswersRef ||
-      !liveSessionsRef ||
-      !liveLobbyCodesRef
+      !dailyFirstAnswersRef
     ) {
       queueMicrotask(() =>
         setState({ status: "error", message: "Firestore ist noch nicht verbunden." }),
@@ -97,9 +101,9 @@ export function useAdminViewState(): AdminViewState {
     let configDraft = mockAdmin.status === "ready" ? mockAdmin.config.draft : {
       dailyQuestionCount: 5,
       dailyRevealPolicy: "after_answer" as const,
-      liveDefaultQuestionDurationSec: 20,
-      liveDefaultRevealDurationSec: 10,
       onboardingEnabled: true,
+      dailyIncludedCategories: [...DEFAULT_DAILY_CATEGORIES],
+      dailyForcedCategories: [],
     };
     let questions = new Map<string, QuestionDoc>();
     let activeUsers = new Map<string, UserDoc>();
@@ -107,14 +111,7 @@ export function useAdminViewState(): AdminViewState {
     let todayPublicAnswerCount = 0;
     let todayPrivateAnswers: DailyPrivateAnswerDoc[] = [];
     let todayAnonymousAggregates: DailyAnonymousAggregateDoc[] = [];
-    let allDailyRuns: DailyRunDoc[] = [];
-    let allDailyFirstAnswerLocks: Array<{ dateKey: string }> = [];
     let todayFirstAnswerLockCount = 0;
-    let activeLiveSession: (LiveSessionDoc & { id: string }) | null = null;
-    let activeLiveParticipants: LiveParticipantDoc[] = [];
-    let finishedLiveSessions: Array<LiveSessionDoc & { id: string }> = [];
-    let inactiveLobbyCodes: LiveLobbyCodeDoc[] = [];
-    let unsubscribeActiveLiveParticipants: (() => void) | null = null;
 
     const emit = () => {
       setState({
@@ -159,36 +156,6 @@ export function useAdminViewState(): AdminViewState {
             anonymousAggregates: todayAnonymousAggregates,
             firstAnswerLockCount: todayFirstAnswerLockCount,
           }),
-          activeLive: analyzeActiveLiveDiagnostics({
-            session: activeLiveSession,
-            participants: activeLiveParticipants,
-            questions,
-          }),
-          ops: {
-            finishedLiveSessions: finishedLiveSessions.length,
-            staleFinishedLiveSessions: finishedLiveSessions.filter((session) =>
-              isOlderThanHours(session.finishedAt, 12),
-            ).length,
-            inactiveLobbyCodes: inactiveLobbyCodes.length,
-            staleInactiveLobbyCodes: inactiveLobbyCodes.filter((code) =>
-              isOlderThanHours(code.updatedAt, 12),
-            ).length,
-            orphanedDailyFirstAnswerLocks: allDailyFirstAnswerLocks.filter(
-              (entry) =>
-                entry.dateKey < todayDateKey &&
-                !allDailyRuns.some((run) => run.dateKey === entry.dateKey),
-            ).length,
-            oldestStaleFinishedLiveAgeHours: getOldestAgeHours(
-              finishedLiveSessions
-                .map((session) => session.finishedAt)
-                .filter((value) => isOlderThanHours(value, 12)),
-            ),
-            oldestStaleInactiveLobbyCodeAgeHours: getOldestAgeHours(
-              inactiveLobbyCodes
-                .map((code) => code.updatedAt)
-                .filter((value) => isOlderThanHours(value, 12)),
-            ),
-          },
         },
       });
     };
@@ -218,6 +185,8 @@ export function useAdminViewState(): AdminViewState {
               anonymous: data.anonymous,
               targetMode: data.targetMode,
               active: data.active,
+              dailyLocked: data.dailyLocked === true,
+              dailyLockedDateKey: data.dailyLockedDateKey ?? null,
               createdAtIso: toIsoString(data.createdAt) ?? new Date(0).toISOString(),
               createdByDisplayName: createdByName ?? "Admin",
             };
@@ -239,7 +208,6 @@ export function useAdminViewState(): AdminViewState {
       onSnapshot(
         query(runsRef, orderBy("dateKey", "desc")),
         (snapshot) => {
-          allDailyRuns = snapshot.docs.map((doc) => doc.data() as DailyRunDoc);
           dailyRuns = snapshot.docs.map((doc) => {
             const data = doc.data() as DailyRunDoc;
             const createdByName = data.createdBy
@@ -301,66 +269,6 @@ export function useAdminViewState(): AdminViewState {
         handleError("Admin-Heutige First-Answer-Locks"),
       ),
       onSnapshot(
-        dailyFirstAnswersRef,
-        (snapshot) => {
-          allDailyFirstAnswerLocks = snapshot.docs.map(
-            (doc) => doc.data() as { dateKey: string },
-          );
-          emit();
-        },
-        handleError("Admin-Alle First-Answer-Locks"),
-      ),
-      onSnapshot(
-        query(liveSessionsRef, orderBy("createdAt", "desc")),
-        (snapshot) => {
-          const sessions = snapshot.docs.map((doc) => ({
-            ...(doc.data() as LiveSessionDoc),
-            id: doc.id,
-          }));
-          finishedLiveSessions = sessions.filter((session) => session.status === "finished");
-          const nextActiveSession = sessions.find((session) => session.status !== "finished") ?? null;
-          const previousSessionId = activeLiveSession?.id ?? null;
-          const nextSessionId = nextActiveSession?.id ?? null;
-
-          activeLiveSession = nextActiveSession;
-
-          if (previousSessionId !== nextSessionId) {
-            unsubscribeActiveLiveParticipants?.();
-            unsubscribeActiveLiveParticipants = null;
-            activeLiveParticipants = [];
-
-            if (nextSessionId) {
-              const participantsRef = liveParticipantsCollection(nextSessionId);
-              if (participantsRef) {
-                unsubscribeActiveLiveParticipants = onSnapshot(
-                  participantsRef,
-                  (participantsSnapshot) => {
-                    activeLiveParticipants = participantsSnapshot.docs.map(
-                      (doc) => doc.data() as LiveParticipantDoc,
-                    );
-                    emit();
-                  },
-                  handleError("Admin-Aktive Live-Teilnehmer"),
-                );
-              }
-            }
-          }
-
-          emit();
-        },
-        handleError("Admin-Live-Sessions"),
-      ),
-      onSnapshot(
-        liveLobbyCodesRef,
-        (snapshot) => {
-          inactiveLobbyCodes = snapshot.docs
-            .map((doc) => doc.data() as LiveLobbyCodeDoc)
-            .filter((code) => code.active === false);
-          emit();
-        },
-        handleError("Admin-Lobby-Codes"),
-      ),
-      onSnapshot(
         configRef,
         (snapshot) => {
           const data = snapshot.data() as AppConfigDoc | undefined;
@@ -368,9 +276,17 @@ export function useAdminViewState(): AdminViewState {
             configDraft = {
               dailyQuestionCount: data.dailyQuestionCount,
               dailyRevealPolicy: data.dailyRevealPolicy,
-              liveDefaultQuestionDurationSec: data.liveDefaultQuestionDurationSec,
-              liveDefaultRevealDurationSec: data.liveDefaultRevealDurationSec,
               onboardingEnabled: data.onboardingEnabled,
+              dailyIncludedCategories:
+                data.dailyIncludedCategories?.length
+                  ? data.dailyIncludedCategories
+                  : [...DEFAULT_DAILY_CATEGORIES],
+              dailyForcedCategories:
+                data.dailyForcedCategories?.filter((category) =>
+                  (data.dailyIncludedCategories?.length
+                    ? data.dailyIncludedCategories
+                    : [...DEFAULT_DAILY_CATEGORIES]).includes(category),
+                ) ?? [],
             };
           }
           emit();
@@ -380,7 +296,6 @@ export function useAdminViewState(): AdminViewState {
     ];
 
     return () => {
-      unsubscribeActiveLiveParticipants?.();
       for (const unsubscribe of unsubscribers) {
         unsubscribe();
       }
@@ -388,34 +303,4 @@ export function useAdminViewState(): AdminViewState {
   }, [authState, isMockMode]);
 
   return state;
-}
-
-function isOlderThanHours(value: unknown, hours: number) {
-  const millis = toMillis(value);
-  if (!millis) {
-    return false;
-  }
-
-  return Date.now() - millis > hours * 60 * 60 * 1000;
-}
-
-function toMillis(value: unknown) {
-  if (!value || typeof value !== "object" || value === null || !("toMillis" in value)) {
-    return null;
-  }
-
-  return (value as { toMillis: () => number }).toMillis();
-}
-
-function getOldestAgeHours(values: unknown[]) {
-  const ages = values
-    .map((value) => toMillis(value))
-    .filter((value): value is number => value !== null)
-    .map((millis) => (Date.now() - millis) / (1000 * 60 * 60));
-
-  if (ages.length === 0) {
-    return null;
-  }
-
-  return Math.max(...ages);
 }

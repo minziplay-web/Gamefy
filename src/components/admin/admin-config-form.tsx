@@ -27,7 +27,7 @@ export function AdminConfigForm({
           label="Dailys pro Tag"
           value={draft.dailyQuestionCount}
           min={1}
-          max={10}
+          max={12}
           onChange={(dailyQuestionCount) => onChange({ ...draft, dailyQuestionCount })}
         />
         <div className="space-y-2">
@@ -43,25 +43,6 @@ export function AdminConfigForm({
             ]}
           />
         </div>
-        <Stepper
-          label="Live: Sekunden pro Frage"
-          value={draft.liveDefaultQuestionDurationSec}
-          min={5}
-          max={120}
-          step={5}
-          onChange={(liveDefaultQuestionDurationSec) =>
-            onChange({ ...draft, liveDefaultQuestionDurationSec })
-          }
-        />
-        <Stepper
-          label="Live: Sekunden Reveal"
-          value={draft.liveDefaultRevealDurationSec}
-          min={3}
-          max={60}
-          onChange={(liveDefaultRevealDurationSec) =>
-            onChange({ ...draft, liveDefaultRevealDurationSec })
-          }
-        />
         <div className="flex items-center justify-between gap-3 rounded-2xl bg-sand-50 px-4 py-3">
           <div className="space-y-0.5">
             <p className="text-sm font-medium text-sand-800">

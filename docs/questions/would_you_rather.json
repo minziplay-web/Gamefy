@@ -1,0 +1,211 @@
+[
+  {
+    "text": "Würdest du eher nie wieder feiern oder nie wieder verreisen?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Nie wieder feiern",
+      "Nie wieder verreisen"
+    ]
+  },
+  {
+    "text": "Würdest du eher nackt vor der ganzen Gruppe stehen oder deine letzten zehn Porno-Suchbegriffe vorlesen?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Nackt vor der Gruppe",
+      "Suchverlauf vorlesen"
+    ]
+  },
+  {
+    "text": "Würdest du eher zehn Jahre keinen Sex haben oder zehn Jahre kein Internet?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Kein Sex",
+      "Kein Internet"
+    ]
+  },
+  {
+    "text": "Würdest du eher arm aber geliebt oder reich aber einsam leben?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Arm und geliebt",
+      "Reich und einsam"
+    ]
+  },
+  {
+    "text": "Würdest du einen Tag lang lieber nur die Wahrheit sagen oder nur lügen müssen?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Nur Wahrheit",
+      "Nur Lügen"
+    ]
+  },
+  {
+    "text": "Würdest du eher deine Schulzeit nochmal erleben oder deine ganze 20er-Dekade?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Schulzeit nochmal",
+      "20er nochmal"
+    ]
+  },
+  {
+    "text": "Würdest du eher eine Woche ohne Handy oder einen Monat ohne Alkohol?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Woche ohne Handy",
+      "Monat ohne Alkohol"
+    ]
+  },
+  {
+    "text": "Würdest du eher alles von dir wissen oder alles von den anderen wissen?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Alles von mir",
+      "Alles von den anderen"
+    ]
+  },
+  {
+    "text": "Würdest du für eine Million Euro ein Jahr ohne die Gruppe leben oder nie mehr verreisen?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Ein Jahr ohne Gruppe",
+      "Nie mehr verreisen"
+    ]
+  },
+  {
+    "text": "Würdest du eher deinen schlimmsten Fehler öffentlich posten oder nie wieder Kaffee trinken?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Fehler posten",
+      "Nie wieder Kaffee"
+    ]
+  },
+  {
+    "text": "Würdest du eher immer im Pyjama leben oder immer im Business-Outfit?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Immer Pyjama",
+      "Immer Business-Outfit"
+    ]
+  },
+  {
+    "text": "Würdest du eher jede Lüge der letzten fünf Jahre eingestehen oder zehn Kilo zunehmen?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Lügen eingestehen",
+      "Zehn Kilo zunehmen"
+    ]
+  },
+  {
+    "text": "Würdest du eher jedes Date komplett selbst zahlen oder nie mehr daten?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Immer selbst zahlen",
+      "Nie mehr daten"
+    ]
+  },
+  {
+    "text": "Würdest du eher bei jedem neuen Job von vorn anfangen oder nie befördert werden?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Immer von vorn",
+      "Nie befördert"
+    ]
+  },
+  {
+    "text": "Würdest du eher die Gedanken aller Menschen hören oder nur die deines besten Freundes?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Alle hören",
+      "Nur den besten Freund hören"
+    ]
+  },
+  {
+    "text": "Würdest du eher eine Stunde im Aufzug feststecken oder versehentlich ein peinliches Selfie an deinen Chef schicken?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Stunde Aufzug",
+      "Selfie an Chef"
+    ]
+  },
+  {
+    "text": "Würdest du eher auf einer Bühne stolpern oder beim Niesen heimlich pupsen?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Auf der Bühne stolpern",
+      "Beim Niesen pupsen"
+    ]
+  },
+  {
+    "text": "Würdest du eher dein Handy eine Woche verlieren oder eine Woche keine Memes lesen?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Handy weg",
+      "Keine Memes"
+    ]
+  },
+  {
+    "text": "Würdest du eher bei jedem Niesen laut 'lol' sagen oder bei jedem Lachen sofort 'haha' tippen müssen?",
+    "category": "would_you_rather",
+    "type": "either_or",
+    "anonymous": false,
+    "targetMode": "both",
+    "options": [
+      "Lol beim Niesen",
+      "Haha tippen beim Lachen"
+    ]
+  }
+]

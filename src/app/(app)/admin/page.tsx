@@ -4,13 +4,15 @@ import { AdminScreen } from "@/components/admin/admin-screen";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   bulkDeleteQuestions,
+  bulkSetQuestionsDailyLock,
   bulkSetQuestionsActive,
-  cleanupFinishedLiveSessions,
   createDailyRun,
+  deleteDailyRun,
   deactivateUser,
   importQuestions,
   replaceDailyRun,
   saveAdminConfig,
+  toggleQuestionDailyLock,
   toggleQuestionActive,
 } from "@/lib/firebase/admin-actions";
 import { useAdminViewState } from "@/lib/firebase/admin";
@@ -25,7 +27,9 @@ export default function AdminPage() {
       state={state}
       currentUserId={authState.status === "authenticated" ? authState.user.userId : undefined}
       onToggleActive={toggleQuestionActive}
+      onToggleDailyLock={toggleQuestionDailyLock}
       onBulkSetActive={bulkSetQuestionsActive}
+      onBulkSetDailyLock={bulkSetQuestionsDailyLock}
       onBulkDelete={bulkDeleteQuestions}
       onImportQuestions={async (raw) => {
         if (authState.status !== "authenticated") {
@@ -34,7 +38,7 @@ export default function AdminPage() {
 
         await importQuestions(raw, authState.user.userId);
       }}
-      onCreateRun={async (mode) => {
+      onCreateRun={async (mode, categoryPlan) => {
         if (authState.status !== "authenticated" || state.status !== "ready") {
           throw new Error("Nicht bereit.");
         }
@@ -44,6 +48,7 @@ export default function AdminPage() {
           createdBy: authState.user.userId,
           questionCount: state.config.draft.dailyQuestionCount,
           revealPolicy: state.config.draft.dailyRevealPolicy,
+          categoryPlan,
         };
 
         if (mode === "replace") {
@@ -52,12 +57,12 @@ export default function AdminPage() {
 
         return createDailyRun(payload);
       }}
-      onCleanupFinishedSessions={async () => {
+      onDeleteRun={async (dateKey) => {
         if (authState.status !== "authenticated" || state.status !== "ready") {
           throw new Error("Nicht bereit.");
         }
 
-        return cleanupFinishedLiveSessions();
+        return deleteDailyRun(dateKey);
       }}
       onDeactivateUser={async (userId) => {
         if (authState.status !== "authenticated" || state.status !== "ready") {

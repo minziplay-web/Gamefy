@@ -36,8 +36,9 @@ import {
 import { berlinDateKey, shiftDateKey } from "@/lib/mapping/date";
 import { assertValidDailyRunPayload } from "@/lib/mapping/payload-guards";
 import type {
-  AdminCleanupResult,
   AdminConfigDraft,
+  AdminDailyCategoryPlan,
+  AdminDailyDeleteResult,
   AdminRunActionResult,
   Category,
   DateKey,
@@ -46,16 +47,37 @@ import type {
 } from "@/lib/types/frontend";
 import type { DailyRunDoc, QuestionDoc, UserDoc } from "@/lib/types/firestore";
 
+interface AdminCleanupResult {
+  finalizedStaleLiveSessions: number;
+  deletedFinishedLiveSessions: number;
+  deletedInactiveLobbyCodes: number;
+  deletedOrphanedDailyFirstAnswerLocks: number;
+}
+
 interface ImportQuestionInput {
   text: string;
   category: Category;
   type: QuestionType;
-  anonymous: boolean;
   targetMode: TargetMode;
   options?: string[];
+  imagePath?: string;
 }
 
-const MAX_DAILY_CATEGORY_COUNT = 10;
+const MAX_DAILY_CATEGORY_COUNT = 12;
+const DEFAULT_DAILY_CATEGORIES: Category[] = [
+  "hot_takes",
+  "pure_fun",
+  "deep_talk",
+  "memories",
+  "career_life",
+  "relationships",
+  "hobbies_interests",
+  "dirty",
+  "group_knowledge",
+  "would_you_rather",
+  "conspiracy",
+  "meme_it",
+];
 
 export async function saveAdminConfig(draft: AdminConfigDraft) {
   const target = appConfigDoc();
@@ -71,8 +93,13 @@ export async function saveAdminConfig(draft: AdminConfigDraft) {
       dailyQuestionCount: Math.min(draft.dailyQuestionCount, MAX_DAILY_CATEGORY_COUNT),
       dailyRevealPolicy: draft.dailyRevealPolicy,
       onboardingEnabled: draft.onboardingEnabled,
-      liveDefaultQuestionDurationSec: draft.liveDefaultQuestionDurationSec,
-      liveDefaultRevealDurationSec: draft.liveDefaultRevealDurationSec,
+      dailyIncludedCategories:
+        draft.dailyIncludedCategories.length > 0
+          ? draft.dailyIncludedCategories
+          : DEFAULT_DAILY_CATEGORIES,
+      dailyForcedCategories: draft.dailyForcedCategories.filter((category) =>
+        draft.dailyIncludedCategories.includes(category),
+      ),
       updatedAt: serverTimestamp(),
     },
     { merge: true },
@@ -92,6 +119,20 @@ export async function toggleQuestionActive(questionId: string, active: boolean) 
   });
 }
 
+export async function toggleQuestionDailyLock(questionId: string, dailyLocked: boolean) {
+  const questionsRef = questionsCollection();
+
+  if (!questionsRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  await updateDoc(doc(questionsRef, questionId), {
+    dailyLocked,
+    dailyLockedDateKey: dailyLocked ? berlinDateKey() : null,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export async function bulkSetQuestionsActive(questionIds: string[], active: boolean) {
   const questionsRef = questionsCollection();
 
@@ -107,6 +148,31 @@ export async function bulkSetQuestionsActive(questionIds: string[], active: bool
   for (const questionId of questionIds) {
     batch.update(doc(questionsRef, questionId), {
       active,
+      updatedAt: serverTimestamp(),
+    });
+  }
+  await batch.commit();
+}
+
+export async function bulkSetQuestionsDailyLock(
+  questionIds: string[],
+  dailyLocked: boolean,
+) {
+  const questionsRef = questionsCollection();
+
+  if (!questionsRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  if (questionIds.length === 0) {
+    return;
+  }
+
+  const batch = writeBatch(questionsRef.firestore);
+  for (const questionId of questionIds) {
+    batch.update(doc(questionsRef, questionId), {
+      dailyLocked,
+      dailyLockedDateKey: dailyLocked ? berlinDateKey() : null,
       updatedAt: serverTimestamp(),
     });
   }
@@ -195,10 +261,6 @@ export function parseQuestionImport(raw: string): ImportQuestionInput[] {
       throw new Error(`Eintrag ${index + 1}: type fehlt.`);
     }
 
-    if (typeof candidate.anonymous !== "boolean") {
-      throw new Error(`Eintrag ${index + 1}: anonymous muss boolean sein.`);
-    }
-
     if (typeof candidate.targetMode !== "string") {
       throw new Error(`Eintrag ${index + 1}: targetMode fehlt.`);
     }
@@ -207,7 +269,6 @@ export function parseQuestionImport(raw: string): ImportQuestionInput[] {
       text: candidate.text.trim(),
       category: candidate.category as Category,
       type: candidate.type as QuestionType,
-      anonymous: candidate.anonymous,
       targetMode: candidate.targetMode as TargetMode,
     };
 
@@ -221,6 +282,13 @@ export function parseQuestionImport(raw: string): ImportQuestionInput[] {
         );
       }
       question.options = candidate.options as string[];
+    }
+
+    if (candidate.imagePath !== undefined) {
+      if (typeof candidate.imagePath !== "string") {
+        throw new Error(`Eintrag ${index + 1}: imagePath muss ein String sein.`);
+      }
+      question.imagePath = candidate.imagePath;
     }
 
     return question;
@@ -241,7 +309,10 @@ export async function importQuestions(raw: string, createdBy: string) {
     const docRef = doc(questionsRef);
     batch.set(docRef, {
       ...item,
+      anonymous: false,
       active: true,
+      dailyLocked: false,
+      dailyLockedDateKey: null,
       createdBy,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -256,6 +327,7 @@ export async function createDailyRun(params: {
   createdBy: string;
   questionCount: number;
   revealPolicy: AdminConfigDraft["dailyRevealPolicy"];
+  categoryPlan?: AdminDailyCategoryPlan;
 }) {
   return upsertDailyRun({ ...params, mode: "create" });
 }
@@ -265,8 +337,35 @@ export async function replaceDailyRun(params: {
   createdBy: string;
   questionCount: number;
   revealPolicy: AdminConfigDraft["dailyRevealPolicy"];
+  categoryPlan?: AdminDailyCategoryPlan;
 }) {
   return upsertDailyRun({ ...params, mode: "replace" });
+}
+
+export async function deleteDailyRun(dateKey: string): Promise<AdminDailyDeleteResult> {
+  const runRef = dailyRunDoc(dateKey);
+  const answersRef = dailyAnswersCollection();
+  const privateAnswersRef = dailyPrivateAnswersCollection();
+  const aggregatesRef = dailyAnonymousAggregatesCollection();
+  const firstAnswersRef = dailyFirstAnswersCollection();
+
+  if (!runRef || !answersRef || !privateAnswersRef || !aggregatesRef || !firstAnswersRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  const deletionResult = await deleteDailyRunData({
+    dateKey,
+    runRef,
+    answersRef,
+    privateAnswersRef,
+    aggregatesRef,
+    firstAnswersRef,
+  });
+
+  return {
+    dateKey,
+    ...deletionResult,
+  };
 }
 
 export async function cleanupFinishedLiveSessions(params?: {
@@ -388,6 +487,7 @@ async function upsertDailyRun(params: {
   createdBy: string;
   questionCount: number;
   revealPolicy: AdminConfigDraft["dailyRevealPolicy"];
+  categoryPlan?: AdminDailyCategoryPlan;
   mode: "create" | "replace";
 }): Promise<AdminRunActionResult> {
   const { dateKey, createdBy, questionCount, revealPolicy } = params;
@@ -435,11 +535,12 @@ async function upsertDailyRun(params: {
     .filter(
       (question) =>
         (question.targetMode === "daily" || question.targetMode === "both")
+        && question.dailyLocked !== true
         && canUseQuestionInDaily(question.type, users.length),
     );
 
   if (eligibleQuestions.length === 0) {
-    throw new Error("Keine aktiven Daily-Fragen gefunden.");
+    throw new Error("Keine freigegebenen Daily-Fragen gefunden.");
   }
 
   const runPayload = buildDailyRunPayload({
@@ -447,6 +548,7 @@ async function upsertDailyRun(params: {
     createdBy,
     questionCount,
     revealPolicy,
+    categoryPlan: params.categoryPlan,
     questions: eligibleQuestions,
     userIds: users.map((user) => user.userId),
     previous: existingRun.exists() ? (existingRun.data() as DailyRunDoc) : null,
@@ -487,6 +589,7 @@ function buildDailyRunPayload(params: {
   createdBy: string;
   questionCount: number;
   revealPolicy: AdminConfigDraft["dailyRevealPolicy"];
+  categoryPlan?: AdminDailyCategoryPlan;
   questions: Array<{ questionId: string } & QuestionDoc>;
   userIds: string[];
   previous: DailyRunDoc | null;
@@ -496,34 +599,92 @@ function buildDailyRunPayload(params: {
     createdBy,
     questionCount,
     revealPolicy,
+    categoryPlan,
     questions,
     userIds,
     previous,
   } = params;
 
+  const includedCategories = categoryPlan?.includedCategories ?? [];
+  const forcedCategories = categoryPlan?.forcedCategories ?? [];
+
+  if (includedCategories.length === 0) {
+    throw new Error("Wähle mindestens eine Kategorie für das Daily aus.");
+  }
+
   const questionsByCategory = new Map<Category, Array<{ questionId: string } & QuestionDoc>>();
   for (const question of questions) {
+    if (!includedCategories.includes(question.category)) {
+      continue;
+    }
     const group = questionsByCategory.get(question.category) ?? [];
     group.push(question);
     questionsByCategory.set(question.category, group);
   }
 
-  const selectedQuestions = shuffle(Array.from(questionsByCategory.entries()))
-    .slice(0, Math.min(questionCount, MAX_DAILY_CATEGORY_COUNT, questionsByCategory.size))
-    .map(([, categoryQuestions]) => shuffle(categoryQuestions)[0]);
+  if (questionsByCategory.size === 0) {
+    throw new Error("Für die gewählten Kategorien gibt es keine freigegebenen Fragen.");
+  }
+
+  const missingForcedCategories = forcedCategories.filter(
+    (category) => !questionsByCategory.has(category),
+  );
+
+  if (missingForcedCategories.length > 0) {
+    throw new Error(
+      `Diese Pflicht-Kategorien haben gerade keine freigegebenen Fragen: ${missingForcedCategories.join(", ")}.`,
+    );
+  }
+
+  const selectedCategoryCount = Math.min(
+    questionCount,
+    MAX_DAILY_CATEGORY_COUNT,
+    questionsByCategory.size,
+  );
+
+  if (forcedCategories.length > selectedCategoryCount) {
+    throw new Error("Du hast mehr Pflicht-Kategorien gewählt als heute Fragen gezogen werden.");
+  }
+
+  const remainingCategories = shuffle(
+    Array.from(questionsByCategory.keys()).filter(
+      (category) => !forcedCategories.includes(category),
+    ),
+  );
+  const chosenCategories = [
+    ...forcedCategories,
+    ...remainingCategories.slice(0, selectedCategoryCount - forcedCategories.length),
+  ];
+  const selectedQuestions = chosenCategories.map((category) => {
+    const categoryQuestions = questionsByCategory.get(category);
+    if (!categoryQuestions || categoryQuestions.length === 0) {
+      throw new Error(`Für ${category} wurde keine freigegebene Frage gefunden.`);
+    }
+
+    return shuffle(categoryQuestions)[0];
+  });
 
   const items = selectedQuestions.map((question) => {
     const pairing = buildPairing(question.type, userIds);
+    const questionSnapshot = {
+      text: question.text,
+      category: question.category,
+      anonymous: false,
+      ...(question.options ? { options: question.options } : {}),
+      ...(question.imagePath ? { imagePath: question.imagePath } : {}),
+    };
 
     return pairing
       ? {
           questionId: question.questionId,
           type: question.type,
+          questionSnapshot,
           pairing,
         }
       : {
           questionId: question.questionId,
           type: question.type,
+          questionSnapshot,
         };
   });
 
@@ -569,25 +730,14 @@ async function replaceDailyRunAtomically(params: {
     aggregatesRef,
     firstAnswersRef,
   } = params;
-  const [answersSnapshot, privateAnswersSnapshot, aggregatesSnapshot, firstAnswersSnapshot] = await Promise.all([
-    getDocs(query(answersRef, where("dateKey", "==", dateKey))),
-    getDocs(query(privateAnswersRef, where("dateKey", "==", dateKey))),
-    getDocs(query(aggregatesRef, where("dateKey", "==", dateKey))),
-    getDocs(query(firstAnswersRef, where("dateKey", "==", dateKey))),
-  ]);
-
-  const snapshots = [
-    answersSnapshot,
-    privateAnswersSnapshot,
-    aggregatesSnapshot,
-    firstAnswersSnapshot,
-  ];
-  const deletedPublicAnswers = answersSnapshot.docs.length;
-  const deletedPrivateAnswers = privateAnswersSnapshot.docs.length;
-  const deletedAnonymousAggregates = aggregatesSnapshot.docs.length;
-  const deletedFirstAnswerLocks = firstAnswersSnapshot.docs.length;
-
-  const deletions = snapshots.flatMap((snapshot) => snapshot.docs);
+  const deletionResult = await collectDailyRunDeletionData({
+    dateKey,
+    answersRef,
+    privateAnswersRef,
+    aggregatesRef,
+    firstAnswersRef,
+  });
+  const deletions = deletionResult.docs;
 
   if (deletions.length > 449) {
     const freezeBatch = writeBatch(runRef.firestore);
@@ -614,12 +764,7 @@ async function replaceDailyRunAtomically(params: {
     }
     batch.set(runRef, runPayload, { merge: false });
     await batch.commit();
-    return {
-      deletedPublicAnswers,
-      deletedPrivateAnswers,
-      deletedAnonymousAggregates,
-      deletedFirstAnswerLocks,
-    };
+    return deletionResult.counts;
   }
 
   for (const chunk of chunkDocs(deletions, 450)) {
@@ -631,11 +776,84 @@ async function replaceDailyRunAtomically(params: {
   }
 
   await setDoc(runRef, runPayload, { merge: false });
+  return deletionResult.counts;
+}
+
+async function deleteDailyRunData(params: {
+  dateKey: DateKey;
+  runRef: NonNullable<ReturnType<typeof dailyRunDoc>>;
+  answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
+  privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
+  aggregatesRef: NonNullable<ReturnType<typeof dailyAnonymousAggregatesCollection>>;
+  firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
+}): Promise<Pick<
+  AdminDailyDeleteResult,
+  | "deletedPublicAnswers"
+  | "deletedPrivateAnswers"
+  | "deletedAnonymousAggregates"
+  | "deletedFirstAnswerLocks"
+>> {
+  const { runRef, dateKey, answersRef, privateAnswersRef, aggregatesRef, firstAnswersRef } = params;
+  const deletionResult = await collectDailyRunDeletionData({
+    dateKey,
+    answersRef,
+    privateAnswersRef,
+    aggregatesRef,
+    firstAnswersRef,
+  });
+  const { docs } = deletionResult;
+
+  if (docs.length <= 449) {
+    const batch = writeBatch(runRef.firestore);
+    for (const entry of docs) {
+      batch.delete(entry.ref);
+    }
+    batch.delete(runRef);
+    await batch.commit();
+    return deletionResult.counts;
+  }
+
+  for (const chunk of chunkDocs(docs, 450)) {
+    const batch = writeBatch(runRef.firestore);
+    for (const entry of chunk) {
+      batch.delete(entry.ref);
+    }
+    await batch.commit();
+  }
+
+  await deleteDocInOwnBatch(runRef);
+  return deletionResult.counts;
+}
+
+async function collectDailyRunDeletionData(params: {
+  dateKey: DateKey;
+  answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
+  privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
+  aggregatesRef: NonNullable<ReturnType<typeof dailyAnonymousAggregatesCollection>>;
+  firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
+}) {
+  const { dateKey, answersRef, privateAnswersRef, aggregatesRef, firstAnswersRef } = params;
+  const [answersSnapshot, privateAnswersSnapshot, aggregatesSnapshot, firstAnswersSnapshot] =
+    await Promise.all([
+      getDocs(query(answersRef, where("dateKey", "==", dateKey))),
+      getDocs(query(privateAnswersRef, where("dateKey", "==", dateKey))),
+      getDocs(query(aggregatesRef, where("dateKey", "==", dateKey))),
+      getDocs(query(firstAnswersRef, where("dateKey", "==", dateKey))),
+    ]);
+
   return {
-    deletedPublicAnswers,
-    deletedPrivateAnswers,
-    deletedAnonymousAggregates,
-    deletedFirstAnswerLocks,
+    docs: [
+      ...answersSnapshot.docs,
+      ...privateAnswersSnapshot.docs,
+      ...aggregatesSnapshot.docs,
+      ...firstAnswersSnapshot.docs,
+    ],
+    counts: {
+      deletedPublicAnswers: answersSnapshot.docs.length,
+      deletedPrivateAnswers: privateAnswersSnapshot.docs.length,
+      deletedAnonymousAggregates: aggregatesSnapshot.docs.length,
+      deletedFirstAnswerLocks: firstAnswersSnapshot.docs.length,
+    },
   };
 }
 

@@ -20,12 +20,16 @@ const STATUS_TONE: Record<
 export function AdminDailyList({
   runs,
   onCreate,
+  onDeleteRun,
+  onResetToday,
   todayDateKey,
   runActionStatus = "idle",
   runActionMessage,
 }: {
   runs: AdminDailyRunRow[];
   onCreate: () => void;
+  onDeleteRun?: (dateKey: DateKey) => void;
+  onResetToday?: () => void;
   todayDateKey?: DateKey;
   runActionStatus?: "idle" | "running" | "success" | "error";
   runActionMessage?: string;
@@ -53,6 +57,14 @@ export function AdminDailyList({
             disabled={runActionStatus === "running"}
           >
             {runActionStatus === "running" ? "Ersetzt..." : "Heutigen Run ersetzen"}
+          </Button>
+          <Button
+            className="w-full"
+            variant="ghost"
+            onClick={onResetToday}
+            disabled={runActionStatus === "running" || !onResetToday}
+          >
+            {runActionStatus === "running" ? "Setzt zurück..." : "Heutiges Daily zurücksetzen"}
           </Button>
         </div>
       ) : (
@@ -88,7 +100,7 @@ export function AdminDailyList({
             return (
               <li
                 key={run.dateKey}
-                className={`flex items-center justify-between rounded-2xl border px-4 py-3 ${
+                className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 ${
                   isToday
                     ? "border-amber-200 bg-amber-50/50"
                     : "border-white/50 bg-white/80"
@@ -107,9 +119,21 @@ export function AdminDailyList({
                     {run.questionCount} Fragen · {run.createdByDisplayName}
                   </p>
                 </div>
-                <Badge tone={tone.tone} size="sm">
-                  {tone.label}
-                </Badge>
+                <div className="flex items-center gap-2">
+                  {!isToday ? (
+                    <Button
+                      variant="ghost"
+                      className="px-3 text-rose-700"
+                      onClick={() => onDeleteRun?.(run.dateKey)}
+                      disabled={runActionStatus === "running" || !onDeleteRun}
+                    >
+                      Löschen
+                    </Button>
+                  ) : null}
+                  <Badge tone={tone.tone} size="sm">
+                    {tone.label}
+                  </Badge>
+                </div>
               </li>
             );
           })}

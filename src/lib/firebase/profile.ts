@@ -24,6 +24,7 @@ import {
   computeDailyStreakStats,
   computeDuelStats,
   computePublicVotesReceivedStats,
+  computeSpecialRelationshipStats,
 } from "@/lib/mapping/stats";
 import { mockProfile } from "@/lib/mocks";
 import type { DailyHistoryEntry, MemberLite, ProfileStats, ProfileViewState } from "@/lib/types/frontend";
@@ -134,6 +135,13 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
         liveAnswers,
         questionCategories,
       });
+      const membersById = new Map(members.map((member) => [member.userId, member] as const));
+      const specialRelationships = computeSpecialRelationshipStats({
+        userId: viewedUserId,
+        dailyAnswers,
+        liveAnswers,
+        membersById,
+      });
       const categoryActivity: ProfileStats["categoryActivity"] = {};
       for (const answer of myDailyAnswers) {
         const category = questions.get(answer.questionId)?.category;
@@ -192,6 +200,7 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
                 : null,
           },
           publicVotesReceived,
+          specialRelationships,
           categoryActivity,
         },
         dailyHistory: history,

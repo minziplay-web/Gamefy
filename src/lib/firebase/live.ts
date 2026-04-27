@@ -416,6 +416,7 @@ function buildLivePhase(params: {
       myAnswer: myDraft,
       publicAnswers,
       anonymousAggregate,
+      members,
     }),
     myAnswer: myDraft,
   };
@@ -477,6 +478,7 @@ function buildFinishedSummary(params: {
               : undefined,
             publicAnswers: publicAnswers.get(rawIndex) ?? [],
             anonymousAggregate: anonymousAggregates.get(rawIndex),
+            members,
           }),
         },
       ];
@@ -513,6 +515,8 @@ function mapLiveQuestion(params: {
         type: "either_or",
         options: [question.options?.[0] ?? "Option A", question.options?.[1] ?? "Option B"],
       };
+    case "meme_caption":
+      return { ...base, type: "meme_caption", imagePath: question.imagePath ?? "", maxLength: 140 };
     case "duel_1v1": {
       const left = pairing?.memberIds?.[0] ? members.get(pairing.memberIds[0]) : undefined;
       const right = pairing?.memberIds?.[1] ? members.get(pairing.memberIds[1]) : undefined;
@@ -549,6 +553,8 @@ function mapLiveAnswerDraft(answer: LivePrivateAnswerDoc): DailyAnswerDraft {
             ? answer.selectedOptionIndex
             : undefined,
       };
+    case "meme_caption":
+      return { type: "meme_caption", questionId: answer.questionId, textAnswer: answer.textAnswer ?? "" };
   }
 }
 
@@ -557,8 +563,9 @@ function mapLiveQuestionResult(params: {
   myAnswer?: DailyAnswerDraft;
   publicAnswers: LiveAnswerDoc[];
   anonymousAggregate?: LiveAnonymousAggregateDoc;
+  members?: Map<string, MemberLite>;
 }): QuestionResult {
-  const { question, myAnswer, publicAnswers, anonymousAggregate } = params;
+  const { question, myAnswer, publicAnswers, anonymousAggregate, members } = params;
 
   switch (question.type) {
     case "single_choice": {
@@ -579,6 +586,20 @@ function mapLiveQuestionResult(params: {
             percent: totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0,
           };
         }),
+        voterRows: question.anonymous
+          ? undefined
+          : publicAnswers
+              .map((answer) => {
+                const voter = members?.get(answer.userId);
+                const target = answer.selectedUserId
+                  ? question.candidates.find((candidate) => candidate.userId === answer.selectedUserId)
+                  : undefined;
+                if (!voter || !target) {
+                  return null;
+                }
+                return { voter, target };
+              })
+              .filter((row): row is { voter: MemberLite; target: MemberLite } => row !== null),
         myChoiceUserId:
           myAnswer?.type === "single_choice" ? myAnswer.selectedUserId : undefined,
       };
@@ -612,6 +633,21 @@ function mapLiveQuestionResult(params: {
           votes: rightVotes,
           percent: totalVotes > 0 ? Math.round((rightVotes / totalVotes) * 100) : 0,
         },
+        voterRows: question.anonymous
+          ? undefined
+          : publicAnswers
+              .map((answer) => {
+                const voter = members?.get(answer.userId);
+                if (!voter || (answer.selectedSide !== "left" && answer.selectedSide !== "right")) {
+                  return null;
+                }
+                return { voter, side: answer.selectedSide };
+              })
+              .filter(
+                (
+                  row,
+                ): row is { voter: MemberLite; side: "left" | "right" } => row !== null,
+              ),
         myChoice: myAnswer?.type === "duel_1v1" ? myAnswer.selectedSide : undefined,
       };
     }
@@ -636,6 +672,21 @@ function mapLiveQuestionResult(params: {
           votes: teamBVotes,
           percent: totalVotes > 0 ? Math.round((teamBVotes / totalVotes) * 100) : 0,
         },
+        voterRows: question.anonymous
+          ? undefined
+          : publicAnswers
+              .map((answer) => {
+                const voter = members?.get(answer.userId);
+                if (!voter || (answer.selectedTeam !== "teamA" && answer.selectedTeam !== "teamB")) {
+                  return null;
+                }
+                return { voter, team: answer.selectedTeam };
+              })
+              .filter(
+                (
+                  row,
+                ): row is { voter: MemberLite; team: "teamA" | "teamB" } => row !== null,
+              ),
         myChoice: myAnswer?.type === "duel_2v2" ? myAnswer.selectedTeam : undefined,
       };
     }
@@ -654,9 +705,40 @@ function mapLiveQuestionResult(params: {
           { label: question.options[0], votes: option0Votes, percent: totalVotes > 0 ? Math.round((option0Votes / totalVotes) * 100) : 0 },
           { label: question.options[1], votes: option1Votes, percent: totalVotes > 0 ? Math.round((option1Votes / totalVotes) * 100) : 0 },
         ],
+        voterRows: question.anonymous
+          ? undefined
+          : publicAnswers
+              .map((answer) => {
+                const voter = members?.get(answer.userId);
+                const optionIndex =
+                  answer.selectedOptionIndex === 0 || answer.selectedOptionIndex === 1
+                    ? answer.selectedOptionIndex
+                    : undefined;
+                if (!voter || optionIndex === undefined) {
+                  return null;
+                }
+                return { voter, optionIndex };
+              })
+              .filter(
+                (row): row is { voter: MemberLite; optionIndex: 0 | 1 } => row !== null,
+              ),
         myChoiceIndex: myAnswer?.type === "either_or" ? myAnswer.selectedOptionIndex : undefined,
       };
     }
+    case "meme_caption":
+      return {
+        questionType: "meme_caption",
+        anonymous: question.anonymous,
+        imagePath: question.imagePath,
+        entries: question.anonymous
+          ? (anonymousAggregate?.textAnswers ?? []).map((text) => ({ text }))
+          : publicAnswers
+              .filter((answer) => answer.textAnswer)
+              .map((answer) => ({
+                text: answer.textAnswer!,
+                author: members?.get(answer.userId),
+              })),
+      };
   }
 }
 

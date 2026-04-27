@@ -779,6 +779,8 @@ function mapDraftPayload(draft: DailyAnswerDraft, question: DailyQuestion) {
       };
     case "either_or":
       return { selectedOptionIndex: draft.selectedOptionIndex };
+    case "meme_caption":
+      return { textAnswer: draft.textAnswer.trim() };
   }
 }
 
@@ -816,6 +818,12 @@ function mapPrivateAnswerToDraft(answer: LivePrivateAnswerDoc): DailyAnswerDraft
           answer.selectedOptionIndex === 0 || answer.selectedOptionIndex === 1
             ? answer.selectedOptionIndex
             : undefined,
+      };
+    case "meme_caption":
+      return {
+        type: "meme_caption",
+        questionId: answer.questionId,
+        textAnswer: answer.textAnswer ?? "",
       };
   }
 }
@@ -906,6 +914,8 @@ function getAggregateCountKey(draft: DailyAnswerDraft) {
         ? `option_${draft.selectedOptionIndex}`
         : undefined;
     case "open_text":
+      return undefined;
+    case "meme_caption":
       return undefined;
   }
 }

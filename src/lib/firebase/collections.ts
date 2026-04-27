@@ -69,6 +69,16 @@ export function dailyFirstAnswersCollection() {
   return db ? collection(db, "dailyFirstAnswers") : null;
 }
 
+export function dailyMemeVotesCollection() {
+  const { db } = getFirebaseServices();
+  return db ? collection(db, "dailyMemeVotes") : null;
+}
+
+export function dailyMemeVoteDoc(docId: string) {
+  const { db } = getFirebaseServices();
+  return db ? doc(db, "dailyMemeVotes", docId) : null;
+}
+
 export function liveSessionsCollection() {
   const { db } = getFirebaseServices();
   return db ? collection(db, "liveSessions") : null;

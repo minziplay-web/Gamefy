@@ -13,14 +13,17 @@ export type Category =
   | "hobbies_interests"
   | "dirty"
   | "group_knowledge"
-  | "would_you_rather";
+  | "would_you_rather"
+  | "conspiracy"
+  | "meme_it";
 
 export type QuestionType =
   | "single_choice"
   | "open_text"
   | "duel_1v1"
   | "duel_2v2"
-  | "either_or";
+  | "either_or"
+  | "meme_caption";
 
 export type UserRole = "admin" | "member";
 export type TargetMode = "daily" | "live" | "both";
@@ -110,6 +113,14 @@ export interface DailyRecapItem {
   result: QuestionResult;
 }
 
+export interface HomePastDailyReview {
+  dateKey: DateKey;
+  totalInRun: number;
+  answeredByMe: number;
+  status: "scheduled" | "active" | "closed";
+  items: DailyRecapItem[];
+}
+
 export type HomeViewState =
   | { status: "loading" }
   | {
@@ -117,6 +128,7 @@ export type HomeViewState =
       greeting: HomeGreeting;
       dailyTeaser: DailyTeaser | null;
       dailyRecap?: DailyRecapItem[];
+      pastDailies?: HomePastDailyReview[];
       activeLiveSession: LiveSessionTeaser | null;
       canHostLive: boolean;
       showAdminEntry: boolean;
@@ -163,19 +175,27 @@ export interface EitherOrQuestion extends DailyQuestionBase {
   options: [string, string];
 }
 
+export interface MemeCaptionQuestion extends DailyQuestionBase {
+  type: "meme_caption";
+  imagePath: string;
+  maxLength: number;
+}
+
 export type DailyQuestion =
   | SingleChoiceQuestion
   | OpenTextQuestion
   | Duel1v1Question
   | Duel2v2Question
-  | EitherOrQuestion;
+  | EitherOrQuestion
+  | MemeCaptionQuestion;
 
 export type DailyAnswerDraft =
   | { type: "single_choice"; questionId: QuestionId; selectedUserId?: UserId }
   | { type: "open_text"; questionId: QuestionId; textAnswer: string }
   | { type: "duel_1v1"; questionId: QuestionId; selectedSide?: "left" | "right" }
   | { type: "duel_2v2"; questionId: QuestionId; selectedTeam?: "teamA" | "teamB" }
-  | { type: "either_or"; questionId: QuestionId; selectedOptionIndex?: 0 | 1 };
+  | { type: "either_or"; questionId: QuestionId; selectedOptionIndex?: 0 | 1 }
+  | { type: "meme_caption"; questionId: QuestionId; textAnswer: string };
 
 export interface SingleChoiceResult {
   questionType: "single_choice";
@@ -208,6 +228,10 @@ export interface Duel1v1Result {
   left: { member: MemberLite; votes: number; percent: number };
   right: { member: MemberLite; votes: number; percent: number };
   myChoice?: "left" | "right";
+  voterRows?: Array<{
+    voter: MemberLite;
+    side: "left" | "right";
+  }>;
 }
 
 export interface Duel2v2Result {
@@ -216,6 +240,10 @@ export interface Duel2v2Result {
   teamA: { members: [MemberLite, MemberLite]; votes: number; percent: number };
   teamB: { members: [MemberLite, MemberLite]; votes: number; percent: number };
   myChoice?: "teamA" | "teamB";
+  voterRows?: Array<{
+    voter: MemberLite;
+    team: "teamA" | "teamB";
+  }>;
 }
 
 export interface EitherOrResult {
@@ -226,6 +254,22 @@ export interface EitherOrResult {
     { label: string; votes: number; percent: number },
   ];
   myChoiceIndex?: 0 | 1;
+  voterRows?: Array<{
+    voter: MemberLite;
+    optionIndex: 0 | 1;
+  }>;
+}
+
+export interface MemeCaptionResult {
+  questionType: "meme_caption";
+  anonymous: boolean;
+  imagePath: string;
+  entries: Array<{
+    text: string;
+    author?: MemberLite;
+    thumbsUpCount?: number;
+    iVoted?: boolean;
+  }>;
 }
 
 export type QuestionResult =
@@ -233,7 +277,8 @@ export type QuestionResult =
   | OpenTextResult
   | Duel1v1Result
   | Duel2v2Result
-  | EitherOrResult;
+  | EitherOrResult
+  | MemeCaptionResult;
 
 export type DailyQuestionCardState =
   | { phase: "unanswered"; question: DailyQuestion; draft?: DailyAnswerDraft }
@@ -408,6 +453,10 @@ export interface ProfileStats {
     total: number;
     byCategory: Partial<Record<Category, number>>;
   };
+  specialRelationships: Array<{
+    member: MemberLite;
+    votes: number;
+  }>;
   categoryActivity: Partial<Record<Category, number>>;
 }
 
@@ -443,6 +492,8 @@ export interface AdminQuestionRow {
   anonymous: boolean;
   targetMode: TargetMode;
   active: boolean;
+  dailyLocked: boolean;
+  dailyLockedDateKey: DateKey | null;
   createdAtIso: string;
   createdByDisplayName: string;
 }
@@ -460,6 +511,11 @@ export interface AdminDailyRunRow {
   status: "scheduled" | "active" | "closed";
   questionCount: number;
   createdByDisplayName: string;
+}
+
+export interface AdminDailyCategoryPlan {
+  includedCategories: Category[];
+  forcedCategories: Category[];
 }
 
 export interface AdminMemberRow {
@@ -492,41 +548,6 @@ export interface AdminDailyDiagnostics {
   issues: AdminDiagnosticIssue[];
 }
 
-export interface AdminLiveDiagnostics {
-  sessionId: SessionId;
-  phase: "lobby" | "question" | "reveal" | "finished";
-  state: "ready" | "warning" | "error";
-  code: string;
-  counts: {
-    totalItems: number;
-    playableItems: number;
-    connectedParticipants: number;
-    totalParticipants: number;
-  };
-  timing: {
-    sessionAgeMinutes: number | null;
-    phaseAgeMinutes: number | null;
-  };
-  issues: AdminDiagnosticIssue[];
-}
-
-export interface AdminOpsDiagnostics {
-  finishedLiveSessions: number;
-  staleFinishedLiveSessions: number;
-  inactiveLobbyCodes: number;
-  staleInactiveLobbyCodes: number;
-  orphanedDailyFirstAnswerLocks: number;
-  oldestStaleFinishedLiveAgeHours: number | null;
-  oldestStaleInactiveLobbyCodeAgeHours: number | null;
-}
-
-export interface AdminCleanupResult {
-  finalizedStaleLiveSessions: number;
-  deletedFinishedLiveSessions: number;
-  deletedInactiveLobbyCodes: number;
-  deletedOrphanedDailyFirstAnswerLocks: number;
-}
-
 export interface AdminRunActionResult {
   mode: "create" | "replace";
   dateKey: DateKey;
@@ -537,12 +558,20 @@ export interface AdminRunActionResult {
   deletedFirstAnswerLocks: number;
 }
 
+export interface AdminDailyDeleteResult {
+  dateKey: DateKey;
+  deletedPublicAnswers: number;
+  deletedPrivateAnswers: number;
+  deletedAnonymousAggregates: number;
+  deletedFirstAnswerLocks: number;
+}
+
 export interface AdminConfigDraft {
   dailyQuestionCount: number;
   dailyRevealPolicy: RevealPolicy;
-  liveDefaultQuestionDurationSec: number;
-  liveDefaultRevealDurationSec: number;
   onboardingEnabled: boolean;
+  dailyIncludedCategories: Category[];
+  dailyForcedCategories: Category[];
 }
 
 export type AdminTab = "questions" | "daily" | "members" | "config";
@@ -569,8 +598,6 @@ export type AdminViewState =
       };
       diagnostics: {
         todayDaily: AdminDailyDiagnostics;
-        activeLive: AdminLiveDiagnostics | null;
-        ops: AdminOpsDiagnostics;
       };
     }
   | { status: "error"; message: string };

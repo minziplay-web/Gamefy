@@ -5,7 +5,6 @@ import type {
   AdminQuestionFilter,
   Category,
   QuestionType,
-  TargetMode,
 } from "@/lib/types/frontend";
 
 const TYPE_OPTIONS: Array<{ value: QuestionType | "all"; label: string }> = [
@@ -15,6 +14,7 @@ const TYPE_OPTIONS: Array<{ value: QuestionType | "all"; label: string }> = [
   { value: "duel_1v1", label: "1v1" },
   { value: "duel_2v2", label: "2v2" },
   { value: "either_or", label: "Entweder / Oder" },
+  { value: "meme_caption", label: "Meme" },
 ];
 
 const ACTIVE_OPTIONS: Array<{
@@ -24,13 +24,6 @@ const ACTIVE_OPTIONS: Array<{
   { value: "all", label: "Alle" },
   { value: "active", label: "Aktiv" },
   { value: "inactive", label: "Deaktiviert" },
-];
-
-const TARGET_OPTIONS: Array<{ value: TargetMode | "all"; label: string }> = [
-  { value: "all", label: "Alle Modi" },
-  { value: "daily", label: "Daily" },
-  { value: "live", label: "Live" },
-  { value: "both", label: "Beides" },
 ];
 
 export function AdminQuestionFilterBar({
@@ -72,12 +65,6 @@ export function AdminQuestionFilterBar({
           value={filter.active}
           options={ACTIVE_OPTIONS}
           onChange={(active) => onChange({ ...filter, active })}
-        />
-        <SelectField
-          label="Modus"
-          value={filter.targetMode}
-          options={TARGET_OPTIONS}
-          onChange={(targetMode) => onChange({ ...filter, targetMode })}
         />
       </div>
     </div>

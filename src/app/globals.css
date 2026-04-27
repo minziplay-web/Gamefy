@@ -91,6 +91,92 @@ button {
   box-shadow: var(--shadow-card-raised);
 }
 
+/* Meme-leaderboard reveal animations */
+@keyframes winner-pop {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes meme-slide-in {
+  0% {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes rank-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes heart-glow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(223, 109, 87, 0.55);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(223, 109, 87, 0);
+  }
+}
+
+@keyframes crown-bob {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-4deg);
+  }
+  50% {
+    transform: translateY(-2px) rotate(4deg);
+  }
+}
+
+.anim-winner-pop {
+  animation: winner-pop 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-meme-slide-in {
+  animation: meme-slide-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-rank-fade-up {
+  animation: rank-fade-up 360ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-heart-glow {
+  animation: heart-glow 1.8s ease-in-out infinite;
+}
+
+.anim-crown-bob {
+  display: inline-block;
+  animation: crown-bob 1.6s ease-in-out infinite;
+  transform-origin: 50% 80%;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .anim-winner-pop,
+  .anim-meme-slide-in,
+  .anim-rank-fade-up,
+  .anim-heart-glow,
+  .anim-crown-bob {
+    animation: none;
+  }
+}
+
 /* Subtle focus ring for keyboard/button users */
 @media (hover: hover) {
   button:focus-visible,

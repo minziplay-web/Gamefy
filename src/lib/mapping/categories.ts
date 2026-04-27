@@ -2,7 +2,7 @@ import type { Category } from "@/lib/types/frontend";
 
 export const CATEGORY_LABELS: Record<Category, string> = {
   hot_takes: "Hot Takes",
-  pure_fun: "Pure Fun",
+  pure_fun: "Forreal bruh?",
   deep_talk: "Deep Talk",
   memories: "Erinnerungen",
   career_life: "Karriere & Leben",
@@ -10,7 +10,9 @@ export const CATEGORY_LABELS: Record<Category, string> = {
   hobbies_interests: "Hobbies",
   dirty: "Dirty",
   group_knowledge: "Gruppenkenntnis",
-  would_you_rather: "Lieber was?",
+  would_you_rather: "Would You Rather",
+  conspiracy: "Verschwörung",
+  meme_it: "Meme it",
 };
 
 export const CATEGORY_EMOJI: Record<Category, string> = {
@@ -24,6 +26,8 @@ export const CATEGORY_EMOJI: Record<Category, string> = {
   dirty: "🌶️",
   group_knowledge: "🧠",
   would_you_rather: "🎭",
+  conspiracy: "🛸",
+  meme_it: "🤳",
 };
 
 export const CATEGORY_TONE: Record<
@@ -44,4 +48,6 @@ export const CATEGORY_TONE: Record<
   dirty: { bg: "bg-red-100", text: "text-red-700", ring: "ring-red-200" },
   group_knowledge: { bg: "bg-violet-100", text: "text-violet-700", ring: "ring-violet-200" },
   would_you_rather: { bg: "bg-sky-100", text: "text-sky-700", ring: "ring-sky-200" },
+  conspiracy: { bg: "bg-purple-100", text: "text-purple-700", ring: "ring-purple-200" },
+  meme_it: { bg: "bg-fuchsia-100", text: "text-fuchsia-700", ring: "ring-fuchsia-200" },
 };

@@ -15,17 +15,22 @@ const TYPE_LABELS: Record<QuestionType, string> = {
   duel_1v1: "1v1",
   duel_2v2: "2v2",
   either_or: "Entweder / Oder",
+  meme_caption: "Meme",
 };
 
 export function AdminQuestionList({
   rows,
   onToggleActive,
+  onToggleDailyLock,
   onBulkSetActive,
+  onBulkSetDailyLock,
   onBulkDelete,
 }: {
   rows: AdminQuestionRow[];
   onToggleActive: (questionId: string, next: boolean) => void;
+  onToggleDailyLock?: (questionId: string, next: boolean) => Promise<void>;
   onBulkSetActive?: (questionIds: string[], active: boolean) => Promise<void>;
+  onBulkSetDailyLock?: (questionIds: string[], dailyLocked: boolean) => Promise<void>;
   onBulkDelete?: (questionIds: string[]) => Promise<void>;
 }) {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
@@ -59,7 +64,7 @@ export function AdminQuestionList({
   const toggleExpanded = (category: Category) => {
     setExpandedCategories((prev) => ({
       ...prev,
-      [category]: !(prev[category] ?? true),
+      [category]: !(prev[category] ?? false),
     }));
   };
 
@@ -82,6 +87,15 @@ export function AdminQuestionList({
 
       return Array.from(new Set([...prev, ...ids]));
     });
+  };
+
+  const toggleAllSelection = () => {
+    if (selectedIds.length === rows.length) {
+      setSelectedIds([]);
+      return;
+    }
+
+    setSelectedIds(rows.map((row) => row.questionId));
   };
 
   const runBulkAction = async (
@@ -118,6 +132,11 @@ export function AdminQuestionList({
               Klappe Kategorien auf und wähle Fragen für Bulk-Aktionen aus.
             </p>
           </div>
+          <Button variant="ghost" size="sm" onClick={toggleAllSelection}>
+            {selectedIds.length === rows.length ? "Alle abwählen" : "Alle wählen"}
+          </Button>
+        </div>
+        <div className="mt-3 flex flex-wrap gap-2">
           <div className="flex flex-wrap gap-2">
             <Button
               variant="ghost"
@@ -148,6 +167,21 @@ export function AdminQuestionList({
               }
             >
               Deaktivieren
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={selectedIds.length === 0 || bulkStatus === "running" || !onBulkSetDailyLock}
+              onClick={() =>
+                onBulkSetDailyLock
+                  ? void runBulkAction(
+                      () => onBulkSetDailyLock(selectedIds, false),
+                      `${selectedIds.length} Fragen wieder freigegeben.`,
+                    )
+                  : undefined
+              }
+            >
+              Freigeben
             </Button>
             <Button
               variant="destructive"
@@ -183,7 +217,7 @@ export function AdminQuestionList({
 
       <div className="space-y-3">
         {groupedRows.map(([category, categoryRows]) => {
-          const expanded = expandedCategories[category] ?? true;
+          const expanded = expandedCategories[category] ?? false;
           const selectedInCategory = categoryRows.filter((row) =>
             selectedSet.has(row.questionId),
           ).length;
@@ -250,14 +284,11 @@ export function AdminQuestionList({
                             <Badge tone="neutral" size="sm">
                               {TYPE_LABELS[row.type]}
                             </Badge>
-                            {row.anonymous ? (
-                              <Badge tone="dark" size="sm">
-                                Anonym
+                            {row.dailyLocked ? (
+                              <Badge tone="warning" size="sm">
+                                Verbraucht{row.dailyLockedDateKey ? ` · ${row.dailyLockedDateKey}` : ""}
                               </Badge>
                             ) : null}
-                            <Badge tone="neutral" size="sm">
-                              {row.targetMode}
-                            </Badge>
                             <span className="ml-auto text-[11px] text-sand-500">
                               von {row.createdByDisplayName}
                             </span>
@@ -275,13 +306,41 @@ export function AdminQuestionList({
                               />
                               {row.active ? "Aktiv" : "Deaktiviert"}
                             </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => onToggleActive(row.questionId, !row.active)}
-                            >
-                              {row.active ? "Deaktivieren" : "Aktivieren"}
-                            </Button>
+                            <div className="flex items-center gap-2">
+                              {row.dailyLocked ? (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => void onToggleDailyLock?.(row.questionId, false)}
+                                  disabled={!onToggleDailyLock}
+                                >
+                                  Freigeben
+                                </Button>
+                              ) : null}
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onToggleActive(row.questionId, !row.active)}
+                              >
+                                {row.active ? "Deaktivieren" : "Aktivieren"}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-rose-700"
+                                onClick={() =>
+                                  onBulkDelete
+                                    ? void runBulkAction(
+                                        () => onBulkDelete([row.questionId]),
+                                        "Frage gelöscht.",
+                                      )
+                                    : undefined
+                                }
+                                disabled={!onBulkDelete}
+                              >
+                                Löschen
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>

@@ -26,6 +26,11 @@ export interface PublicVoteStats<CategoryKey extends string = string> {
   byCategory: Partial<Record<CategoryKey, number>>;
 }
 
+export interface SpecialRelationshipStats<Member> {
+  member: Member;
+  votes: number;
+}
+
 export function computeDailyStreakStats(
   answeredDateKeys: Iterable<DateKey>,
   now: Date = new Date(),
@@ -204,6 +209,35 @@ export function computePublicVotesReceivedStats<CategoryKey extends string>(para
   }
 
   return { total, byCategory };
+}
+
+export function computeSpecialRelationshipStats<Member>(params: {
+  userId: string;
+  dailyAnswers: Array<Pick<DailyAnswerDoc, "selectedUserId" | "questionId" | "userId">>;
+  liveAnswers: Array<Pick<LiveAnswerDoc, "selectedUserId" | "questionId" | "userId">>;
+  membersById: Map<string, Member>;
+}): SpecialRelationshipStats<Member>[] {
+  const { userId, dailyAnswers, liveAnswers, membersById } = params;
+  const counts = new Map<string, number>();
+
+  for (const answer of [...dailyAnswers, ...liveAnswers]) {
+    if (answer.selectedUserId !== userId) {
+      continue;
+    }
+
+    counts.set(answer.userId, (counts.get(answer.userId) ?? 0) + 1);
+  }
+
+  const rows: SpecialRelationshipStats<Member>[] = [];
+  for (const [memberId, votes] of counts.entries()) {
+    const member = membersById.get(memberId);
+    if (!member) {
+      continue;
+    }
+    rows.push({ member, votes });
+  }
+
+  return rows.sort((left, right) => right.votes - left.votes).slice(0, 3);
 }
 
 function getUserDuelSide(

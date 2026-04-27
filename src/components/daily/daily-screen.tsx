@@ -21,11 +21,17 @@ import type {
 export function DailyScreen({
   state: initial,
   onSubmitAnswer,
+  onVoteMemeCaption,
 }: {
   state: DailyViewState;
   onSubmitAnswer?: (
     draft: DailyAnswerDraft,
     card: DailyQuestionCardState,
+  ) => Promise<void>;
+  onVoteMemeCaption?: (
+    card: DailyQuestionCardState,
+    authorUserId: string,
+    value: boolean,
   ) => Promise<void>;
 }) {
   const [state, setState] = useState(initial);
@@ -151,6 +157,24 @@ export function DailyScreen({
   };
 
   const handleSubmit = (questionId: string, draft: DailyAnswerDraft) => {
+    const nextUnansweredIndex =
+      state.status === "ready"
+        ? state.cards.findIndex(
+            (card) =>
+              card.question.questionId !== questionId &&
+              (card.phase === "unanswered" || card.phase === "error"),
+          )
+        : -1;
+    const willFinish =
+      state.status === "ready"
+        ? state.cards.every(
+            (card) =>
+              card.question.questionId === questionId ||
+              card.phase === "submitted_waiting_reveal" ||
+              card.phase === "revealed",
+          )
+        : false;
+
     updateCard(questionId, (card) => ({
       phase: "submitting",
       question: card.question,
@@ -163,43 +187,66 @@ export function DailyScreen({
         : undefined;
 
     if (onSubmitAnswer && currentCard) {
-      void onSubmitAnswer(draft, currentCard).catch((error) => {
-        const message =
-          error instanceof Error
-            ? error.message
-            : "Antwort konnte nicht gespeichert werden.";
-        updateCard(questionId, (card) => ({
-          phase: "error",
-          question: card.question,
-          message,
-          lastDraft: draft,
-        }));
-      });
+      void onSubmitAnswer(draft, currentCard)
+        .then(() => {
+          updateCard(questionId, (card) => ({
+            phase: "submitted_waiting_reveal",
+            question: card.question,
+            myAnswer: draft,
+          }));
+
+          if (willFinish) {
+            setShowCompletion(true);
+            return;
+          }
+
+          if (nextUnansweredIndex >= 0) {
+            setCurrentIndex(nextUnansweredIndex);
+          }
+        })
+        .catch((error) => {
+          const message =
+            error instanceof Error
+              ? error.message
+              : "Antwort konnte nicht gespeichert werden.";
+          updateCard(questionId, (card) => ({
+            phase: "error",
+            question: card.question,
+            message,
+            lastDraft: draft,
+          }));
+        });
       return;
     }
 
     // Preview / mock: fake the reveal transition so the flow is fully navigable.
     window.setTimeout(() => {
       updateCard(questionId, (card) => {
-        if (state.revealPolicy === "after_answer") {
-          return {
-            phase: "revealed",
-            question: card.question,
-            myAnswer: draft,
-            result: mockResultFor(card, draft),
-          };
-        }
         return {
           phase: "submitted_waiting_reveal",
           question: card.question,
           myAnswer: draft,
         };
       });
+
+      if (willFinish) {
+        setShowCompletion(true);
+        return;
+      }
+
+      if (nextUnansweredIndex >= 0) {
+        setCurrentIndex(nextUnansweredIndex);
+      }
     }, 400);
   };
 
   const totalCards = state.cards.length;
   const currentCard = state.cards[currentIndex];
+  const allAnswered = state.cards.every(
+    (card) =>
+      card.phase === "submitted_waiting_reveal" || card.phase === "revealed",
+  );
+  const allRevealed = state.cards.every((card) => card.phase === "revealed");
   const isLast = currentIndex === totalCards - 1;
   const isCurrentAnswered =
     currentCard?.phase === "submitted_waiting_reveal" ||
@@ -224,7 +271,9 @@ export function DailyScreen({
           state.runStatus === "closed"
             ? "Diese Daily ist abgeschlossen."
             : showCompletion
-              ? "Deine Antworten sind gespeichert."
+              ? allRevealed
+                ? "Hier sind die Ergebnisse von heute."
+                : "Deine Antworten sind gespeichert."
               : "Antwort abgeben, dann weiter zur nächsten Frage."
         }
       />
@@ -247,7 +296,27 @@ export function DailyScreen({
         </div>
       ) : null}
 
-      {showCompletion || !currentCard ? (
+      {showCompletion && allRevealed ? (
+        <div className="space-y-4">
+          {state.cards.map((card) => (
+            <QuestionCardShell
+              key={card.question.questionId}
+              state={card}
+              onDraftChange={() => undefined}
+              onSubmit={() => undefined}
+              onVoteMemeCaption={
+                onVoteMemeCaption
+                  ? (authorUserId, value) => onVoteMemeCaption(card, authorUserId, value)
+                  : undefined
+              }
+            />
+          ))}
+          <DailyCompletionCard
+            cards={state.cards}
+            revealPolicy={state.revealPolicy}
+          />
+        </div>
+      ) : showCompletion || !currentCard ? (
         <DailyCompletionCard
           cards={state.cards}
           revealPolicy={state.revealPolicy}
@@ -261,6 +330,12 @@ export function DailyScreen({
           }
           onSubmit={(draft) =>
             handleSubmit(currentCard.question.questionId, draft)
+          }
+          onVoteMemeCaption={
+            onVoteMemeCaption
+              ? (authorUserId, value) =>
+                  onVoteMemeCaption(currentCard, authorUserId, value)
+              : undefined
           }
         />
       )}
@@ -418,5 +493,19 @@ function mockResultFor(
         ],
       };
     }
+    case "meme_caption":
+      return {
+        questionType: "meme_caption",
+        anonymous: q.anonymous,
+        imagePath: q.imagePath,
+        entries: [
+          {
+            text:
+              draft.type === "meme_caption"
+                ? draft.textAnswer
+                : "Meine Bildunterschrift.",
+          },
+        ],
+      };
   }
 }

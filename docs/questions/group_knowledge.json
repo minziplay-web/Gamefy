@@ -1,0 +1,121 @@
+[
+  {
+    "text": "Wer kennt dich wirklich am besten?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer merkt am schnellsten, wenn es dir nicht gut geht?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer weiß am meisten Geheimnisse von dir?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer würde dich auch nach 10 Jahren ohne Kontakt sofort verstehen?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer könnte deinen Lebenslauf aus dem Kopf erzählen?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer weiß noch, was du früher mal werden wolltest?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer erinnert sich noch an deinen ersten Crush?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer kennt auch deine dunkelste Phase?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat dich zuletzt wirklich überrascht?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer ist der Gruppen-Historiker — erinnert sich an alles?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer verpasst garantiert keinen Geburtstag?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer würde dich auch nach 10 Jahren ohne Kontakt sofort verstehen?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer kennt dich besser als deine eigene Familie?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer liest deine Stimmung am zuverlässigsten zwischen den Zeilen?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer kennt deinen peinlichsten Spitznamen aus alten Zeiten?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer weiß noch, was dein erster Berufswunsch als Kind war?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat einen Insider-Witz mit dir, der heute noch funktioniert?",
+    "category": "group_knowledge",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  }
+]

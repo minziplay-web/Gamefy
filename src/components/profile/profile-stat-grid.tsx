@@ -50,8 +50,6 @@ export function ProfileStatGrid({ stats }: { stats: ProfileStats }) {
 function buildStatCards(stats: ProfileStats): StatCard[] {
   const hasAnyDaily = stats.daily.answeredCount > 0;
   const hasAnyLive = stats.live.roundsPlayed > 0;
-  const totalDuels = stats.duels.wins + stats.duels.losses;
-  const hasAnyDuel = totalDuels > 0;
   const topCategory = pickTopCategory(stats.categoryActivity);
   const hasCategoryActivity = topCategory !== null;
   const hasPublicVotes = stats.publicVotesReceived.total > 0;
@@ -93,22 +91,11 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
         ]
       : []),
     {
-      label: "Duelle",
-      value: hasAnyDuel ? `${stats.duels.wins}/${stats.duels.losses}` : "—",
-      helper: hasAnyDuel
-        ? stats.duels.winRatePercent === null
-          ? "W/L"
-          : `${stats.duels.winRatePercent}% Winrate`
-        : "Noch keine Duelle",
-      hasData: hasAnyDuel,
-      accent: "duels",
-    },
-    {
       label: "Votes erhalten",
       value: hasPublicVotes ? `${stats.publicVotesReceived.total}` : "—",
       helper: hasPublicVotes
-        ? "Nur öffentliche Fragen"
-        : "Noch keine öffentlichen Votes",
+        ? "So oft wurdest du gewählt"
+        : "Noch keine Votes",
       hasData: hasPublicVotes,
       accent: "votes",
     },

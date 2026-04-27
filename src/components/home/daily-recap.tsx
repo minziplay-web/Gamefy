@@ -1,6 +1,5 @@
 import Link from "next/link";
 
-import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { QuestionReveal } from "@/components/daily/question-reveal";
@@ -30,11 +29,6 @@ export function DailyRecap({ items }: { items: DailyRecapItem[] }) {
               <div className="flex items-start justify-between gap-3">
                 <div className="flex flex-wrap items-center gap-2">
                   <CategoryBadge category={item.category} size="sm" />
-                  {item.anonymous ? (
-                    <Badge tone="neutral" size="sm">
-                      Anonym
-                    </Badge>
-                  ) : null}
                 </div>
                 <span className="shrink-0 text-[11px] font-semibold tabular-nums text-sand-400">
                   #{index + 1}

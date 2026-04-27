@@ -50,6 +50,54 @@ export const mockHome: HomeViewState = {
       },
     },
   ],
+  pastDailies: [
+    {
+      dateKey: "2026-04-22",
+      totalInRun: 5,
+      answeredByMe: 5,
+      status: "closed",
+      items: [
+        {
+          questionId: "q7",
+          questionText: "Wer wäre der beste Roadtrip-Buddy?",
+          category: "pure_fun",
+          anonymous: false,
+          result: {
+            questionType: "single_choice",
+            anonymous: false,
+            totalVotes: 4,
+            counts: [
+              { candidate: mockMembers[0], votes: 2, percent: 50 },
+              { candidate: mockMembers[1], votes: 1, percent: 25 },
+              { candidate: mockMembers[2], votes: 1, percent: 25 },
+            ],
+          },
+        },
+      ],
+    },
+    {
+      dateKey: "2026-04-21",
+      totalInRun: 5,
+      answeredByMe: 4,
+      status: "closed",
+      items: [
+        {
+          questionId: "q8",
+          questionText: "Würdest du eher nie wieder feiern oder nie wieder verreisen?",
+          category: "would_you_rather",
+          anonymous: true,
+          result: {
+            questionType: "either_or",
+            anonymous: true,
+            options: [
+              { label: "Nie wieder feiern", votes: 3, percent: 60 },
+              { label: "Nie wieder verreisen", votes: 2, percent: 40 },
+            ],
+          },
+        },
+      ],
+    },
+  ],
   activeLiveSession: {
     sessionId: "sess_123",
     code: "FRND7",

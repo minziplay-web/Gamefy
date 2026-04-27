@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import {
   dailyAnswersCollection,
   dailyAnonymousAggregatesCollection,
+  dailyMemeVotesCollection,
   dailyPrivateAnswersCollection,
   dailyRunDoc,
   questionsCollection,
@@ -28,6 +29,7 @@ import type {
 import type {
   DailyAnswerDoc,
   DailyAnonymousAggregateDoc,
+  DailyMemeVoteDoc,
   DailyPrivateAnswerDoc,
   DailyRunItemDoc,
   DailyRunDoc,
@@ -35,7 +37,12 @@ import type {
   UserDoc,
 } from "@/lib/types/firestore";
 
-export function useDailyViewState(): DailyViewState {
+type QuestionLike = Pick<
+  QuestionDoc,
+  "text" | "category" | "type" | "anonymous" | "options" | "imagePath"
+>;
+
+export function useDailyViewState(targetDateKey?: string): DailyViewState {
   const { authState, isMockMode } = useAuth();
   const [state, setState] = useState<DailyViewState>(
     isMockMode ? mockDaily : { status: "loading" },
@@ -51,11 +58,12 @@ export function useDailyViewState(): DailyViewState {
       return;
     }
 
-    const dateKey = berlinDateKey();
+    const dateKey = targetDateKey ?? berlinDateKey();
     const runRef = dailyRunDoc(dateKey);
     const answersRef = dailyAnswersCollection();
     const privateAnswersRef = dailyPrivateAnswersCollection();
     const aggregatesRef = dailyAnonymousAggregatesCollection();
+    const memeVotesRef = dailyMemeVotesCollection();
     const questionsRef = questionsCollection();
     const usersRef = usersCollection();
 
@@ -64,6 +72,7 @@ export function useDailyViewState(): DailyViewState {
       !answersRef ||
       !privateAnswersRef ||
       !aggregatesRef ||
+      !memeVotesRef ||
       !questionsRef ||
       !usersRef
     ) {
@@ -79,6 +88,7 @@ export function useDailyViewState(): DailyViewState {
     let myAnswers = new Map<string, DailyAnswerDoc>();
     let allPublicAnswers = new Map<string, DailyAnswerDoc[]>();
     let anonymousAggregates = new Map<string, DailyAnonymousAggregateDoc>();
+    let memeVotes = new Map<string, DailyMemeVoteDoc[]>();
 
     const emit = () => {
       if (!runData) {
@@ -97,6 +107,16 @@ export function useDailyViewState(): DailyViewState {
         questions,
         activeMemberIds: new Set(members.keys()),
       });
+      const playableQuestionIds = new Set(
+        validatedRun.playableItems.map((item) => item.questionId),
+      );
+      const answeredPlayableCount = Array.from(myAnswers.keys()).filter((questionId) =>
+        playableQuestionIds.has(questionId),
+      ).length;
+      const holdResultsUntilFinished =
+        dateKey === berlinDateKey() &&
+        effectiveRunStatus === "active" &&
+        answeredPlayableCount < validatedRun.playableItems.length;
 
       if (validatedRun.isUnplayable) {
         setState({
@@ -111,7 +131,7 @@ export function useDailyViewState(): DailyViewState {
 
       const cards = validatedRun.playableItems.reduce<DailyQuestionCardState[]>(
         (acc, item, index) => {
-        const questionDoc = questions.get(item.questionId);
+        const questionDoc = getQuestionSource(item, questions);
         if (!questionDoc) {
           return acc;
         }
@@ -131,12 +151,30 @@ export function useDailyViewState(): DailyViewState {
 
         const myAnswerDoc = myAnswers.get(item.questionId);
         const myAnswer = myAnswerDoc ? mapDailyAnswerDraft(myAnswerDoc) : undefined;
-        const reveal = shouldReveal({
-          revealPolicy: run.revealPolicy,
-          runStatus: effectiveRunStatus,
-          dateKey: run.dateKey,
-          hasOwnAnswer: Boolean(myAnswer),
-        });
+        const reveal = holdResultsUntilFinished
+          ? false
+          : shouldReveal({
+              revealPolicy: run.revealPolicy,
+              runStatus: effectiveRunStatus,
+              dateKey: run.dateKey,
+              hasOwnAnswer: Boolean(myAnswer),
+            });
+
+        if (!myAnswer && reveal) {
+          acc.push({
+            phase: "revealed",
+            question,
+            result: mapQuestionResult({
+              question,
+              publicAnswers: allPublicAnswers.get(item.questionId) ?? [],
+              anonymousAggregate: anonymousAggregates.get(item.questionId),
+              memeVotes: memeVotes.get(item.questionId) ?? [],
+              currentUserId: authState.user.userId,
+              members,
+            }),
+          });
+          return acc;
+        }
 
         if (!myAnswer) {
           acc.push({ phase: "unanswered", question });
@@ -157,6 +195,8 @@ export function useDailyViewState(): DailyViewState {
               myAnswer,
               publicAnswers: allPublicAnswers.get(item.questionId) ?? [],
               anonymousAggregate: anonymousAggregates.get(item.questionId),
+              memeVotes: memeVotes.get(item.questionId) ?? [],
+              currentUserId: authState.user.userId,
               members,
             }),
           });
@@ -198,7 +238,7 @@ export function useDailyViewState(): DailyViewState {
         handleError("Daily-Run"),
       ),
       onSnapshot(
-        query(questionsRef, where("active", "==", true)),
+        questionsRef,
         (snapshot) => {
           questions = new Map(
             snapshot.docs.map((doc) => [doc.id, doc.data() as QuestionDoc]),
@@ -208,7 +248,7 @@ export function useDailyViewState(): DailyViewState {
         handleError("Daily-Fragen"),
       ),
       onSnapshot(
-        query(usersRef, where("isActive", "==", true)),
+        usersRef,
         (snapshot) => {
           members = new Map(
             snapshot.docs.map((doc) => [
@@ -275,6 +315,21 @@ export function useDailyViewState(): DailyViewState {
         },
         handleError("Anonyme Daily-Ergebnisse"),
       ),
+      onSnapshot(
+        query(memeVotesRef, where("dateKey", "==", dateKey)),
+        (snapshot) => {
+          const grouped = new Map<string, DailyMemeVoteDoc[]>();
+          for (const doc of snapshot.docs) {
+            const data = doc.data() as DailyMemeVoteDoc;
+            const list = grouped.get(data.questionId) ?? [];
+            list.push(data);
+            grouped.set(data.questionId, list);
+          }
+          memeVotes = grouped;
+          emit();
+        },
+        handleError("Meme-Votes"),
+      ),
     ];
 
     return () => {
@@ -282,14 +337,14 @@ export function useDailyViewState(): DailyViewState {
         unsubscribe();
       }
     };
-  }, [authState, isMockMode]);
+  }, [authState, isMockMode, targetDateKey]);
 
   return state;
 }
 
 export function mapDailyQuestion(params: {
   questionId: string;
-  question: QuestionDoc;
+  question: QuestionLike;
   index: number;
   total: number;
   members: Map<string, MemberLite>;
@@ -302,7 +357,7 @@ export function mapDailyQuestion(params: {
     totalInRun: total,
     text: question.text,
     category: question.category,
-    anonymous: question.anonymous,
+    anonymous: false,
   };
 
   switch (question.type) {
@@ -326,6 +381,13 @@ export function mapDailyQuestion(params: {
           question.options?.[0] ?? "Option A",
           question.options?.[1] ?? "Option B",
         ],
+      };
+    case "meme_caption":
+      return {
+        ...base,
+        type: "meme_caption",
+        imagePath: question.imagePath ?? "",
+        maxLength: 140,
       };
     case "duel_1v1": {
       const left = pairing?.memberIds?.[0] ? members.get(pairing.memberIds[0]) : undefined;
@@ -389,6 +451,12 @@ export function mapDailyAnswerDraft(answer: DailyAnswerDoc): DailyAnswerDraft {
             ? answer.selectedOptionIndex
             : undefined,
       };
+    case "meme_caption":
+      return {
+        type: "meme_caption",
+        questionId: answer.questionId,
+        textAnswer: answer.textAnswer ?? "",
+      };
   }
 }
 
@@ -397,19 +465,17 @@ export function mapQuestionResult(params: {
   myAnswer?: DailyAnswerDraft;
   publicAnswers: DailyAnswerDoc[];
   anonymousAggregate?: DailyAnonymousAggregateDoc;
+  memeVotes?: DailyMemeVoteDoc[];
+  currentUserId?: string;
   members?: Map<string, MemberLite>;
 }): QuestionResult {
-  const { question, myAnswer, publicAnswers, anonymousAggregate, members } = params;
+  const { question, myAnswer, publicAnswers, anonymousAggregate, memeVotes = [], currentUserId, members } = params;
 
   switch (question.type) {
     case "single_choice": {
-      const totalVotes = question.anonymous
-        ? Object.values(anonymousAggregate?.counts ?? {}).reduce((sum, count) => sum + count, 0)
-        : publicAnswers.length;
+      const totalVotes = publicAnswers.length;
       const counts = question.candidates.map((candidate) => {
-        const votes = question.anonymous
-          ? anonymousAggregate?.counts?.[candidate.userId] ?? 0
-          : publicAnswers.filter((answer) => answer.selectedUserId === candidate.userId).length;
+        const votes = publicAnswers.filter((answer) => answer.selectedUserId === candidate.userId).length;
         return {
           candidate,
           votes,
@@ -418,27 +484,25 @@ export function mapQuestionResult(params: {
       });
         return {
           questionType: "single_choice",
-          anonymous: question.anonymous,
+          anonymous: false,
           totalVotes,
           counts,
-          voterRows: question.anonymous
-            ? undefined
-            : publicAnswers
-                .map((answer) => {
-                  const voter = members?.get(answer.userId);
-                  const target = answer.selectedUserId
-                    ? question.candidates.find(
-                        (candidate) => candidate.userId === answer.selectedUserId,
-                      )
-                    : undefined;
+          voterRows: publicAnswers
+            .map((answer) => {
+              const voter = members?.get(answer.userId);
+              const target = answer.selectedUserId
+                ? question.candidates.find(
+                    (candidate) => candidate.userId === answer.selectedUserId,
+                  )
+                : undefined;
 
-                  if (!voter || !target) {
-                    return null;
-                  }
+              if (!voter || !target) {
+                return null;
+              }
 
-                  return { voter, target };
-                })
-                .filter((row): row is { voter: MemberLite; target: MemberLite } => row !== null),
+              return { voter, target };
+            })
+            .filter((row): row is { voter: MemberLite; target: MemberLite } => row !== null),
           myChoiceUserId:
             myAnswer?.type === "single_choice" ? myAnswer.selectedUserId : undefined,
         };
@@ -446,24 +510,21 @@ export function mapQuestionResult(params: {
     case "open_text":
       return {
         questionType: "open_text",
-        anonymous: question.anonymous,
-        entries: question.anonymous
-          ? (anonymousAggregate?.textAnswers ?? []).map((text) => ({ text }))
-          : publicAnswers
-              .filter((answer) => answer.textAnswer)
-              .map((answer) => ({ text: answer.textAnswer! })),
+        anonymous: false,
+        entries: publicAnswers
+          .filter((answer) => answer.textAnswer)
+          .map((answer) => ({
+            text: answer.textAnswer!,
+            author: members?.get(answer.userId),
+          })),
       };
     case "duel_1v1": {
-      const leftVotes = question.anonymous
-        ? anonymousAggregate?.counts?.left ?? 0
-        : publicAnswers.filter((answer) => answer.selectedSide === "left").length;
-      const rightVotes = question.anonymous
-        ? anonymousAggregate?.counts?.right ?? 0
-        : publicAnswers.filter((answer) => answer.selectedSide === "right").length;
+      const leftVotes = publicAnswers.filter((answer) => answer.selectedSide === "left").length;
+      const rightVotes = publicAnswers.filter((answer) => answer.selectedSide === "right").length;
       const totalVotes = leftVotes + rightVotes;
       return {
         questionType: "duel_1v1",
-        anonymous: question.anonymous,
+        anonymous: false,
         left: {
           member: question.left,
           votes: leftVotes,
@@ -474,20 +535,30 @@ export function mapQuestionResult(params: {
           votes: rightVotes,
           percent: totalVotes > 0 ? Math.round((rightVotes / totalVotes) * 100) : 0,
         },
+        voterRows: publicAnswers
+          .map((answer) => {
+            const voter = members?.get(answer.userId);
+            if (!voter || (answer.selectedSide !== "left" && answer.selectedSide !== "right")) {
+              return null;
+            }
+
+            return { voter, side: answer.selectedSide };
+          })
+          .filter(
+            (
+              row,
+            ): row is { voter: MemberLite; side: "left" | "right" } => row !== null,
+          ),
         myChoice: myAnswer?.type === "duel_1v1" ? myAnswer.selectedSide : undefined,
       };
     }
     case "duel_2v2": {
-      const teamAVotes = question.anonymous
-        ? anonymousAggregate?.counts?.teamA ?? 0
-        : publicAnswers.filter((answer) => answer.selectedTeam === "teamA").length;
-      const teamBVotes = question.anonymous
-        ? anonymousAggregate?.counts?.teamB ?? 0
-        : publicAnswers.filter((answer) => answer.selectedTeam === "teamB").length;
+      const teamAVotes = publicAnswers.filter((answer) => answer.selectedTeam === "teamA").length;
+      const teamBVotes = publicAnswers.filter((answer) => answer.selectedTeam === "teamB").length;
       const totalVotes = teamAVotes + teamBVotes;
       return {
         questionType: "duel_2v2",
-        anonymous: question.anonymous,
+        anonymous: false,
         teamA: {
           members: question.teamA,
           votes: teamAVotes,
@@ -498,20 +569,30 @@ export function mapQuestionResult(params: {
           votes: teamBVotes,
           percent: totalVotes > 0 ? Math.round((teamBVotes / totalVotes) * 100) : 0,
         },
+        voterRows: publicAnswers
+          .map((answer) => {
+            const voter = members?.get(answer.userId);
+            if (!voter || (answer.selectedTeam !== "teamA" && answer.selectedTeam !== "teamB")) {
+              return null;
+            }
+
+            return { voter, team: answer.selectedTeam };
+          })
+          .filter(
+            (
+              row,
+            ): row is { voter: MemberLite; team: "teamA" | "teamB" } => row !== null,
+          ),
         myChoice: myAnswer?.type === "duel_2v2" ? myAnswer.selectedTeam : undefined,
       };
     }
     case "either_or": {
-      const option0Votes = question.anonymous
-        ? anonymousAggregate?.counts?.option_0 ?? 0
-        : publicAnswers.filter((answer) => answer.selectedOptionIndex === 0).length;
-      const option1Votes = question.anonymous
-        ? anonymousAggregate?.counts?.option_1 ?? 0
-        : publicAnswers.filter((answer) => answer.selectedOptionIndex === 1).length;
+      const option0Votes = publicAnswers.filter((answer) => answer.selectedOptionIndex === 0).length;
+      const option1Votes = publicAnswers.filter((answer) => answer.selectedOptionIndex === 1).length;
       const totalVotes = option0Votes + option1Votes;
       return {
         questionType: "either_or",
-        anonymous: question.anonymous,
+        anonymous: false,
         options: [
           {
             label: question.options[0],
@@ -524,9 +605,69 @@ export function mapQuestionResult(params: {
             percent: totalVotes > 0 ? Math.round((option1Votes / totalVotes) * 100) : 0,
           },
         ],
+        voterRows: publicAnswers
+          .map((answer) => {
+            const voter = members?.get(answer.userId);
+            const optionIndex =
+              answer.selectedOptionIndex === 0 || answer.selectedOptionIndex === 1
+                ? answer.selectedOptionIndex
+                : undefined;
+
+            if (!voter || optionIndex === undefined) {
+              return null;
+            }
+
+            return { voter, optionIndex };
+          })
+          .filter(
+            (row): row is { voter: MemberLite; optionIndex: 0 | 1 } => row !== null,
+          ),
         myChoiceIndex:
           myAnswer?.type === "either_or" ? myAnswer.selectedOptionIndex : undefined,
       };
     }
+    case "meme_caption":
+      return {
+        questionType: "meme_caption",
+        anonymous: false,
+        imagePath: question.imagePath,
+        entries: publicAnswers
+          .filter((answer) => answer.textAnswer)
+          .map((answer) => ({
+            text: answer.textAnswer!,
+            author: members?.get(answer.userId),
+            thumbsUpCount: memeVotes.filter(
+              (vote) => vote.authorUserId === answer.userId,
+            ).length,
+            iVoted: memeVotes.some(
+              (vote) =>
+                vote.authorUserId === answer.userId &&
+                vote.voterUserId === currentUserId,
+            ),
+          })),
+      };
   }
+}
+
+function getQuestionSource(
+  item: DailyRunItemDoc,
+  questions: Map<string, QuestionDoc>,
+): QuestionLike | null {
+  const liveQuestion = questions.get(item.questionId);
+  if (liveQuestion) {
+    return liveQuestion;
+  }
+
+  if (!item.questionSnapshot) {
+    return null;
+  }
+
+  return {
+    text: item.questionSnapshot.text,
+    category: item.questionSnapshot.category,
+    type: item.type,
+    anonymous: item.questionSnapshot.anonymous,
+    options: item.questionSnapshot.options,
+    imagePath: item.questionSnapshot.imagePath,
+  };
 }

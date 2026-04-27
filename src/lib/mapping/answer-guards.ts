@@ -82,5 +82,20 @@ export function assertValidDraftForQuestion(
         "Bei dieser Frage muss Option 0 oder 1 gewählt werden.",
       );
       return;
+
+    case "meme_caption":
+      assert(
+        draft.type === "meme_caption",
+        "Meme-Antwort hat den falschen Typ.",
+      );
+      assert(
+        draft.textAnswer.trim().length > 0,
+        "Bildunterschrift darf nicht leer sein.",
+      );
+      assert(
+        draft.textAnswer.trim().length <= question.maxLength,
+        "Bildunterschrift ist länger als erlaubt.",
+      );
+      return;
   }
 }

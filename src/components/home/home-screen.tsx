@@ -1,5 +1,6 @@
 import { DailyCallout } from "@/components/home/daily-callout";
 import { DailyRecap } from "@/components/home/daily-recap";
+import { PastDailies } from "@/components/home/past-dailies";
 import { LiveCallout } from "@/components/home/live-callout";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -42,6 +43,9 @@ export function HomeScreen({ state }: { state: HomeViewState }) {
       <DailyCallout teaser={state.dailyTeaser} />
       {state.dailyRecap && state.dailyRecap.length > 0 ? (
         <DailyRecap items={state.dailyRecap} />
+      ) : null}
+      {state.pastDailies && state.pastDailies.length > 0 ? (
+        <PastDailies entries={state.pastDailies} />
       ) : null}
       {LIVE_MODE_ENABLED ? (
         <LiveCallout

@@ -1,0 +1,177 @@
+[
+  {
+    "text": "Wer würde am ehesten spontan einen Flug buchen?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat am ehesten eine peinliche Spotify-Playlist?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer würde bei einem Horrorfilm am lautesten schreien?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "live"
+  },
+  {
+    "text": "Wer würde am ehesten ohne Google Maps im Kreis laufen?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "live"
+  },
+  {
+    "text": "Wer verschluckt sich am wahrscheinlichsten an seinem eigenen Getränk?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "live"
+  },
+  {
+    "text": "Wer ist der bessere Partyplaner?",
+    "category": "pure_fun",
+    "type": "duel_1v1",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Welches Duo bringt zusammen das größte Chaos?",
+    "category": "pure_fun",
+    "type": "duel_2v2",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer würde bei einer Quizshow am weitesten kommen?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer würde bei Survivor am längsten durchhalten?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer könnte am ehesten eine Sekte gründen?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hätte die peinlichste Karaoke-Hymne?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "live"
+  },
+  {
+    "text": "Wer würde im Escape-Room als Erster durchdrehen?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "live"
+  },
+  {
+    "text": "Welches Duo würde bei Wer wird Millionär bis zur Telefonjoker-Katastrophe kommen?",
+    "category": "pure_fun",
+    "type": "duel_2v2",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer kann sich am besten dumm stellen, wenn's ihm passt?",
+    "category": "pure_fun",
+    "type": "duel_1v1",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat garantiert eine peinliche Cringe-Phase hinter sich?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer würde in einer Survival-Show am schnellsten heulen?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "live"
+  },
+  {
+    "text": "Wer hat schon mal versehentlich seinem Chef ein Herz oder einen Kuss geschickt?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer ist schon mal frontal gegen eine Glastür gelaufen?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat schon mal Toilettenpapier am Schuh nach draußen getragen?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat schon mal eine fremde Person mit 'Mama' angesprochen?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat sich schon mal selbst zugewunken, weil er dachte das Spiegelbild sei ein Kumpel?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "live"
+  },
+  {
+    "text": "Wer hat sich beim Niesen schon mal Cola, Saft oder Wasser aus der Nase gespritzt?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "live"
+  },
+  {
+    "text": "Wer hat schon mal eine Sprachnachricht im falschen Chat gelandet?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  },
+  {
+    "text": "Wer hat schon mal beim Karaoke so gequält, dass das Mikro plötzlich aus war?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "live"
+  },
+  {
+    "text": "Wer hat schon mal ohne zu fragen das letzte Stück Pizza vom Tisch geklaut?",
+    "category": "pure_fun",
+    "type": "single_choice",
+    "anonymous": false,
+    "targetMode": "both"
+  }
+]

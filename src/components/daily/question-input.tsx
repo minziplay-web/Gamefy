@@ -1,6 +1,7 @@
 "use client";
 
 import { AvatarCircle } from "@/components/ui/avatar";
+import { MemeImage } from "@/components/daily/meme-image";
 import { TextArea } from "@/components/ui/text-field";
 import type {
   DailyAnswerDraft,
@@ -8,6 +9,7 @@ import type {
   Duel1v1Question,
   Duel2v2Question,
   EitherOrQuestion,
+  MemeCaptionQuestion,
   OpenTextQuestion,
   SingleChoiceQuestion,
 } from "@/lib/types/frontend";
@@ -62,6 +64,15 @@ export function QuestionInput({ question, draft, disabled, onDraftChange }: Prop
         <EitherOrInput
           question={question}
           draft={draft as Extract<DailyAnswerDraft, { type: "either_or" }> | undefined}
+          disabled={disabled}
+          onDraftChange={onDraftChange}
+        />
+      );
+    case "meme_caption":
+      return (
+        <MemeCaptionInput
+          question={question}
+          draft={draft as Extract<DailyAnswerDraft, { type: "meme_caption" }> | undefined}
           disabled={disabled}
           onDraftChange={onDraftChange}
         />
@@ -252,6 +263,41 @@ function Duel2v2Input({
           </button>
         );
       })}
+    </div>
+  );
+}
+
+function MemeCaptionInput({
+  question,
+  draft,
+  disabled,
+  onDraftChange,
+}: {
+  question: MemeCaptionQuestion;
+  draft?: Extract<DailyAnswerDraft, { type: "meme_caption" }>;
+  disabled?: boolean;
+  onDraftChange: (next: DailyAnswerDraft) => void;
+}) {
+  const value = draft?.textAnswer ?? "";
+  const remaining = Math.max(0, question.maxLength - value.length);
+
+  return (
+    <div className="space-y-3">
+      <MemeImage imagePath={question.imagePath} caption={value} />
+      <TextArea
+        value={value}
+        disabled={disabled}
+        placeholder="Schreib deine Bildunterschrift..."
+        maxLength={question.maxLength}
+        helper={`${remaining} Zeichen übrig — Text erscheint live auf dem Bild`}
+        onChange={(event) =>
+          onDraftChange({
+            type: "meme_caption",
+            questionId: question.questionId,
+            textAnswer: event.target.value,
+          })
+        }
+      />
     </div>
   );
 }

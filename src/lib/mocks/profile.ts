@@ -14,6 +14,11 @@ export const mockProfileStats: ProfileStats = {
     total: 31,
     byCategory: { pure_fun: 12, hot_takes: 9, deep_talk: 6, memories: 4 },
   },
+  specialRelationships: [
+    { member: mockMembers[1], votes: 6 },
+    { member: mockMembers[2], votes: 4 },
+    { member: mockMembers[3], votes: 3 },
+  ],
   categoryActivity: {
     pure_fun: 18,
     deep_talk: 12,

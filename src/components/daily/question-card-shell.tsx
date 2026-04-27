@@ -12,6 +12,7 @@ interface Props {
   state: DailyQuestionCardState;
   onDraftChange: (next: DailyAnswerDraft) => void;
   onSubmit: (draft: DailyAnswerDraft) => void;
+  onVoteMemeCaption?: (authorUserId: string, value: boolean) => Promise<void>;
   onRetry?: () => void;
 }
 
@@ -28,10 +29,18 @@ function draftIsComplete(draft: DailyAnswerDraft | undefined): draft is DailyAns
       return Boolean(draft.selectedTeam);
     case "either_or":
       return draft.selectedOptionIndex !== undefined;
+    case "meme_caption":
+      return draft.textAnswer.trim().length > 0;
   }
 }
 
-export function QuestionCardShell({ state, onDraftChange, onSubmit, onRetry }: Props) {
+export function QuestionCardShell({
+  state,
+  onDraftChange,
+  onSubmit,
+  onVoteMemeCaption,
+  onRetry,
+}: Props) {
   const { question } = state;
 
   return (
@@ -39,7 +48,6 @@ export function QuestionCardShell({ state, onDraftChange, onSubmit, onRetry }: P
       <header className="space-y-3">
         <div className="flex flex-wrap items-center gap-2">
           <CategoryBadge category={question.category} size="sm" />
-          {question.anonymous ? <Badge tone="neutral" size="sm">Anonym</Badge> : null}
           <span className="ml-auto text-[11px] font-semibold tabular-nums text-sand-500">
             {question.indexInRun + 1} / {question.totalInRun}
           </span>
@@ -53,6 +61,7 @@ export function QuestionCardShell({ state, onDraftChange, onSubmit, onRetry }: P
           state={state}
           onDraftChange={onDraftChange}
           onSubmit={onSubmit}
+          onVoteMemeCaption={onVoteMemeCaption}
           onRetry={onRetry}
         />
       </div>
@@ -64,6 +73,7 @@ function CardBody({
   state,
   onDraftChange,
   onSubmit,
+  onVoteMemeCaption,
   onRetry,
 }: Props) {
   if (state.phase === "submitted_waiting_reveal") {
@@ -77,7 +87,10 @@ function CardBody({
   if (state.phase === "revealed") {
     return (
       <div className="space-y-3">
-        <QuestionReveal result={state.result} />
+        <QuestionReveal
+          result={state.result}
+          onVoteMemeCaption={onVoteMemeCaption}
+        />
       </div>
     );
   }
@@ -90,6 +103,8 @@ function CardBody({
         : state.draft;
   const loading = state.phase === "submitting";
   const disabled = loading || !draftIsComplete(currentDraft);
+  const submitLabel =
+    state.question.type === "meme_caption" ? "Meme erstellen" : "Antwort abschicken";
 
   return (
     <div className="space-y-4">
@@ -120,9 +135,8 @@ function CardBody({
           }
         }}
       >
-        {loading ? "Wird gesendet..." : "Antwort abschicken"}
+        {loading ? "Wird gesendet..." : submitLabel}
       </Button>
     </div>
   );
 }
-

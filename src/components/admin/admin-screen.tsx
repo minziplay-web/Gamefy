@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 
 import { AdminConfigForm } from "@/components/admin/admin-config-form";
+import { AdminDailyCategoryPanel } from "@/components/admin/admin-daily-category-panel";
 import { AdminDailyList } from "@/components/admin/admin-daily-list";
 import { AdminDiagnostics } from "@/components/admin/admin-diagnostics";
 import { AdminJsonImport } from "@/components/admin/admin-json-import";
@@ -18,7 +19,8 @@ import { SkeletonCard } from "@/components/ui/skeleton";
 import { mergeAdminState } from "@/lib/mapping/state-merge";
 import { berlinDateKey } from "@/lib/mapping/date";
 import type {
-  AdminCleanupResult,
+  AdminDailyDeleteResult,
+  AdminDailyCategoryPlan,
   AdminQuestionFilter,
   AdminMemberRow,
   AdminQuestionRow,
@@ -31,41 +33,46 @@ export function AdminScreen({
   state: initial,
   currentUserId,
   onToggleActive,
+  onToggleDailyLock,
   onBulkSetActive,
+  onBulkSetDailyLock,
   onBulkDelete,
   onImportQuestions,
   onCreateRun,
+  onDeleteRun,
   onDeactivateUser,
-  onCleanupFinishedSessions,
   onSaveConfig,
 }: {
   state: AdminViewState;
   currentUserId?: string;
   onToggleActive?: (questionId: string, active: boolean) => Promise<void>;
+  onToggleDailyLock?: (questionId: string, dailyLocked: boolean) => Promise<void>;
   onBulkSetActive?: (questionIds: string[], active: boolean) => Promise<void>;
+  onBulkSetDailyLock?: (questionIds: string[], dailyLocked: boolean) => Promise<void>;
   onBulkDelete?: (questionIds: string[]) => Promise<void>;
   onImportQuestions?: (raw: string) => Promise<void>;
-  onCreateRun?: (mode: "create" | "replace") => Promise<AdminRunActionResult>;
+  onCreateRun?: (
+    mode: "create" | "replace",
+    plan: AdminDailyCategoryPlan,
+  ) => Promise<AdminRunActionResult>;
+  onDeleteRun?: (dateKey: string) => Promise<AdminDailyDeleteResult>;
   onDeactivateUser?: (userId: string) => Promise<void>;
-  onCleanupFinishedSessions?: () => Promise<AdminCleanupResult>;
   onSaveConfig?: (
     draft: Extract<AdminViewState, { status: "ready" }>["config"]["draft"],
   ) => Promise<void>;
 }) {
   const [state, setState] = useState(initial);
   const [replaceConfirm, setReplaceConfirm] = useState<string | null>(null);
+  const [deleteRunConfirm, setDeleteRunConfirm] = useState<{
+    dateKey: string;
+    mode: "delete" | "reset";
+  } | null>(null);
   const [memberToRemove, setMemberToRemove] = useState<AdminMemberRow | null>(null);
-  const [cleanupState, setCleanupState] = useState<{
-    status: "idle" | "running" | "success" | "error";
-    message?: string;
-    result?: AdminCleanupResult;
-  }>({
-    status: "idle",
-  });
   const [runActionState, setRunActionState] = useState<{
     status: "idle" | "running" | "success" | "error";
     message?: string;
     result?: AdminRunActionResult;
+    deletedRun?: AdminDailyDeleteResult;
   }>({
     status: "idle",
   });
@@ -75,7 +82,6 @@ export function AdminScreen({
   }>({
     status: "idle",
   });
-
   useEffect(() => {
     queueMicrotask(() => setState((prev) => mergeAdminState(prev, initial)));
   }, [initial]);
@@ -142,6 +148,23 @@ export function AdminScreen({
         : prev,
     );
 
+  const toggleDailyLock = (questionId: string, next: boolean) =>
+    setState((prev) =>
+      prev.status === "ready"
+        ? {
+            ...prev,
+            questions: {
+              ...prev.questions,
+              rows: prev.questions.rows.map((r) =>
+                r.questionId === questionId
+                  ? { ...r, dailyLocked: next, dailyLockedDateKey: next ? berlinDateKey() : null }
+                  : r,
+              ),
+            },
+          }
+        : prev,
+    );
+
   const importQuestions = async (raw: string) => {
     try {
       if (onImportQuestions) {
@@ -194,11 +217,15 @@ export function AdminScreen({
       status: "running",
       message: undefined,
       result: prev.result,
+      deletedRun: prev.deletedRun,
     }));
 
     if (onCreateRun) {
       try {
-        const result = await onCreateRun(mode);
+        const result = await onCreateRun(mode, {
+          includedCategories: state.config.draft.dailyIncludedCategories,
+          forcedCategories: state.config.draft.dailyForcedCategories,
+        });
         setRunActionState({
           status: "success",
           message: buildRunActionMessage(result),
@@ -277,6 +304,48 @@ export function AdminScreen({
     }
   };
 
+  const confirmDeleteRun = async () => {
+    const target = deleteRunConfirm;
+    if (!target) return;
+
+    setRunActionState((prev) => ({
+      status: "running",
+      message: undefined,
+      result: prev.result,
+      deletedRun: prev.deletedRun,
+    }));
+
+    try {
+      const result = onDeleteRun
+        ? await onDeleteRun(target.dateKey)
+        : {
+            dateKey: target.dateKey,
+            deletedPublicAnswers: 0,
+            deletedPrivateAnswers: 0,
+            deletedAnonymousAggregates: 0,
+            deletedFirstAnswerLocks: 0,
+          };
+      setDeleteRunConfirm(null);
+      setRunActionState({
+        status: "success",
+        message: buildDeleteRunMessage(target.mode, result),
+        deletedRun: result,
+      });
+    } catch (error) {
+      setRunActionState((prev) => ({
+        status: "error",
+        message: getErrorMessage(
+          error,
+          target.mode === "reset"
+            ? "Das heutige Daily konnte nicht zurückgesetzt werden."
+            : "Das Daily konnte nicht gelöscht werden.",
+        ),
+        result: prev.result,
+        deletedRun: prev.deletedRun,
+      }));
+    }
+  };
+
   const updateConfig = (draft: typeof state.config.draft) =>
     setState((prev) =>
       prev.status === "ready"
@@ -292,37 +361,6 @@ export function AdminScreen({
           }
         : prev,
     );
-
-  const runCleanup = async () => {
-    setCleanupState((prev) => ({
-      status: "running",
-      message: undefined,
-      result: prev.result,
-    }));
-
-    try {
-      const result = onCleanupFinishedSessions
-        ? await onCleanupFinishedSessions()
-        : {
-            finalizedStaleLiveSessions: 0,
-            deletedFinishedLiveSessions: 0,
-            deletedInactiveLobbyCodes: 0,
-            deletedOrphanedDailyFirstAnswerLocks: 0,
-          };
-
-      setCleanupState({
-        status: "success",
-        message: buildCleanupMessage(result),
-        result,
-      });
-    } catch (error) {
-      setCleanupState((prev) => ({
-        status: "error",
-        message: getErrorMessage(error, "Cleanup konnte nicht abgeschlossen werden."),
-        result: prev.result,
-      }));
-    }
-  };
 
   const saveConfig = async () => {
     setState((prev) =>
@@ -407,17 +445,9 @@ export function AdminScreen({
       <ScreenHeader
         eyebrow="Admin"
         title="Verwaltung"
-        subtitle="Fragen, Daily-Runs und App-Konfiguration."
+        subtitle="Fragen, Dailys und App-Konfiguration."
       />
-      <AdminDiagnostics
-        daily={state.diagnostics.todayDaily}
-        live={state.diagnostics.activeLive}
-        ops={state.diagnostics.ops}
-        cleanupStatus={cleanupState.status}
-        cleanupMessage={cleanupState.message}
-        cleanupResult={cleanupState.result}
-        onCleanup={onCleanupFinishedSessions ? () => void runCleanup() : undefined}
-      />
+      <AdminDiagnostics daily={state.diagnostics.todayDaily} />
       <AdminTabs value={state.activeTab} onChange={setTab} />
 
       {state.activeTab === "questions" ? (
@@ -434,7 +464,16 @@ export function AdminScreen({
           <AdminQuestionList
             rows={filteredRows}
             onBulkSetActive={onBulkSetActive}
+            onBulkSetDailyLock={onBulkSetDailyLock}
             onBulkDelete={onBulkDelete}
+            onToggleDailyLock={async (questionId, next) => {
+              toggleDailyLock(questionId, next);
+              if (onToggleDailyLock) {
+                await onToggleDailyLock(questionId, next).catch(() => {
+                  toggleDailyLock(questionId, !next);
+                });
+              }
+            }}
             onToggleActive={(questionId, next) => {
               toggleActive(questionId, next);
               if (onToggleActive) {
@@ -448,13 +487,45 @@ export function AdminScreen({
       ) : null}
 
       {state.activeTab === "daily" ? (
-        <AdminDailyList
-          runs={state.dailyRuns}
-          onCreate={requestCreateRun}
-          todayDateKey={berlinDateKey()}
-          runActionStatus={runActionState.status}
-          runActionMessage={runActionState.message}
-        />
+        <div className="space-y-4">
+          <AdminDailyCategoryPanel
+            plan={{
+              includedCategories: state.config.draft.dailyIncludedCategories,
+              forcedCategories: state.config.draft.dailyForcedCategories,
+            }}
+            questionCount={state.config.draft.dailyQuestionCount}
+            dirty={state.config.dirty}
+            saveStatus={state.config.saveStatus}
+            saveError={state.config.saveError}
+            onChange={(plan) =>
+              updateConfig({
+                ...state.config.draft,
+                dailyIncludedCategories: plan.includedCategories,
+                dailyForcedCategories: plan.forcedCategories,
+              })
+            }
+            onSave={saveConfig}
+          />
+          <AdminDailyList
+            runs={state.dailyRuns}
+            onCreate={requestCreateRun}
+            onDeleteRun={(dateKey) =>
+              setDeleteRunConfirm({
+                dateKey,
+                mode: dateKey === berlinDateKey() ? "reset" : "delete",
+              })
+            }
+            onResetToday={() =>
+              setDeleteRunConfirm({
+                dateKey: berlinDateKey(),
+                mode: "reset",
+              })
+            }
+            todayDateKey={berlinDateKey()}
+            runActionStatus={runActionState.status}
+            runActionMessage={runActionState.message}
+          />
+        </div>
       ) : null}
 
       {state.activeTab === "members" ? (
@@ -504,38 +575,29 @@ export function AdminScreen({
         onConfirm={() => void confirmRemoveMember()}
         loading={memberActionState.status === "running"}
       />
+      <ConfirmDialog
+        open={deleteRunConfirm !== null}
+        title={
+          deleteRunConfirm?.mode === "reset"
+            ? "Heutiges Daily zurücksetzen?"
+            : "Daily löschen?"
+        }
+        description={
+          deleteRunConfirm?.mode === "reset"
+            ? "Das heutige Daily und alle dazugehörigen Antworten werden entfernt. Danach kannst du ein neues Daily erzeugen."
+            : deleteRunConfirm
+              ? `Das Daily vom ${deleteRunConfirm.dateKey} und alle dazugehörigen Antworten werden entfernt.`
+              : ""
+        }
+        confirmLabel={deleteRunConfirm?.mode === "reset" ? "Zurücksetzen" : "Löschen"}
+        cancelLabel="Abbrechen"
+        tone="destructive"
+        onCancel={() => setDeleteRunConfirm(null)}
+        onConfirm={() => void confirmDeleteRun()}
+        loading={runActionState.status === "running"}
+      />
     </div>
   );
-}
-
-function buildCleanupMessage(result: AdminCleanupResult) {
-  const affectedTotal =
-    result.finalizedStaleLiveSessions +
-    result.deletedFinishedLiveSessions +
-    result.deletedInactiveLobbyCodes +
-    result.deletedOrphanedDailyFirstAnswerLocks;
-
-  if (affectedTotal === 0) {
-    return "Es gab nichts zum Aufräumen.";
-  }
-
-  const parts: string[] = [];
-  if (result.finalizedStaleLiveSessions > 0) {
-    parts.push(`${result.finalizedStaleLiveSessions} stale Live-Sessions finalisiert`);
-  }
-  if (result.deletedFinishedLiveSessions > 0) {
-    parts.push(`${result.deletedFinishedLiveSessions} finished Live-Sessions gelöscht`);
-  }
-  if (result.deletedInactiveLobbyCodes > 0) {
-    parts.push(`${result.deletedInactiveLobbyCodes} alte Lobby-Codes gelöscht`);
-  }
-  if (result.deletedOrphanedDailyFirstAnswerLocks > 0) {
-    parts.push(
-      `${result.deletedOrphanedDailyFirstAnswerLocks} verwaiste First-Answer-Locks gelöscht`,
-    );
-  }
-
-  return parts.join(" · ");
 }
 
 function buildRunActionMessage(result: AdminRunActionResult) {
@@ -554,6 +616,32 @@ function buildRunActionMessage(result: AdminRunActionResult) {
   }
 
   const parts: string[] = [`Run für ${result.dateKey} ersetzt.`];
+  if (result.deletedPublicAnswers > 0) {
+    parts.push(`${result.deletedPublicAnswers} öffentliche Antworten entfernt`);
+  }
+  if (result.deletedPrivateAnswers > 0) {
+    parts.push(`${result.deletedPrivateAnswers} private Antworten entfernt`);
+  }
+  if (result.deletedAnonymousAggregates > 0) {
+    parts.push(`${result.deletedAnonymousAggregates} anonyme Aggregates entfernt`);
+  }
+  if (result.deletedFirstAnswerLocks > 0) {
+    parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);
+  }
+
+  return parts.join(" · ");
+}
+
+function buildDeleteRunMessage(
+  mode: "delete" | "reset",
+  result: AdminDailyDeleteResult,
+) {
+  const parts = [
+    mode === "reset"
+      ? `Daily für ${result.dateKey} zurückgesetzt.`
+      : `Daily für ${result.dateKey} gelöscht.`,
+  ];
+
   if (result.deletedPublicAnswers > 0) {
     parts.push(`${result.deletedPublicAnswers} öffentliche Antworten entfernt`);
   }

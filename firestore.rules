@@ -14,6 +14,10 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/questions/$(questionId));
     }
 
+    function dailyAnswerRecord(dateKey, questionId, userId) {
+      return get(/databases/$(database)/documents/dailyAnswers/$(dateKey + "_" + questionId + "_" + userId));
+    }
+
     function isActiveMember() {
       return isSignedIn() && userRecord(request.auth.uid).data.isActive == true;
     }
@@ -74,6 +78,7 @@ service cloud.firestore {
         "duel_1v1",
         "duel_2v2",
         "either_or",
+        "meme_caption",
       ];
     }
 
@@ -265,6 +270,15 @@ service cloud.firestore {
         && hasValidDuel2v2Context(data);
     }
 
+    function hasValidMemeCaptionAnswer(data) {
+      return "textAnswer" in data
+        && !("selectedUserId" in data)
+        && !("selectedOptionIndex" in data)
+        && !("selectedSide" in data)
+        && !("selectedTeam" in data)
+        && hasNoDuelContext(data);
+    }
+
     function hasValidAnswerPayloadForType(questionType, data) {
       return isKnownQuestionType(questionType)
         && (
@@ -273,6 +287,7 @@ service cloud.firestore {
           || (questionType == "either_or" && hasValidEitherOrAnswer(data))
           || (questionType == "duel_1v1" && hasValidDuel1v1Answer(data))
           || (questionType == "duel_2v2" && hasValidDuel2v2Answer(data))
+          || (questionType == "meme_caption" && hasValidMemeCaptionAnswer(data))
         );
     }
 
@@ -292,7 +307,10 @@ service cloud.firestore {
         "anonymous",
         "targetMode",
         "active",
+        "dailyLocked",
+        "dailyLockedDateKey",
         "options",
+        "imagePath",
         "createdAt",
         "createdBy",
         "updatedAt",
@@ -305,10 +323,16 @@ service cloud.firestore {
         && isKnownTargetMode(data.targetMode)
         && (data.anonymous == true || data.anonymous == false)
         && (data.active == true || data.active == false)
+        && (!("dailyLocked" in data) || data.dailyLocked == true || data.dailyLocked == false)
         && (
           data.type == "either_or"
           ? ("options" in data && data.options.size() == 2)
           : !("options" in data)
+        )
+        && (
+          data.type == "meme_caption"
+          ? ("imagePath" in data && data.imagePath is string)
+          : !("imagePath" in data)
         );
     }
 
@@ -366,6 +390,8 @@ service cloud.firestore {
         "dailyQuestionCount",
         "dailyRevealPolicy",
         "onboardingEnabled",
+        "dailyIncludedCategories",
+        "dailyForcedCategories",
         "liveDefaultQuestionDurationSec",
         "liveDefaultRevealDurationSec",
         "updatedAt",
@@ -378,6 +404,14 @@ service cloud.firestore {
         && isKnownRevealPolicy(data.dailyRevealPolicy)
         && (data.onboardingEnabled == true || data.onboardingEnabled == false)
         && data.dailyQuestionCount > 0
+        && (
+          !("dailyIncludedCategories" in data)
+          || data.dailyIncludedCategories is list
+        )
+        && (
+          !("dailyForcedCategories" in data)
+          || data.dailyForcedCategories is list
+        )
         && data.liveDefaultQuestionDurationSec > 0
         && data.liveDefaultRevealDurationSec > 0;
     }
@@ -570,6 +604,28 @@ service cloud.firestore {
         && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId);
       allow update: if false;
       allow delete: if isAdmin();
+    }
+
+    match /dailyMemeVotes/{voteId} {
+      allow read: if isActiveMember();
+      allow create: if isActiveMember()
+        && request.auth.uid == request.resource.data.voterUserId
+        && voteId == request.resource.data.dateKey + "_"
+          + request.resource.data.questionId + "_"
+          + request.resource.data.authorUserId + "_"
+          + request.resource.data.voterUserId
+        && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId)
+        && isActiveDailyRun(request.resource.data.dateKey)
+        && questionRecord(request.resource.data.questionId).data.type == "meme_caption"
+        && exists(/databases/$(database)/documents/dailyAnswers/$(request.resource.data.dateKey + "_" + request.resource.data.questionId + "_" + request.resource.data.authorUserId))
+        && dailyAnswerRecord(
+          request.resource.data.dateKey,
+          request.resource.data.questionId,
+          request.resource.data.authorUserId
+        ).data.userId == request.resource.data.authorUserId;
+      allow update: if false;
+      allow delete: if isActiveMember()
+        && resource.data.voterUserId == request.auth.uid;
     }
 
     match /liveSessions/{sessionId} {

@@ -1,16 +1,20 @@
 "use client";
 
 import {
+  deleteDoc,
+  doc,
   runTransaction,
+  setDoc,
   serverTimestamp,
 } from "firebase/firestore";
 
 import {
   dailyRunDoc,
-  dailyAnonymousAggregateDoc,
   dailyAnswerDoc,
   dailyFirstAnswerDoc,
+  dailyMemeVoteDoc,
   dailyPrivateAnswerDoc,
+  questionsCollection,
 } from "@/lib/firebase/collections";
 import { assertValidDraftForQuestion } from "@/lib/mapping/answer-guards";
 import { resolveDailyRunStatus } from "@/lib/mapping/daily-run";
@@ -21,8 +25,8 @@ import type {
 } from "@/lib/types/frontend";
 import type {
   DailyAnswerDoc,
-  DailyAnonymousAggregateDoc,
   DailyFirstAnswerDoc,
+  DailyMemeVoteDoc,
   DailyPrivateAnswerDoc,
   DailyRunDoc,
 } from "@/lib/types/firestore";
@@ -37,16 +41,17 @@ export async function submitDailyAnswer(params: {
   const answerId = `${dateKey}_${question.questionId}_${user.userId}`;
   const privateRef = dailyPrivateAnswerDoc(answerId);
   const publicRef = dailyAnswerDoc(answerId);
-  const aggregateRef = dailyAnonymousAggregateDoc(`${dateKey}_${question.questionId}`);
   const firstAnswerRef = dailyFirstAnswerDoc(`${dateKey}_${question.questionId}`);
   const runRef = dailyRunDoc(dateKey);
+  const questionsRef = questionsCollection();
+  const questionRef = questionsRef ? doc(questionsRef, question.questionId) : null;
 
   if (
     !privateRef ||
     !publicRef ||
-    !aggregateRef ||
     !firstAnswerRef ||
-    !runRef
+    !runRef ||
+    !questionRef
   ) {
     throw new Error("Firestore ist nicht verfügbar.");
   }
@@ -54,10 +59,9 @@ export async function submitDailyAnswer(params: {
   assertValidDraftForQuestion(question, draft);
 
   await runTransaction(privateRef.firestore, async (transaction) => {
-    const [runSnap, previousPrivateSnap, aggregateSnap, firstAnswerSnap] = await Promise.all([
+    const [runSnap, previousPrivateSnap, firstAnswerSnap] = await Promise.all([
       transaction.get(runRef),
       transaction.get(privateRef),
-      question.anonymous ? transaction.get(aggregateRef) : Promise.resolve(null),
       transaction.get(firstAnswerRef),
     ]);
 
@@ -76,9 +80,6 @@ export async function submitDailyAnswer(params: {
     const previousPrivate = previousPrivateSnap.exists()
       ? (previousPrivateSnap.data() as DailyPrivateAnswerDoc)
       : null;
-    const aggregate = aggregateSnap?.exists()
-      ? (aggregateSnap.data() as DailyAnonymousAggregateDoc)
-      : null;
     const firstAnswer = firstAnswerSnap.exists()
       ? (firstAnswerSnap.data() as DailyFirstAnswerDoc)
       : null;
@@ -90,7 +91,7 @@ export async function submitDailyAnswer(params: {
       questionId: question.questionId,
       userId: user.userId,
       questionType: question.type,
-      anonymous: question.anonymous,
+      anonymous: false,
       ...mapDraftPayload(draft, question),
       createdAt: previousPrivate?.createdAt ?? serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -105,86 +106,88 @@ export async function submitDailyAnswer(params: {
         userId: user.userId,
         createdAt: serverTimestamp(),
       } satisfies DailyFirstAnswerDoc);
+      transaction.set(
+        questionRef,
+        {
+          dailyLocked: true,
+          dailyLockedDateKey: dateKey,
+          updatedAt: serverTimestamp(),
+        },
+        { merge: true },
+      );
     }
 
-    if (question.anonymous) {
-      const previousDraft = previousPrivate ? mapPrivateAnswerToDraft(previousPrivate) : undefined;
-      const nextAggregate = buildNextAnonymousAggregate({
-        current: aggregate,
-        previousDraft,
-        nextDraft: draft,
-        question,
-        dateKey,
-      });
+    const nextPublic: DailyAnswerDoc = {
+      dateKey,
+      questionId: question.questionId,
+      userId: user.userId,
+      questionType: question.type,
+      anonymous: false,
+      ...mapDraftPayload(draft, question),
+      createdAt: previousPrivate?.createdAt ?? serverTimestamp(),
+    };
 
-      transaction.set(aggregateRef, nextAggregate, { merge: true });
-    } else {
-      const nextPublic: DailyAnswerDoc = {
-        dateKey,
-        questionId: question.questionId,
-        userId: user.userId,
-        questionType: question.type,
-        anonymous: false,
-        ...mapDraftPayload(draft, question),
-        createdAt: previousPrivate?.createdAt ?? serverTimestamp(),
-      };
-
-      transaction.set(publicRef, nextPublic, { merge: true });
-    }
+    transaction.set(publicRef, nextPublic, { merge: true });
   });
 }
 
-function buildNextAnonymousAggregate(params: {
-  current: DailyAnonymousAggregateDoc | null;
-  previousDraft?: DailyAnswerDraft;
-  nextDraft: DailyAnswerDraft;
-  question: DailyQuestion;
+export async function submitMemeCaptionVote(params: {
   dateKey: string;
-}): DailyAnonymousAggregateDoc {
-  const { current, previousDraft, nextDraft, question, dateKey } = params;
-  const counts = { ...(current?.counts ?? {}) };
-  const texts = [...(current?.textAnswers ?? [])];
+  questionId: string;
+  authorUserId: string;
+  voterUserId: string;
+  on: boolean;
+}) {
+  const { dateKey, questionId, authorUserId, voterUserId, on } = params;
+  const voteId = `${dateKey}_${questionId}_${authorUserId}_${voterUserId}`;
+  const voteRef = dailyMemeVoteDoc(voteId);
+  const runRef = dailyRunDoc(dateKey);
+  const answerRef = dailyAnswerDoc(`${dateKey}_${questionId}_${authorUserId}`);
+  const questionsRef = questionsCollection();
+  const questionRef = questionsRef ? doc(questionsRef, questionId) : null;
 
-  const previousKey = previousDraft ? getAggregateCountKey(previousDraft) : undefined;
-  const nextKey = getAggregateCountKey(nextDraft);
-
-  if (previousKey && previousKey !== nextKey) {
-    counts[previousKey] = Math.max(0, (counts[previousKey] ?? 0) - 1);
+  if (!voteRef || !runRef || !answerRef || !questionRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
   }
 
-  if (nextKey) {
-    const increment = previousKey === nextKey ? 0 : 1;
-    counts[nextKey] = (counts[nextKey] ?? 0) + increment;
+  if (!on) {
+    await deleteDoc(voteRef);
+    return;
   }
 
-  if (previousDraft?.type === "open_text" && previousDraft.textAnswer.trim()) {
-    removeOne(texts, previousDraft.textAnswer.trim());
-  }
+  await runTransaction(voteRef.firestore, async (transaction) => {
+    const [runSnap, questionSnap, answerSnap] = await Promise.all([
+      transaction.get(runRef),
+      transaction.get(questionRef),
+      transaction.get(answerRef),
+    ]);
 
-  if (nextDraft.type === "open_text" && nextDraft.textAnswer.trim()) {
-    texts.push(nextDraft.textAnswer.trim());
-  }
+    if (!runSnap.exists()) {
+      throw new Error("Der heutige Daily-Run existiert nicht mehr.");
+    }
 
-  const nextAggregate: DailyAnonymousAggregateDoc = {
-    dateKey,
-    questionId: question.questionId,
-    questionType: question.type,
-    counts,
-    updatedAt: serverTimestamp(),
-  };
+    const run = runSnap.data() as DailyRunDoc;
+    if (resolveDailyRunStatus(run) !== "active") {
+      throw new Error("Diese Daily ist nicht mehr aktiv.");
+    }
+    if (!(run.questionIds ?? []).includes(questionId)) {
+      throw new Error("Diese Frage gehört nicht mehr zum aktuellen Daily-Run.");
+    }
+    if (!questionSnap.exists() || questionSnap.data().type !== "meme_caption") {
+      throw new Error("Diese Frage unterstützt keine Herzen.");
+    }
+    if (!answerSnap.exists()) {
+      throw new Error("Dieses Meme existiert nicht mehr.");
+    }
 
-  if (question.type === "open_text") {
-    nextAggregate.textAnswers = texts;
-  } else if (current?.textAnswers) {
-    nextAggregate.textAnswers = current.textAnswers;
-  }
-
-  const duelContext = extractDuelContext(question);
-  if (duelContext) {
-    nextAggregate.duelContext = duelContext;
-  }
-
-  return nextAggregate;
+    transaction.set(voteRef, {
+      dateKey,
+      questionId,
+      authorUserId,
+      voterUserId,
+      createdAt: serverTimestamp(),
+    } satisfies DailyMemeVoteDoc);
+  });
 }
 
 function mapDraftPayload(draft: DailyAnswerDraft, question: DailyQuestion) {
@@ -205,46 +208,11 @@ function mapDraftPayload(draft: DailyAnswerDraft, question: DailyQuestion) {
       };
     case "either_or":
       return { selectedOptionIndex: draft.selectedOptionIndex };
+    case "meme_caption":
+      return { textAnswer: draft.textAnswer.trim() };
   }
 }
 
-function mapPrivateAnswerToDraft(answer: DailyPrivateAnswerDoc): DailyAnswerDraft {
-  switch (answer.questionType) {
-    case "single_choice":
-      return {
-        type: "single_choice",
-        questionId: answer.questionId,
-        selectedUserId: answer.selectedUserId,
-      };
-    case "open_text":
-      return {
-        type: "open_text",
-        questionId: answer.questionId,
-        textAnswer: answer.textAnswer ?? "",
-      };
-    case "duel_1v1":
-      return {
-        type: "duel_1v1",
-        questionId: answer.questionId,
-        selectedSide: answer.selectedSide,
-      };
-    case "duel_2v2":
-      return {
-        type: "duel_2v2",
-        questionId: answer.questionId,
-        selectedTeam: answer.selectedTeam,
-      };
-    case "either_or":
-      return {
-        type: "either_or",
-        questionId: answer.questionId,
-        selectedOptionIndex:
-          answer.selectedOptionIndex === 0 || answer.selectedOptionIndex === 1
-            ? answer.selectedOptionIndex
-            : undefined,
-      };
-  }
-}
 
 function extractDuelContext(question: DailyQuestion) {
   if (question.type === "duel_1v1") {
@@ -261,28 +229,4 @@ function extractDuelContext(question: DailyQuestion) {
   }
 
   return undefined;
-}
-
-function getAggregateCountKey(draft: DailyAnswerDraft) {
-  switch (draft.type) {
-    case "single_choice":
-      return draft.selectedUserId;
-    case "duel_1v1":
-      return draft.selectedSide;
-    case "duel_2v2":
-      return draft.selectedTeam;
-    case "either_or":
-      return draft.selectedOptionIndex !== undefined
-        ? `option_${draft.selectedOptionIndex}`
-        : undefined;
-    case "open_text":
-      return undefined;
-  }
-}
-
-function removeOne(values: string[], target: string) {
-  const index = values.indexOf(target);
-  if (index >= 0) {
-    values.splice(index, 1);
-  }
 }
