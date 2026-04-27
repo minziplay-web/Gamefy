@@ -400,6 +400,26 @@ function mockResultFor(
   draft: DailyAnswerDraft,
 ): Extract<DailyQuestionCardState, { phase: "revealed" }>["result"] {
   const q = card.question;
+  if ((q as { type: string }).type === "multi_choice") {
+    const multiChoiceQuestion = q as {
+      candidates: Array<{ userId: string; displayName: string; photoURL: string | null }>;
+    };
+    const multiChoiceDraft =
+      draft.type === "multi_choice" ? draft.selectedUserIds : [];
+    const myIdSet = new Set(multiChoiceDraft);
+    const counts = multiChoiceQuestion.candidates.map((candidate, i) => ({
+      candidate,
+      votes: myIdSet.has(candidate.userId) ? 3 : i < 2 ? 1 : 0,
+      percent: myIdSet.has(candidate.userId) ? 75 : i < 2 ? 25 : 0,
+    }));
+    return {
+      questionType: "multi_choice",
+      totalVoters: 4,
+      myChoiceUserIds: multiChoiceDraft,
+      counts,
+    } as Extract<DailyQuestionCardState, { phase: "revealed" }>["result"];
+  }
+
   switch (q.type) {
     case "single_choice": {
       const myId =
@@ -414,22 +434,6 @@ function mockResultFor(
         anonymous: false,
         totalVotes: 4,
         myChoiceUserId: myId,
-        counts,
-      };
-    }
-    case "multi_choice": {
-      const myIds =
-        draft.type === "multi_choice" ? draft.selectedUserIds : [];
-      const myIdSet = new Set(myIds);
-      const counts = q.candidates.map((c, i) => ({
-        candidate: c,
-        votes: myIdSet.has(c.userId) ? 3 : i < 2 ? 1 : 0,
-        percent: myIdSet.has(c.userId) ? 75 : i < 2 ? 25 : 0,
-      }));
-      return {
-        questionType: "multi_choice",
-        totalVoters: 4,
-        myChoiceUserIds: myIds,
         counts,
       };
     }
