@@ -405,7 +405,9 @@ function mockResultFor(
       candidates: Array<{ userId: string; displayName: string; photoURL: string | null }>;
     };
     const multiChoiceDraft =
-      draft.type === "multi_choice" ? draft.selectedUserIds : [];
+      "selectedUserIds" in draft && Array.isArray(draft.selectedUserIds)
+        ? draft.selectedUserIds
+        : [];
     const myIdSet = new Set(multiChoiceDraft);
     const counts = multiChoiceQuestion.candidates.map((candidate, i) => ({
       candidate,
