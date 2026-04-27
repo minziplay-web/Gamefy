@@ -507,7 +507,7 @@ function DuelSideResult({
           expanded={expanded}
         />
       ) : (
-        <p className="text-[11px] text-sand-500">
+        <p className="text-xs font-medium text-sand-600">
           {side.votes} {side.votes === 1 ? "Stimme" : "Stimmen"}
         </p>
       )}
@@ -614,9 +614,9 @@ function DuelTeamResult({
           expanded={expanded}
         />
       ) : (
-        <p className="text-[11px] text-sand-500">
-          {team.votes} {team.votes === 1 ? "Stimme" : "Stimmen"}
-        </p>
+      <p className="text-xs font-medium text-sand-600">
+        {team.votes} {team.votes === 1 ? "Stimme" : "Stimmen"}
+      </p>
       )}
       {isMine ? (
         <span className="rounded-full bg-coral px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white">
@@ -654,7 +654,7 @@ function DuelVotersFooter({
   return (
     <div className="w-full space-y-1.5">
       <div className="flex items-center justify-center gap-1.5">
-        <p className="text-[11px] text-sand-500">
+        <p className="text-xs font-medium text-sand-600">
           {votes} {votes === 1 ? "Stimme" : "Stimmen"}
         </p>
         <div className="flex items-center">
@@ -665,13 +665,13 @@ function DuelVotersFooter({
             >
               <AvatarCircle
                 member={voter}
-                size="xs"
+                size="sm"
                 className="ring-2 ring-white"
               />
             </div>
           ))}
           {voters.length > 4 ? (
-            <span className="-ml-1.5 inline-flex size-[18px] items-center justify-center rounded-full bg-sand-200 text-[9px] font-semibold text-sand-700 ring-2 ring-white">
+            <span className="-ml-1.5 inline-flex size-6 items-center justify-center rounded-full bg-sand-200 text-[10px] font-semibold text-sand-700 ring-2 ring-white">
               +{voters.length - 4}
             </span>
           ) : null}
@@ -690,10 +690,10 @@ function DuelVotersFooter({
           {voters.map((voter) => (
             <li
               key={voter.userId}
-              className="inline-flex items-center gap-1.5 rounded-full bg-sand-50 px-2 py-1"
+              className="inline-flex items-center gap-2 rounded-full bg-sand-50 px-2.5 py-1.5"
             >
-              <AvatarCircle member={voter} size="xs" />
-              <span className="text-[11px] font-medium text-sand-800">
+              <AvatarCircle member={voter} size="sm" />
+              <span className="text-xs font-medium text-sand-800">
                 {voter.displayName}
               </span>
             </li>
@@ -806,8 +806,8 @@ function RevealBar({
         ) : null}
         <div className="flex-1">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-sand-900">{label}</span>
-            <span className="text-sm font-bold tabular-nums text-sand-900">
+            <span className="text-[15px] font-semibold text-sand-900">{label}</span>
+            <span className="text-[15px] font-bold tabular-nums text-sand-900">
               {percent}%
             </span>
           </div>
@@ -839,13 +839,13 @@ function VotersFooter({
   const label = `${votes} ${votes === 1 ? "Stimme" : "Stimmen"}`;
 
   if (!hasVoters) {
-    return <p className="mt-1 text-[11px] text-sand-500">{label}</p>;
+    return <p className="mt-1 text-xs font-medium text-sand-600">{label}</p>;
   }
 
   return (
     <div className="mt-1 space-y-1.5">
       <div className="flex items-center gap-2">
-        <p className="text-[11px] text-sand-500">{label}</p>
+        <p className="text-xs font-medium text-sand-600">{label}</p>
         <div className="flex items-center">
           {voters.slice(0, 5).map((voter, index) => (
             <div
@@ -854,13 +854,13 @@ function VotersFooter({
             >
               <AvatarCircle
                 member={voter}
-                size="xs"
+                size="sm"
                 className="ring-2 ring-white"
               />
             </div>
           ))}
           {voters.length > 5 ? (
-            <span className="-ml-1.5 inline-flex size-[18px] items-center justify-center rounded-full bg-sand-200 text-[9px] font-semibold text-sand-700 ring-2 ring-white">
+            <span className="-ml-1.5 inline-flex size-6 items-center justify-center rounded-full bg-sand-200 text-[10px] font-semibold text-sand-700 ring-2 ring-white">
               +{voters.length - 5}
             </span>
           ) : null}
@@ -879,10 +879,10 @@ function VotersFooter({
           {voters.map((voter) => (
             <li
               key={voter.userId}
-              className="inline-flex items-center gap-1.5 rounded-full bg-sand-50 px-2 py-1"
+              className="inline-flex items-center gap-2 rounded-full bg-sand-50 px-2.5 py-1.5"
             >
-              <AvatarCircle member={voter} size="xs" />
-              <span className="text-[11px] font-medium text-sand-800">
+              <AvatarCircle member={voter} size="sm" />
+              <span className="text-xs font-medium text-sand-800">
                 {voter.displayName}
               </span>
             </li>

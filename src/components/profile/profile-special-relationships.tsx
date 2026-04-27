@@ -26,7 +26,7 @@ export function ProfileSpecialRelationships({
           {relationships.map((entry, index) => (
             <li
               key={entry.member.userId}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white px-3 py-3 shadow-card-flat"
+              className="flex items-center justify-between gap-3 rounded-2xl border border-sand-200/80 bg-sand-50 px-3 py-3 shadow-card-flat"
             >
               <div className="flex items-center gap-3">
                 <span className="w-5 text-sm font-semibold text-sand-400">
@@ -37,7 +37,7 @@ export function ProfileSpecialRelationships({
                   {entry.member.displayName}
                 </span>
               </div>
-              <span className="text-sm font-semibold text-sand-600">
+              <span className="rounded-full bg-sand-100 px-2.5 py-1 text-sm font-semibold text-sand-700">
                 {entry.votes}×
               </span>
             </li>
