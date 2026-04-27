@@ -16,6 +16,7 @@ import type {
   DailyAnswerDraft,
   DailyQuestionCardState,
   DailyViewState,
+  QuestionResult,
 } from "@/lib/types/frontend";
 
 export function DailyScreen({
@@ -398,7 +399,7 @@ function StepNav({
 function mockResultFor(
   card: DailyQuestionCardState,
   draft: DailyAnswerDraft,
-): Extract<DailyQuestionCardState, { phase: "revealed" }>["result"] {
+): QuestionResult {
   const q = card.question;
   if ((q as { type: string }).type === "multi_choice") {
     const multiChoiceQuestion = q as {
@@ -419,7 +420,7 @@ function mockResultFor(
       totalVoters: 4,
       myChoiceUserIds: multiChoiceDraft,
       counts,
-    } as Extract<DailyQuestionCardState, { phase: "revealed" }>["result"];
+    };
   }
 
   switch (q.type) {
