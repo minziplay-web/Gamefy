@@ -142,12 +142,8 @@ export async function submitMemeCaptionVote(params: {
   const { dateKey, questionId, authorUserId, voterUserId, on } = params;
   const voteId = `${dateKey}_${questionId}_${authorUserId}_${voterUserId}`;
   const voteRef = dailyMemeVoteDoc(voteId);
-  const runRef = dailyRunDoc(dateKey);
-  const answerRef = dailyAnswerDoc(`${dateKey}_${questionId}_${authorUserId}`);
-  const questionsRef = questionsCollection();
-  const questionRef = questionsRef ? doc(questionsRef, questionId) : null;
 
-  if (!voteRef || !runRef || !answerRef || !questionRef) {
+  if (!voteRef) {
     throw new Error("Firestore ist nicht verfügbar.");
   }
 
@@ -156,41 +152,13 @@ export async function submitMemeCaptionVote(params: {
     return;
   }
 
-  await runTransaction(voteRef.firestore, async (transaction) => {
-    const [runSnap, questionSnap, answerSnap] = await Promise.all([
-      transaction.get(runRef),
-      transaction.get(questionRef),
-      transaction.get(answerRef),
-    ]);
-
-    if (!runSnap.exists()) {
-      throw new Error("Der heutige Daily-Run existiert nicht mehr.");
-    }
-
-    const run = runSnap.data() as DailyRunDoc;
-    const runStatus = resolveDailyRunStatus(run);
-    const canVoteOnClosedRun = dateKey < berlinDateKey() && runStatus === "closed";
-    if (runStatus !== "active" && !canVoteOnClosedRun) {
-      throw new Error("Für diese Daily können keine Herzen mehr vergeben werden.");
-    }
-    if (!(run.questionIds ?? []).includes(questionId)) {
-      throw new Error("Diese Frage gehört nicht mehr zum aktuellen Daily-Run.");
-    }
-    if (!questionSnap.exists() || questionSnap.data().type !== "meme_caption") {
-      throw new Error("Diese Frage unterstützt keine Herzen.");
-    }
-    if (!answerSnap.exists()) {
-      throw new Error("Dieses Meme existiert nicht mehr.");
-    }
-
-    transaction.set(voteRef, {
-      dateKey,
-      questionId,
-      authorUserId,
-      voterUserId,
-      createdAt: serverTimestamp(),
-    } satisfies DailyMemeVoteDoc);
-  });
+  await setDoc(voteRef, {
+    dateKey,
+    questionId,
+    authorUserId,
+    voterUserId,
+    createdAt: serverTimestamp(),
+  } satisfies DailyMemeVoteDoc);
 }
 
 function mapDraftPayload(draft: DailyAnswerDraft, question: DailyQuestion) {
