@@ -84,7 +84,7 @@ function MemeCaptionReveal({
     const winner = ranked[0];
 
     return (
-      <div className="flex min-h-144 flex-col gap-4">
+      <div className="flex flex-col gap-3">
         <div className="anim-winner-pop space-y-3 rounded-2xl border-2 border-coral bg-gradient-to-br from-coral-soft/40 to-white p-4 shadow-card-raised">
           <div className="flex items-center gap-2">
             <span className="anim-crown-bob text-xl" aria-hidden>
@@ -236,10 +236,10 @@ function MemeCaptionReveal({
   };
 
   return (
-    <div className="flex min-h-144 flex-col gap-4">
+    <div className="flex flex-col gap-3">
       <div
         key={index}
-        className="anim-meme-slide-in space-y-3 rounded-2xl border border-sand-100 bg-white p-4 shadow-card-flat"
+        className="anim-meme-slide-in space-y-3 rounded-2xl border border-sand-100 bg-white p-3 shadow-card-flat"
       >
         <p className="text-xs font-bold uppercase tracking-[0.15em] text-sand-500">
           Meme · {index + 1} / {entries.length}
@@ -247,13 +247,13 @@ function MemeCaptionReveal({
 
         <MemeImage imagePath={result.imagePath} caption={entry.text} />
 
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex min-w-0 items-center gap-2">
+        <div className="flex items-center justify-between gap-3 rounded-2xl bg-sand-50 px-3 py-2.5">
+          <div className="flex min-w-0 items-center gap-3">
             {entry.author ? (
               <>
-                <AvatarCircle member={entry.author} size="sm" />
+                <AvatarCircle member={entry.author} size="md" />
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-semibold text-sand-900">
+                  <p className="truncate text-base font-semibold text-sand-900">
                     {entry.author.displayName}
                   </p>
                   <p className="truncate text-xs text-sand-500">
@@ -401,17 +401,24 @@ function OpenTextReveal({ result }: { result: OpenTextResult }) {
       {result.entries.map((entry, idx) => (
         <li
           key={idx}
-          className="space-y-2 rounded-2xl border border-sand-100 bg-white px-4 py-3"
+          className="space-y-3 rounded-2xl border border-sand-100 bg-white px-4 py-3"
         >
-          <p className="text-sm leading-relaxed text-sand-900">{entry.text}</p>
           {entry.author ? (
-            <div className="flex items-center gap-2 text-[11px] font-medium text-sand-500">
-              <AvatarCircle member={entry.author} size="sm" />
-              {entry.author.displayName}
+            <div className="flex items-center gap-3 rounded-xl bg-sand-50 px-3 py-2">
+              <AvatarCircle member={entry.author} size="md" />
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-sand-900">
+                  {entry.author.displayName}
+                </p>
+                <p className="text-[11px] font-medium text-sand-500">
+                  Antwort
+                </p>
+              </div>
             </div>
           ) : (
             <p className="text-[11px] font-medium text-sand-400">Unbekannt</p>
           )}
+          <p className="text-[15px] leading-6 text-sand-900">{entry.text}</p>
         </li>
       ))}
     </ul>
