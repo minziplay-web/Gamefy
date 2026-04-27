@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
   dailyAnswersCollection,
+  dailyMemeVotesCollection,
   dailyPrivateAnswersCollection,
   dailyRunsCollection,
   dailyRunDoc,
@@ -28,6 +29,7 @@ import { mockHome } from "@/lib/mocks";
 import type { HomePastDailyReview, HomeViewState, MemberLite } from "@/lib/types/frontend";
 import type {
   DailyAnswerDoc,
+  DailyMemeVoteDoc,
   DailyPrivateAnswerDoc,
   DailyRunDoc,
   LiveParticipantDoc,
@@ -60,6 +62,7 @@ export function useHomeViewState(): HomeViewState {
     const dateKey = berlinDateKey();
     const runRef = dailyRunDoc(dateKey);
     const answersRef = dailyAnswersCollection();
+    const memeVotesRef = dailyMemeVotesCollection();
     const privateAnswersRef = dailyPrivateAnswersCollection();
     const sessionsRef = liveSessionsCollection();
     const runsRef = dailyRunsCollection();
@@ -69,6 +72,7 @@ export function useHomeViewState(): HomeViewState {
     if (
       !runRef ||
       !answersRef ||
+      !memeVotesRef ||
       !privateAnswersRef ||
       !runsRef ||
       !sessionsRef ||
@@ -95,6 +99,7 @@ export function useHomeViewState(): HomeViewState {
     let allMyDailyAnswers: DailyPrivateAnswerDoc[] = [];
     let myDailyAnswers = new Map<string, DailyPrivateAnswerDoc>();
     let allPublicAnswers = new Map<string, DailyAnswerDoc[]>();
+    let allMemeVotes = new Map<string, DailyMemeVoteDoc[]>();
     let unsubscribeActiveParticipants: (() => void) | null = null;
 
     const emit = () => {
@@ -192,6 +197,7 @@ export function useHomeViewState(): HomeViewState {
                 question,
                 myAnswer,
                 publicAnswers: allPublicAnswers.get(reviewKey) ?? [],
+                memeVotes: allMemeVotes.get(reviewKey) ?? [],
                 members: memberMap,
               }),
             },
@@ -327,6 +333,22 @@ export function useHomeViewState(): HomeViewState {
           emit();
         },
         handleError("Home-Daily-Ergebnisse"),
+      ),
+      onSnapshot(
+        memeVotesRef,
+        (snapshot) => {
+          allMemeVotes = snapshot.docs
+            .map((doc) => doc.data() as DailyMemeVoteDoc)
+            .reduce<Map<string, DailyMemeVoteDoc[]>>((acc, vote) => {
+              const key = `${vote.dateKey}_${vote.questionId}`;
+              const existing = acc.get(key) ?? [];
+              existing.push(vote);
+              acc.set(key, existing);
+              return acc;
+            }, new Map());
+          emit();
+        },
+        handleError("Home-Meme-Votes"),
       ),
       onSnapshot(
         questionsRef,
