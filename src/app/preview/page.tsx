@@ -85,7 +85,7 @@ export default function PreviewIndex() {
         {SCREENS.map((screen) => (
           <section
             key={screen.key}
-            className="rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-sand-900/5"
+            className="rounded-[28px] border border-sand-200/80 bg-white p-5 shadow-lg shadow-sand-900/5"
           >
             <h2 className="mb-3 text-lg font-semibold text-sand-900">
               {screen.label}

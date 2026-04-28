@@ -95,7 +95,7 @@ export function DailyScreen({
   if (state.status === "loading") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Daily" title="Heutige Fragen" />
+        <ScreenHeader eyebrow="Daily" title="Heutige Fragen" theme="daily" />
         <SkeletonCard />
       </div>
     );
@@ -104,7 +104,7 @@ export function DailyScreen({
   if (state.status === "error") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Daily" title="Heutige Fragen" />
+        <ScreenHeader eyebrow="Daily" title="Heutige Fragen" theme="daily" />
         <ErrorBanner message={state.message} />
       </div>
     );
@@ -116,6 +116,7 @@ export function DailyScreen({
         <ScreenHeader
           eyebrow="Daily"
           title={formatBerlinDateLabel(state.dateKey)}
+          theme="daily"
         />
         <EmptyState
           icon="📅"
@@ -132,6 +133,7 @@ export function DailyScreen({
         <ScreenHeader
           eyebrow="Daily"
           title={formatBerlinDateLabel(state.dateKey)}
+          theme="daily"
         />
         <EmptyState
           icon="⚠️"
@@ -269,12 +271,13 @@ export function DailyScreen({
       <ScreenHeader
         eyebrow="Daily"
         title={formatBerlinDateLabel(state.dateKey)}
+        theme="daily"
         subtitle={
           state.runStatus === "closed"
             ? "Diese Daily ist abgeschlossen."
             : showCompletion
               ? "Fertig. Deine Antworten wurden erfolgreich gespeichert."
-              : "Antwort abgeben, dann weiter zur nächsten Frage."
+              : "Antwort abgeben, dann direkt weiter."
         }
       />
 
@@ -287,7 +290,7 @@ export function DailyScreen({
       ) : null}
 
       {state.hasIncompleteItems ? (
-        <div className="flex items-start gap-3 rounded-2xl border border-amber-200/80 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <div className="flex items-start gap-3 rounded-2xl border border-daily-primary/35 bg-white px-4 py-3 text-sm text-daily-text">
           <span aria-hidden className="shrink-0 text-lg leading-none">⚠️</span>
           <p className="leading-relaxed">
             Einige Fragen konnten nicht geladen werden und sind übersprungen.

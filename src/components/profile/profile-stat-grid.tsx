@@ -7,7 +7,9 @@ interface StatCard {
   value: string;
   helper: string;
   hasData: boolean;
+  icon: string;
   accent?: "streak" | "duels" | "votes" | "trophy";
+  compactValue?: boolean;
 }
 
 export function ProfileStatGrid({ stats }: { stats: ProfileStats }) {
@@ -18,34 +20,74 @@ export function ProfileStatGrid({ stats }: { stats: ProfileStats }) {
       {items.map((item) => (
         <div
           key={item.label}
-          className={`space-y-1 rounded-2xl border p-4 transition ${
+          className={`rounded-[1.25rem] p-[1px] ${
             item.hasData
-              ? "border-white/60 bg-white/85 shadow-card-flat"
-              : "border-dashed border-sand-200 bg-white/50"
+              ? accentShellClasses[item.accent ?? "default"]
+              : "bg-linear-to-br from-sand-200/90 to-sand-100/80"
           }`}
         >
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sand-500">
-            {item.label}
-          </p>
-          <p
-            className={`text-2xl font-semibold tabular-nums slashed-zero ${
-              item.hasData ? "text-sand-900" : "text-sand-400"
+          <div
+            className={`flex min-h-[7.7rem] flex-col rounded-[1.18rem] border p-3 transition sm:p-4 ${
+              item.hasData
+                ? "border-white/80 bg-white shadow-card-flat"
+                : "border-dashed border-sand-200 bg-profile-wash"
             }`}
           >
-            {item.value}
-          </p>
-          <p
-            className={`text-[11px] leading-tight ${
-              item.hasData ? "text-sand-500" : "text-sand-400"
-            }`}
-          >
-            {item.helper}
-          </p>
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-sand-500 min-[380px]:text-[10px]">
+                {item.label}
+              </p>
+              <span
+                aria-hidden
+                className={`flex size-8 shrink-0 items-center justify-center rounded-full text-base ${
+                  item.hasData
+                    ? iconAccentClasses[item.accent ?? "default"]
+                    : "bg-white text-sand-400 ring-1 ring-sand-200"
+                }`}
+              >
+                {item.icon}
+              </span>
+            </div>
+            <p
+              className={`mt-1.5 font-semibold tabular-nums slashed-zero ${
+                item.compactValue
+                  ? "line-clamp-2 break-words text-[clamp(0.98rem,4vw,1.16rem)] leading-tight"
+                  : "text-[clamp(1.35rem,5.5vw,1.75rem)] leading-none"
+              } ${
+                item.hasData ? "text-sand-900" : "text-sand-400"
+              }`}
+            >
+              {item.value}
+            </p>
+            <p
+              className={`mt-auto pt-2 text-[10.5px] leading-snug ${
+                item.hasData ? "text-sand-500" : "text-sand-400"
+              }`}
+            >
+              {item.helper}
+            </p>
+          </div>
         </div>
       ))}
     </div>
   );
 }
+
+const accentShellClasses = {
+  default: "bg-linear-to-br from-brand-primary/35 via-profile-soft to-white",
+  streak: "bg-linear-to-br from-profile-primary/45 via-profile-soft to-white",
+  votes: "bg-linear-to-br from-brand-primary/32 via-profile-wash to-white",
+  trophy: "bg-linear-to-br from-award-primary via-award-soft to-white",
+  duels: "bg-linear-to-br from-profile-strong/28 via-profile-soft to-white",
+} as const;
+
+const iconAccentClasses = {
+  default: "bg-profile-soft text-profile-text ring-1 ring-profile-primary/18",
+  streak: "bg-profile-soft text-profile-text ring-1 ring-profile-primary/18",
+  votes: "bg-profile-soft text-profile-text ring-1 ring-profile-primary/18",
+  trophy: "bg-award-soft text-award-text ring-1 ring-award-primary/35",
+  duels: "bg-profile-soft text-profile-text ring-1 ring-profile-primary/18",
+} as const;
 
 function buildStatCards(stats: ProfileStats): StatCard[] {
   const hasAnyDaily = stats.daily.answeredCount > 0;
@@ -62,10 +104,11 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
       value: hasAnyDaily ? `${stats.daily.streakCurrent}` : "—",
       helper: hasAnyDaily
         ? stats.daily.streakBest > 0
-          ? `Best: ${stats.daily.streakBest}`
-          : "Noch keine Streak gelaufen"
-        : "Noch keine Daily beantwortet",
+          ? `Best ${stats.daily.streakBest}`
+          : "Streak läuft"
+        : "Noch offen",
       hasData: hasAnyDaily,
+      icon: "🔥",
       accent: "streak",
     },
     {
@@ -74,17 +117,19 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
       helper: hasAnyDaily
         ? stats.daily.firstAnswerCount > 0
           ? `${stats.daily.firstAnswerCount}× zuerst`
-          : "Noch nie zuerst"
-        : "Noch keine Daily beantwortet",
+          : "Kein First"
+        : "Noch offen",
       hasData: stats.daily.completedCount > 0,
+      icon: "✓",
     },
     {
       label: "Meme-Trophäen",
       value: hasMemeTrophies ? `${stats.daily.memeTrophyCount}` : "—",
       helper: hasMemeTrophies
-        ? `${stats.daily.availableTrophyCount} frei für eigene Fragen`
-        : "Noch kein Tages-Meme gewonnen",
+        ? `${stats.daily.availableTrophyCount} verfügbar`
+        : "Noch keine",
       hasData: hasMemeTrophies,
+      icon: "🏆",
       accent: "trophy",
     },
     ...(LIVE_MODE_ENABLED
@@ -94,10 +139,11 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
             value: hasAnyLive ? `${stats.live.roundsPlayed}` : "—",
             helper: hasAnyLive
               ? stats.live.roundsHosted > 0
-                ? `${stats.live.roundsHosted}× gehostet`
-                : "Noch nie gehostet"
-              : "Noch keine Live-Runde",
+                ? `${stats.live.roundsHosted}× Host`
+                : "Kein Host"
+              : "Noch offen",
             hasData: hasAnyLive,
+            icon: "●",
           } satisfies StatCard,
         ]
       : []),
@@ -105,18 +151,22 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
       label: "Votes erhalten",
       value: hasPublicVotes ? `${stats.publicVotesReceived.total}` : "—",
       helper: hasPublicVotes
-        ? "So oft wurdest du gewählt"
+        ? "Gewählt"
         : "Noch keine Votes",
       hasData: hasPublicVotes,
+      icon: "❤",
       accent: "votes",
     },
     {
       label: "Besondere Beziehung",
       value: topRelationship ? topRelationship.member.displayName : "—",
       helper: topRelationship
-        ? `${topRelationship.votes}× am häufigsten gewählt`
-        : "Noch keine Personen-Votes",
+        ? `${topRelationship.votes}× gewählt`
+        : "Noch keine",
       hasData: Boolean(topRelationship),
+      icon: "↔",
+      accent: "duels",
+      compactValue: true,
     },
     {
       label: "Top-Kategorie",
@@ -127,8 +177,10 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
       helper:
         hasCategoryActivity && topCategory
           ? `${stats.categoryActivity[topCategory] ?? 0} Aktionen`
-          : "Noch keine Daten",
+          : "Noch keine",
       hasData: hasCategoryActivity,
+      icon: hasCategoryActivity && topCategory ? CATEGORY_EMOJI[topCategory] : "◇",
+      compactValue: true,
     },
   ];
 }

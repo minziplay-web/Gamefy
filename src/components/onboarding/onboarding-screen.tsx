@@ -63,7 +63,7 @@ export function OnboardingScreen({
     <div className="flex min-h-dvh items-center">
       <Card className="w-full space-y-6">
         <div className="space-y-2">
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-coral-strong">
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-brand-primary">
             Willkommen
           </p>
           <h1 className="text-2xl font-semibold leading-tight tracking-tight text-sand-900">

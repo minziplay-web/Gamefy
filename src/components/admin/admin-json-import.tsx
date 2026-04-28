@@ -28,7 +28,7 @@ export function AdminJsonImport({
   const [value, setValue] = useState("");
 
   return (
-    <section className="space-y-3 rounded-2xl border border-white/50 bg-white/80 p-4">
+    <section className="space-y-3 rounded-[28px] border border-slate-200 bg-white p-4 shadow-card-flat">
       <div className="space-y-1">
         <h3 className="text-sm font-semibold text-sand-900">Fragen importieren</h3>
         <p className="text-xs text-sand-500">
@@ -43,10 +43,14 @@ export function AdminJsonImport({
         className="font-mono text-xs leading-5"
       />
       {status === "error" && error ? (
-        <p className="text-xs text-rose-600">{error}</p>
+        <p className="rounded-2xl border border-danger-text/18 bg-danger-soft px-3 py-2 text-xs font-medium text-danger-text">
+          {error}
+        </p>
       ) : null}
       {status === "success" ? (
-        <p className="text-xs text-emerald-700">{message ?? "Import erfolgreich."}</p>
+        <p className="rounded-2xl border border-success-text/18 bg-success-soft px-3 py-2 text-xs font-medium text-success-text">
+          {message ?? "Import erfolgreich."}
+        </p>
       ) : null}
       <Button
         className="w-full"

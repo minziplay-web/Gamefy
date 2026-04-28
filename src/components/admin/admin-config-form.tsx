@@ -21,7 +21,7 @@ export function AdminConfigForm({
   onSave: () => void;
 }) {
   return (
-    <section className="space-y-5 radius-card border border-white/60 bg-white/85 p-5 shadow-card-flat">
+    <section className="space-y-5 radius-card border border-sand-200/80 bg-white p-5 shadow-card-flat">
       <div className="space-y-4">
         <Stepper
           label="Dailys pro Tag"
@@ -76,12 +76,12 @@ export function AdminConfigForm({
       </div>
 
       {saveStatus === "error" && saveError ? (
-        <p className="rounded-xl bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700">
+        <p className="rounded-xl bg-danger-soft px-3 py-2 text-xs font-medium text-danger-text">
           {saveError}
         </p>
       ) : null}
       {saveStatus === "saved" ? (
-        <p className="rounded-xl bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700">
+        <p className="rounded-xl bg-success-soft px-3 py-2 text-xs font-medium text-success-text">
           Gespeichert.
         </p>
       ) : null}

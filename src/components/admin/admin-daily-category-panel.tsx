@@ -65,7 +65,7 @@ export function AdminDailyCategoryPanel({
   };
 
   return (
-    <section className="space-y-4 rounded-3xl border border-white/60 bg-white/85 p-4 shadow-card-flat">
+    <section className="space-y-4 rounded-3xl border border-sand-200/80 bg-white p-4 shadow-card-flat">
       <div className="space-y-1">
         <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sand-500">
           Daily-Kategorien
@@ -80,7 +80,7 @@ export function AdminDailyCategoryPanel({
         <span className="rounded-full bg-sand-100 px-3 py-1">
           {plan.includedCategories.length} berücksichtigt
         </span>
-        <span className="rounded-full bg-coral/10 px-3 py-1 text-coral-strong">
+        <span className="rounded-full bg-brand-soft px-3 py-1 text-brand-primary">
           {plan.forcedCategories.length} Pflicht
         </span>
       </div>
@@ -93,26 +93,30 @@ export function AdminDailyCategoryPanel({
           return (
             <div
               key={category}
-              className={`flex items-center justify-between gap-3 rounded-2xl border px-3 py-3 ${
+              className={`grid gap-3 rounded-2xl border px-3 py-3 sm:grid-cols-[1fr_auto] sm:items-center ${
                 included
                   ? "border-sand-200 bg-sand-50/80"
                   : "border-sand-100 bg-sand-50/40 opacity-70"
               }`}
             >
-              <CategoryBadge category={category} size="sm" />
-              <div className="flex items-center gap-2">
+              <div className="min-w-0">
+                <CategoryBadge category={category} size="sm" />
+              </div>
+              <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
                 <Button
                   type="button"
                   size="sm"
                   variant={included ? "secondary" : "ghost"}
+                  className="w-full sm:w-auto"
                   onClick={() => toggleIncluded(category)}
                 >
-                  {included ? "Dabei" : "Raus"}
+                  {included ? "Dabei" : "Aus"}
                 </Button>
                 <Button
                   type="button"
                   size="sm"
                   variant={forced ? "primary" : "ghost"}
+                  className="w-full sm:w-auto"
                   disabled={!included}
                   onClick={() => toggleForced(category)}
                 >
@@ -125,26 +129,26 @@ export function AdminDailyCategoryPanel({
       </div>
 
       {plan.includedCategories.length === 0 ? (
-        <p className="rounded-2xl bg-rose-50 px-3 py-2 text-sm text-rose-700">
+        <p className="rounded-2xl bg-danger-soft px-3 py-2 text-sm text-danger-text">
           Wähle mindestens eine Kategorie aus.
         </p>
       ) : null}
 
       {forcedOverflow ? (
-        <p className="rounded-2xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        <p className="rounded-2xl border border-daily-primary/35 bg-white px-3 py-2 text-sm text-daily-text">
           Du hast mehr Pflicht-Kategorien gewählt als Fragen pro Tag eingestellt
           sind.
         </p>
       ) : null}
 
       {saveStatus === "error" && saveError ? (
-        <p className="rounded-2xl bg-rose-50 px-3 py-2 text-sm text-rose-700">
+        <p className="rounded-2xl bg-danger-soft px-3 py-2 text-sm text-danger-text">
           {saveError}
         </p>
       ) : null}
 
       {saveStatus === "saved" && !dirty ? (
-        <p className="rounded-2xl bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
+        <p className="rounded-2xl bg-success-soft px-3 py-2 text-sm text-success-text">
           Daily-Auswahl gespeichert.
         </p>
       ) : null}

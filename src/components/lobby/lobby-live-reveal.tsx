@@ -29,11 +29,11 @@ export function LobbyLiveReveal({
         <CountdownBar timing={countdown} />
       </div>
 
-      <section className="space-y-4 rounded-[28px] border border-white/50 bg-white/85 p-5 shadow-lg shadow-sand-900/5 backdrop-blur">
+      <section className="space-y-4 rounded-[28px] border border-sand-200/80 bg-white p-5 shadow-lg shadow-sand-900/5 backdrop-blur">
         <h2 className="text-lg font-semibold leading-snug text-sand-900">
           {view.question.text}
         </h2>
-        <QuestionReveal result={result} />
+        <QuestionReveal result={result} tone="neutral" />
       </section>
 
       {isHost ? (

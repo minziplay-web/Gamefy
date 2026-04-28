@@ -6,6 +6,8 @@ export function DailyHistoryList({ entries }: { entries: DailyHistoryEntry[] }) 
   if (entries.length === 0) {
     return (
       <EmptyState
+        icon="📅"
+        tone="profile"
         title="Noch keine Dailys beantwortet"
         description="Los gehts morgen, dann startet dein Verlauf."
       />
@@ -21,7 +23,7 @@ export function DailyHistoryList({ entries }: { entries: DailyHistoryEntry[] }) 
         return (
           <li
             key={entry.dateKey}
-            className="flex items-center justify-between rounded-2xl border border-white/60 bg-white/75 px-4 py-3 shadow-card-flat"
+            className="flex flex-col gap-2 rounded-2xl border border-profile-primary/20 bg-white px-4 py-3 shadow-card-flat sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="space-y-0.5">
               <p className="text-sm font-semibold text-sand-900">
@@ -36,12 +38,12 @@ export function DailyHistoryList({ entries }: { entries: DailyHistoryEntry[] }) 
               </p>
             </div>
             <div
-              className={`rounded-full px-3 py-1 text-xs font-semibold tabular-nums ${
+              className={`self-start rounded-full px-3 py-1 text-xs font-semibold tabular-nums sm:self-auto ${
                 complete
-                  ? "bg-emerald-100 text-emerald-700"
+                  ? "bg-success-soft text-success-text"
                   : none
-                    ? "bg-sand-100 text-sand-500"
-                    : "bg-amber-100 text-amber-800"
+                    ? "bg-profile-soft text-profile-text"
+                    : "bg-brand-soft text-profile-text"
               }`}
             >
               {entry.answeredByMe}/{entry.totalInRun}

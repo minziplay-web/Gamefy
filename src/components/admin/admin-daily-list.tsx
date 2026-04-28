@@ -6,7 +6,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { formatBerlinDateLabel } from "@/lib/mapping/date";
 import type { AdminDailyRunRow, DateKey } from "@/lib/types/frontend";
 
-type BadgeTone = "neutral" | "dark" | "coral" | "success" | "warning" | "danger";
+type BadgeTone = "neutral" | "dark" | "accent" | "success" | "warning" | "danger";
 
 const STATUS_TONE: Record<
   AdminDailyRunRow["status"],
@@ -43,17 +43,17 @@ export function AdminDailyList({
   return (
     <div className="space-y-3">
       {todayRun ? (
-        <div className="space-y-3 rounded-2xl border border-amber-200 bg-amber-50 p-4">
+        <div className="space-y-3 rounded-2xl border border-daily-primary/35 bg-white p-4">
           <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-amber-700">
+            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9A4C13]">
               Heute
             </p>
-            <p className="text-sm font-medium text-amber-900">
+            <p className="text-sm font-medium text-sand-900">
               Für heute existiert bereits ein Run mit {todayRun.questionCount} Fragen.
             </p>
           </div>
           {todayRun.items && todayRun.items.length > 0 ? (
-            <div className="space-y-2 rounded-2xl border border-amber-200/80 bg-white/80 p-3">
+            <div className="space-y-2 rounded-2xl border border-daily-primary/25 bg-white p-3">
               <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sand-500">
                 Heutige Fragen
               </p>
@@ -61,7 +61,7 @@ export function AdminDailyList({
                 {todayRun.items.map((item, index) => (
                   <li
                     key={item.questionId}
-                    className="flex items-start justify-between gap-3 rounded-2xl border border-sand-200 bg-sand-50/70 px-3 py-3"
+                    className="flex flex-col gap-3 rounded-2xl border border-sand-200 bg-sand-50/70 px-3 py-3 sm:flex-row sm:items-start sm:justify-between"
                   >
                     <div className="min-w-0 space-y-1">
                       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sand-500">
@@ -73,7 +73,7 @@ export function AdminDailyList({
                     </div>
                     <Button
                       variant="ghost"
-                      className="shrink-0 px-3 text-amber-900"
+                      className="w-full shrink-0 px-3 text-brand-primary sm:w-auto"
                       onClick={() =>
                         onRerollQuestion?.(todayRun.dateKey, item.questionId, item.text)
                       }
@@ -113,9 +113,9 @@ export function AdminDailyList({
         <p
           className={`rounded-xl px-3 py-2 text-sm ${
             runActionStatus === "error"
-              ? "bg-rose-50 text-rose-800"
+              ? "bg-danger-soft text-danger-text"
               : runActionStatus === "success"
-                ? "bg-emerald-50 text-emerald-800"
+                ? "bg-success-soft text-success-text"
                 : "bg-sand-50 text-sand-700"
           }`}
         >
@@ -136,14 +136,14 @@ export function AdminDailyList({
             return (
               <li
                 key={run.dateKey}
-                className={`flex items-center justify-between gap-3 rounded-2xl border px-4 py-3 ${
+                className={`flex flex-col gap-3 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${
                   isToday
-                    ? "border-amber-200 bg-amber-50/50"
-                    : "border-white/50 bg-white/80"
+                    ? "border-daily-primary/35 bg-white"
+                    : "border-sand-200/80 bg-white"
                 }`}
               >
-                <div className="space-y-1">
-                  <p className="flex items-center gap-2 text-sm font-semibold text-sand-900">
+                <div className="w-full min-w-0 space-y-1 sm:w-auto">
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-sand-900">
                     {formatBerlinDateLabel(run.dateKey)}
                     {isToday ? (
                       <Badge tone="warning" size="sm">
@@ -155,11 +155,11 @@ export function AdminDailyList({
                     {run.questionCount} Fragen · {run.createdByDisplayName}
                   </p>
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end">
                   {!isToday ? (
                     <Button
                       variant="ghost"
-                      className="px-3 text-rose-700"
+                      className="px-3 text-danger-text"
                       onClick={() => onDeleteRun?.(run.dateKey)}
                       disabled={runActionStatus === "running" || !onDeleteRun}
                     >

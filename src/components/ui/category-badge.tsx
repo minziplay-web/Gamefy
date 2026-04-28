@@ -16,10 +16,12 @@ export function CategoryBadge({
 
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full font-semibold uppercase ${tone.bg} ${tone.text} ${sizing}`}
+      className={`inline-flex max-w-full items-center gap-1.5 rounded-full font-semibold uppercase ring-1 ${tone.bg} ${tone.text} ${tone.ring} ${sizing}`}
     >
-      <span aria-hidden>{CATEGORY_EMOJI[category]}</span>
-      {CATEGORY_LABELS[category]}
+      <span aria-hidden className="shrink-0">
+        {CATEGORY_EMOJI[category]}
+      </span>
+      <span className="min-w-0 truncate">{CATEGORY_LABELS[category]}</span>
     </span>
   );
 }

@@ -34,7 +34,7 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
   if (state.status === "error") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Profil" title="Profil" />
+        <ScreenHeader eyebrow="Profil" title="Profil" theme="profile" />
         <ErrorBanner message={state.message} />
       </div>
     );
@@ -43,7 +43,7 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
   if (state.status === "not_found") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Profil" title="Profil" />
+        <ScreenHeader eyebrow="Profil" title="Profil" theme="profile" />
         <EmptyState
           title="Profil nicht gefunden"
           description="Dieses Mitglied existiert nicht mehr."
@@ -54,6 +54,16 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
 
   return (
     <div className="space-y-5">
+      <ScreenHeader
+        eyebrow={state.isSelf ? "Mein Bereich" : "Mitglied"}
+        title={state.isSelf ? "Profil" : state.user.displayName}
+        subtitle={
+          state.isSelf
+            ? "Deine Auszeichnungen, Beziehungen und letzten Dailys auf einen Blick."
+            : "Hier siehst du Stats, Beziehungen und den Profilüberblick."
+        }
+        theme="profile"
+      />
       {state.isSelf ? (
         <ProfileHeader
           user={state.user}
@@ -87,7 +97,7 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
 
       {state.isSelf ? (
         <section className="space-y-3">
-          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-sand-500">
+          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-primary">
             Meine letzten Dailys
           </h2>
           <DailyHistoryList entries={state.dailyHistory} />
@@ -95,7 +105,7 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
       ) : null}
 
       <section className="space-y-3">
-        <h2 className="px-1 text-sm font-semibold uppercase tracking-[0.14em] text-sand-500">
+        <h2 className="px-1 text-sm font-semibold uppercase tracking-[0.14em] text-brand-primary">
           Mitglieder
         </h2>
         <MemberRail members={state.members} activeUserId={state.user.userId} />
@@ -105,7 +115,10 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
         <div className="space-y-3 pt-2">
           {state.user.role === "admin" ? (
             <Link href="/admin" className="block">
-              <Button variant="secondary" className="w-full">
+              <Button
+                variant="profile"
+                className="w-full"
+              >
                 Admin öffnen
               </Button>
             </Link>
@@ -113,7 +126,7 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
           <button
             type="button"
             onClick={() => logout()}
-            className="mx-auto block min-h-10 text-sm font-medium text-sand-500 underline underline-offset-2 hover:text-sand-800"
+            className="mx-auto block min-h-10 text-sm font-medium text-brand-primary underline underline-offset-2 hover:text-profile-strong"
           >
             Abmelden
           </button>

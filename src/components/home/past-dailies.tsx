@@ -26,11 +26,15 @@ export function PastDailies({
     value: boolean,
   ) => Promise<void>;
 }) {
-  const [openDateKey, setOpenDateKey] = useState<string | null>(entries[0]?.dateKey ?? null);
+  const [openDateKey, setOpenDateKey] = useState<string | null>(
+    entries[0]?.dateKey ?? null,
+  );
 
   if (entries.length === 0) {
     return (
       <EmptyState
+        icon="📅"
+        tone="archive"
         title="Noch keine vergangenen Dailies"
         description="Sobald ein Tag abgeschlossen ist, kannst du ihn hier nochmal aufklappen."
       />
@@ -40,8 +44,8 @@ export function PastDailies({
   return (
     <section className="space-y-3">
       <header className="flex items-end justify-between gap-3 px-1 pt-2">
-        <h2 className="text-2xl font-semibold leading-tight tracking-tight text-sand-900">
-          Vergangene Dailys
+        <h2 className="text-2xl font-semibold leading-tight tracking-tight text-archive-text">
+          Archiv
         </h2>
       </header>
 
@@ -61,7 +65,7 @@ export function PastDailies({
                     current === entry.dateKey ? null : entry.dateKey,
                   )
                 }
-                className="flex w-full items-center justify-between rounded-2xl border border-white/60 bg-white/75 px-4 py-3 text-left shadow-card-flat transition hover:border-sand-200 hover:bg-white"
+                className="flex w-full items-center justify-between rounded-[24px] border-2 border-archive-primary/16 bg-white px-4 py-3 text-left shadow-card-flat transition hover:-translate-y-0.5 hover:border-archive-primary/35 hover:shadow-card-raised"
               >
                 <div className="space-y-0.5">
                   <p className="text-sm font-semibold text-sand-900">
@@ -73,10 +77,10 @@ export function PastDailies({
                   <div
                     className={`rounded-full px-3 py-1 text-xs font-semibold tabular-nums ${
                       complete
-                        ? "bg-emerald-100 text-emerald-700"
+                        ? "bg-success-soft text-success-text"
                         : none
-                          ? "bg-sand-100 text-sand-500"
-                          : "bg-amber-100 text-amber-800"
+                    ? "bg-archive-soft text-archive-primary"
+                    : "bg-[#FFF3F4] text-archive-primary"
                     }`}
                   >
                     {entry.answeredByMe}/{entry.totalInRun}
@@ -116,17 +120,21 @@ function PastDailyReviewContent({
     value: boolean,
   ) => Promise<void>;
 }) {
-  const isIncomplete = entry.totalInRun > 0 && entry.answeredByMe < entry.totalInRun;
+  const isIncomplete =
+    entry.totalInRun > 0 && entry.answeredByMe < entry.totalInRun;
 
   if (isIncomplete) {
     return (
-      <Card tone="raised" className="space-y-3 px-4 py-4">
+      <Card
+        tone="raised"
+        className="space-y-3 border-archive-primary/22 bg-white px-4 py-4"
+      >
         <p className="text-sm text-sand-700">
           Du hast dieses Daily noch nicht fertig beantwortet.
         </p>
         <Link
           href={`/daily?date=${entry.dateKey}`}
-          className="inline-flex w-full items-center justify-center rounded-2xl bg-coral px-4 py-3 text-sm font-semibold text-white shadow-card-flat transition hover:bg-coral/90"
+          className="inline-flex w-full items-center justify-center rounded-2xl bg-archive-primary px-4 py-3 text-sm font-semibold text-white shadow-card-flat transition hover:bg-archive-text"
         >
           Daily nachholen
         </Link>
@@ -134,45 +142,100 @@ function PastDailyReviewContent({
     );
   }
 
+  return (
+    <PastDailyResolvedContent
+      entry={entry}
+      onVoteMemeCaption={onVoteMemeCaption}
+    />
+  );
+}
+
+function PastDailyResolvedContent({
+  entry,
+  onVoteMemeCaption,
+}: {
+  entry: HomePastDailyReview;
+  onVoteMemeCaption?: (
+    item: DailyRecapItem,
+    authorUserId: string,
+    value: boolean,
+  ) => Promise<void>;
+}) {
   const state = useDailyViewState(entry.dateKey);
 
   if (state.status === "loading") {
-    return <Card tone="raised" className="px-4 py-4 text-sm text-sand-600">Lade Antworten …</Card>;
+    return (
+      <Card
+        tone="raised"
+        className="border-archive-primary/22 bg-white px-4 py-4 text-sm text-sand-600"
+      >
+        Lade Antworten …
+      </Card>
+    );
   }
 
   if (state.status === "error") {
-    return <Card tone="raised" className="px-4 py-4 text-sm text-rose-700">{state.message}</Card>;
+    return (
+      <Card
+        tone="raised"
+        className="border-archive-primary/22 bg-white px-4 py-4 text-sm text-archive-primary"
+      >
+        {state.message}
+      </Card>
+    );
   }
 
   if (state.status === "no_run") {
-    return <Card tone="raised" className="px-4 py-4 text-sm text-sand-600">Für diesen Tag wurde kein Run gefunden.</Card>;
+    return (
+      <Card
+        tone="raised"
+        className="border-archive-primary/22 bg-white px-4 py-4 text-sm text-sand-600"
+      >
+        Für diesen Tag wurde kein Run gefunden.
+      </Card>
+    );
   }
 
   if (state.status === "run_unplayable") {
-    return <Card tone="raised" className="px-4 py-4 text-sm text-sand-600">{state.reason}</Card>;
+    return (
+      <Card
+        tone="raised"
+        className="border-archive-primary/22 bg-white px-4 py-4 text-sm text-sand-600"
+      >
+        {state.reason}
+      </Card>
+    );
   }
 
-  const revealCards = state.cards.filter((card): card is Extract<DailyQuestionCardState, { phase: "revealed" }> => card.phase === "revealed");
+  const revealCards = state.cards.filter(
+    (card): card is Extract<DailyQuestionCardState, { phase: "revealed" }> =>
+      card.phase === "revealed",
+  );
 
   if (revealCards.length === 0 && entry.items.length > 0) {
     return (
       <ul className="space-y-3">
-        {entry.items.map((item, index) => (
+        {entry.items.map((item, index) => {
+          return (
           <li key={`${entry.dateKey}_${item.questionId}`}>
-            <Card tone="raised" className="space-y-4">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-2">
+            <Card
+              tone="raised"
+              className="space-y-3 border-transparent bg-transparent p-0 shadow-none"
+            >
+              <div className="px-1">
+                <div className="mb-2 flex items-center justify-between gap-3">
                   <CategoryBadge category={item.category} size="sm" />
+                  <span className="shrink-0 text-[11px] font-semibold tabular-nums text-sand-400">
+                    #{index + 1}
+                  </span>
                 </div>
-                <span className="shrink-0 text-[11px] font-semibold tabular-nums text-sand-400">
-                  #{index + 1}
-                </span>
+                <h3 className="text-base font-semibold leading-snug text-sand-900">
+                  {item.questionText}
+                </h3>
               </div>
-              <h3 className="text-base font-semibold leading-snug text-sand-900">
-                {item.questionText}
-              </h3>
               <QuestionReveal
                 result={item.result}
+                tone="archive"
                 onVoteMemeCaption={
                   onVoteMemeCaption
                     ? (authorUserId, value) =>
@@ -182,14 +245,18 @@ function PastDailyReviewContent({
               />
             </Card>
           </li>
-        ))}
+          );
+        })}
       </ul>
     );
   }
 
   if (revealCards.length === 0) {
     return (
-      <Card tone="raised" className="px-4 py-4 text-sm text-sand-600">
+      <Card
+        tone="raised"
+        className="border-archive-primary/22 bg-white px-4 py-4 text-sm text-sand-600"
+      >
         Dieser Tag lässt sich gerade nicht mehr vollständig anzeigen. Sehr
         wahrscheinlich wurden die ursprünglichen Fragen später archiviert oder
         gelöscht.
@@ -199,22 +266,27 @@ function PastDailyReviewContent({
 
   return (
     <ul className="space-y-3">
-      {revealCards.map((card, index) => (
+      {revealCards.map((card, index) => {
+        return (
         <li key={`${entry.dateKey}_${card.question.questionId}`}>
-          <Card tone="raised" className="space-y-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="flex flex-wrap items-center gap-2">
+          <Card
+            tone="raised"
+            className="space-y-3 border-transparent bg-transparent p-0 shadow-none"
+          >
+            <div className="px-1">
+              <div className="mb-2 flex items-center justify-between gap-3">
                 <CategoryBadge category={card.question.category} size="sm" />
+                <span className="shrink-0 text-[11px] font-semibold tabular-nums text-sand-400">
+                  #{index + 1}
+                </span>
               </div>
-              <span className="shrink-0 text-[11px] font-semibold tabular-nums text-sand-400">
-                #{index + 1}
-              </span>
+              <h3 className="text-base font-semibold leading-snug text-sand-900">
+                {card.question.text}
+              </h3>
             </div>
-            <h3 className="text-base font-semibold leading-snug text-sand-900">
-              {card.question.text}
-            </h3>
             <QuestionReveal
               result={card.result}
+              tone="archive"
               onVoteMemeCaption={
                 onVoteMemeCaption
                   ? (authorUserId, value) =>
@@ -234,7 +306,8 @@ function PastDailyReviewContent({
             />
           </Card>
         </li>
-      ))}
+        );
+      })}
     </ul>
   );
 }

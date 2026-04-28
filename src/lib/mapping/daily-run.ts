@@ -2,6 +2,8 @@ import { berlinDateKey, compareDateKeys } from "@/lib/mapping/date";
 import type { DateKey } from "@/lib/types/frontend";
 import type { DailyRunDoc, DailyRunItemDoc, QuestionDoc } from "@/lib/types/firestore";
 
+type RunQuestionSource = Pick<QuestionDoc, "type">;
+
 export interface ValidatedDailyRun {
   dateKey: DateKey;
   totalItems: number;
@@ -28,7 +30,11 @@ export function validateDailyRun(params: {
     );
 
   const playableItems = items.filter((item) =>
-    isPlayableRunItem(item, questions.get(item.questionId), activeMemberIds),
+    isPlayableRunItem(
+      item,
+      getRunItemQuestionSource(item, questions),
+      activeMemberIds,
+    ),
   );
 
   const hasIncompleteItems = playableItems.length !== items.length;
@@ -64,7 +70,7 @@ export function resolveDailyRunStatus(
 
 export function isPlayableRunItem(
   item: DailyRunItemDoc,
-  question: QuestionDoc | undefined,
+  question: RunQuestionSource | null | undefined,
   activeMemberIds: Set<string>,
 ) {
   const type = item.type ?? question?.type;
@@ -97,13 +103,15 @@ function getUnplayableReason(
     return "Der heutige Run enthält keine Fragen.";
   }
 
-  const hasKnownQuestion = items.some((item) => questions.has(item.questionId));
+  const hasKnownQuestion = items.some((item) =>
+    Boolean(getRunItemQuestionSource(item, questions)),
+  );
   if (!hasKnownQuestion) {
     return "Die Fragen für den heutigen Run konnten nicht geladen werden.";
   }
 
   const hasDuelItem = items.some((item) => {
-    const type = item.type ?? questions.get(item.questionId)?.type;
+    const type = item.type ?? getRunItemQuestionSource(item, questions)?.type;
     return type === "duel_1v1" || type === "duel_2v2";
   });
 
@@ -112,4 +120,15 @@ function getUnplayableReason(
   }
 
   return "Der heutige Run enthält keine spielbaren Fragen.";
+}
+
+function getRunItemQuestionSource(
+  item: DailyRunItemDoc,
+  questions: Map<string, QuestionDoc>,
+): RunQuestionSource | null {
+  if (item.questionSnapshot) {
+    return { type: item.type };
+  }
+
+  return questions.get(item.questionId) ?? null;
 }

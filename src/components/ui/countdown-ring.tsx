@@ -49,13 +49,13 @@ export function CountdownRing({
           strokeDashoffset={dashOffset}
           transform={`rotate(-90 ${size / 2} ${size / 2})`}
           className={`transition-[stroke-dashoffset,color] duration-300 ease-out ${
-            urgent ? "text-coral-strong" : "text-coral"
+            urgent ? "text-daily-accent" : "text-brand-primary"
           }`}
         />
       </svg>
       <span
         className={`absolute text-2xl font-semibold tabular-nums transition-colors duration-300 ${
-          urgent ? "text-coral-strong" : "text-sand-900"
+          urgent ? "text-daily-accent" : "text-sand-900"
         } ${urgent ? "animate-pulse" : ""}`}
       >
         {remaining}
@@ -79,7 +79,7 @@ export function CountdownBar({
       className={`h-1.5 w-full overflow-hidden rounded-full bg-sand-100 ${className}`}
     >
       <div
-        className="h-full rounded-full bg-coral transition-[width] duration-200 ease-linear"
+        className="h-full rounded-full bg-brand-primary transition-[width] duration-200 ease-linear"
         style={{ width: `${Math.min(100, progress * 100)}%` }}
       />
     </div>

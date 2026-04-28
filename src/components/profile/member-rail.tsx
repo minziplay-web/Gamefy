@@ -23,10 +23,10 @@ export function MemberRail({
                 href={
                   m.userId === activeUserId ? "/profile" : `/profile/${m.userId}`
                 }
-                className={`relative flex min-h-21 w-20 flex-col items-center gap-2 rounded-2xl border px-2 py-3 transition ${
+                className={`relative flex min-h-21 w-20 flex-col items-center gap-2 rounded-2xl border px-2 py-3 shadow-card-flat transition ${
                   active
-                    ? "border-coral bg-coral-soft/40 shadow-card-flat"
-                    : "border-sand-100 bg-white hover:border-sand-200 hover:bg-white/90"
+                    ? "border-profile-primary/45 bg-profile-soft"
+                    : "border-profile-primary/14 bg-white hover:border-profile-primary/30 hover:bg-profile-wash"
                 }`}
               >
                 <AvatarCircle member={m} size="md" />
@@ -36,7 +36,7 @@ export function MemberRail({
                 {active ? (
                   <span
                     aria-hidden
-                    className="absolute top-1.5 right-1.5 size-1.5 rounded-full bg-coral"
+                    className="absolute right-1.5 top-1.5 size-1.5 rounded-full bg-brand-primary"
                   />
                 ) : null}
               </Link>

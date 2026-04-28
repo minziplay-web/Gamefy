@@ -12,32 +12,32 @@ const HOME_TILES = [
     href: "/daily",
     title: "Daily",
     eyebrow: "Heute",
-    accent: "bg-amber-50",
-    iconTint: "bg-amber-100/80",
+    baseColor: "var(--color-daily-soft)",
+    topColor: "var(--color-daily-primary)",
     iconSrc: "/home-icons/daily.svg",
   },
   {
     href: "/resolved",
     title: "Recap",
     eyebrow: "Heute",
-    accent: "bg-rose-50",
-    iconTint: "bg-rose-100/80",
+    baseColor: "var(--color-recap-soft)",
+    topColor: "var(--color-recap-primary)",
     iconSrc: "/home-icons/resolved.svg",
   },
   {
     href: "/profile",
     title: "Profil",
     eyebrow: "Ich",
-    accent: "bg-violet-50",
-    iconTint: "bg-violet-100/80",
+    baseColor: "var(--color-profile-soft)",
+    topColor: "var(--color-profile-primary)",
     iconSrc: "/home-icons/profile.svg",
   },
   {
     href: "/past-dailies",
     title: "Archiv",
     eyebrow: "Archiv",
-    accent: "bg-sky-50",
-    iconTint: "bg-sky-100/80",
+    baseColor: "var(--color-archive-soft)",
+    topColor: "var(--color-archive-primary)",
     iconSrc: "/home-icons/past.svg",
   },
 ] as const;
@@ -64,7 +64,7 @@ export function HomeScreen({ state }: { state: HomeViewState }) {
     return (
       <div className="space-y-4">
         <ScreenHeader eyebrow="Heute" title="Startseite" />
-        <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+        <p className="rounded-2xl border border-danger-text/18 bg-danger-soft px-4 py-3 text-sm font-medium text-danger-text shadow-card-flat">
           {state.message}
         </p>
       </div>
@@ -82,7 +82,7 @@ export function HomeScreen({ state }: { state: HomeViewState }) {
       <ScreenHeader
         eyebrow={state.greeting.localDateLabel}
         title={`Hi ${state.greeting.displayName}`}
-        subtitle="Wähle deinen Bereich wie in einer App."
+        subtitle="Deine Bereiche, schnell erreichbar."
         action={<StreakPill value={state.greeting.streakCurrent} />}
       />
 
@@ -102,34 +102,34 @@ export function HomeScreen({ state }: { state: HomeViewState }) {
           return (
             <Link key={tile.href} href={tile.href} className="block">
               <article
-                className={`group relative aspect-square overflow-hidden rounded-[28px] border border-sand-200 ${tile.accent} p-4 shadow-card-flat transition hover:-translate-y-0.5 hover:border-sand-300 hover:shadow-card-raised`}
+                className="group relative aspect-square overflow-hidden rounded-[28px] border p-0 shadow-card-flat transition hover:-translate-y-0.5 hover:shadow-card-raised"
+                style={{
+                  borderColor: `color-mix(in srgb, ${tile.topColor} 34%, transparent)`,
+                  backgroundColor: tile.baseColor,
+                  backgroundImage: `radial-gradient(135% 78% at 50% 107%, ${tile.baseColor} 45%, transparent 46%), linear-gradient(180deg, ${tile.topColor} 0%, ${tile.topColor} 37%, transparent 37%)`,
+                }}
               >
-                <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                  <div
-                    className={`flex size-[97%] items-center justify-center rounded-tl-[44px] rounded-tr-[44px] rounded-br-[44px] rounded-bl-[26px] ${tile.iconTint}`}
-                  >
-                    <Image
-                      src={tile.iconSrc}
-                      alt=""
-                      aria-hidden
-                      width={160}
-                      height={160}
-                      className="h-[50%] w-[50%] object-contain opacity-95"
-                    />
-                  </div>
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 top-[36%] flex items-center justify-center">
+                  <Image
+                    src={tile.iconSrc}
+                    alt=""
+                    aria-hidden
+                    width={160}
+                    height={160}
+                    className="h-[52%] max-h-[6.5rem] w-[52%] max-w-[6.5rem] object-contain opacity-90 transition group-hover:scale-[1.03]"
+                  />
                 </div>
-                <div className="flex h-full flex-col">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="rounded-full bg-white/75 px-3 py-1 text-xs font-semibold tabular-nums text-sand-700 backdrop-blur-sm">
-                      {meta}
+                <div className="relative z-10 flex h-full flex-col p-3 min-[380px]:p-4">
+                  <div className="space-y-1">
+                    <div className="flex items-start justify-between gap-2">
+                      <p className="text-[8px] font-semibold uppercase tracking-[0.18em] text-white/88 min-[380px]:text-[9px]">
+                        {tile.eyebrow}
+                      </p>
+                      <div className="max-w-[5.9rem] rounded-full bg-white/86 px-2 py-1 text-[9px] font-semibold tabular-nums leading-none text-sand-900 min-[380px]:max-w-[6.5rem] min-[380px]:text-[10px]">
+                        {meta}
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="relative z-10 mt-auto space-y-2">
-                    <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sand-500">
-                      {tile.eyebrow}
-                    </p>
-                    <h2 className="text-[22px] font-semibold leading-[1.05] tracking-tight text-sand-900">
+                    <h2 className="text-[17px] font-semibold leading-none tracking-tight text-white min-[380px]:text-[20px]">
                       {tile.title}
                     </h2>
                   </div>

@@ -41,7 +41,7 @@ export function LobbyFinishedSummary({
         {summary.rounds.map((round) => (
           <section
             key={round.questionIndex}
-            className="space-y-3 rounded-[28px] border border-white/50 bg-white/80 p-5 shadow-lg shadow-sand-900/5"
+            className="space-y-3 rounded-[28px] border border-sand-200/80 bg-white p-5 shadow-lg shadow-sand-900/5"
           >
             <div className="flex items-center gap-2">
               <CategoryBadge category={round.category} size="sm" />
@@ -52,7 +52,7 @@ export function LobbyFinishedSummary({
             <h3 className="text-base font-semibold text-sand-900">
               {round.questionText}
             </h3>
-            <QuestionReveal result={round.result} />
+          <QuestionReveal result={round.result} tone="neutral" />
           </section>
         ))}
       </div>

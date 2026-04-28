@@ -59,7 +59,7 @@ export function LobbyCreateForm({
                 onClick={() => toggleCategory(category)}
                 className={`flex min-h-10 items-center gap-2 rounded-full border-2 px-3 text-sm font-semibold transition ${
                   active
-                    ? "border-coral bg-coral/10 text-sand-900"
+                    ? "border-brand-primary bg-brand-soft text-sand-900"
                     : "border-sand-100 bg-white text-sand-600"
                 }`}
               >

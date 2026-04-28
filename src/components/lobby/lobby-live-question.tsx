@@ -35,7 +35,7 @@ export function LobbyLiveQuestion({
         <CountdownRing timing={countdown} />
       </div>
 
-      <section className="space-y-4 radius-card border border-white/60 bg-white/90 p-5 shadow-card-raised backdrop-blur">
+      <section className="space-y-4 radius-card border border-sand-200/80 bg-white p-5 shadow-card-raised backdrop-blur">
         <h2 className="text-xl font-semibold leading-snug text-sand-900">
           {view.question.text}
         </h2>
@@ -46,7 +46,7 @@ export function LobbyLiveQuestion({
           onDraftChange={onDraftChange}
         />
         {submitted ? (
-          <div className="flex items-center gap-2 rounded-2xl border border-emerald-200/80 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800">
+          <div className="flex items-center gap-2 rounded-2xl border border-success-text/25 bg-success-soft px-4 py-3 text-sm font-medium text-success-text">
             <span aria-hidden>✓</span>
             Antwort abgegeben. Warte auf Auflösung.
           </div>

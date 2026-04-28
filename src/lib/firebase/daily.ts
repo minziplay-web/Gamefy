@@ -683,20 +683,15 @@ function getQuestionSource(
   item: DailyRunItemDoc,
   questions: Map<string, QuestionDoc>,
 ): QuestionLike | null {
-  const liveQuestion = questions.get(item.questionId);
-  if (liveQuestion) {
-    return liveQuestion;
+  if (item.questionSnapshot) {
+    return {
+      text: item.questionSnapshot.text,
+      category: item.questionSnapshot.category,
+      type: item.type,
+      options: item.questionSnapshot.options,
+      imagePath: item.questionSnapshot.imagePath,
+    };
   }
 
-  if (!item.questionSnapshot) {
-    return null;
-  }
-
-  return {
-    text: item.questionSnapshot.text,
-    category: item.questionSnapshot.category,
-    type: item.type,
-    options: item.questionSnapshot.options,
-    imagePath: item.questionSnapshot.imagePath,
-  };
+  return questions.get(item.questionId) ?? null;
 }

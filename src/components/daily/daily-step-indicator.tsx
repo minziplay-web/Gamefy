@@ -40,12 +40,12 @@ export function DailyStepIndicator({
           const clickable = Boolean(onJump) && idx !== currentIndex;
           const dotClass =
             status === "current"
-              ? "h-2 flex-1 rounded-full bg-coral"
+              ? "h-2 flex-1 rounded-full bg-daily-primary"
               : status === "answered"
-                ? "h-2 flex-1 rounded-full bg-sand-800"
+                ? "h-2 flex-1 rounded-full bg-daily-text"
                 : status === "error"
-                  ? "h-2 flex-1 rounded-full bg-rose-300"
-                  : "h-2 flex-1 rounded-full bg-sand-200";
+                  ? "h-2 flex-1 rounded-full bg-archive-mid/45"
+                  : "h-2 flex-1 rounded-full bg-daily-track";
           return (
             <button
               key={card.question.questionId}

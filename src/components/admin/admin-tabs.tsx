@@ -20,7 +20,7 @@ export function AdminTabs({
     <div
       role="tablist"
       aria-label="Admin-Bereich"
-      className="grid grid-cols-2 gap-2 sm:grid-cols-4"
+      className="grid grid-cols-2 gap-2 rounded-[28px] border border-slate-200 bg-white p-2 shadow-card-flat sm:grid-cols-4"
     >
       {TABS.map((tab) => {
         const active = tab.value === value;
@@ -33,8 +33,8 @@ export function AdminTabs({
             onClick={() => onChange(tab.value)}
             className={`flex min-h-12 items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition ${
               active
-                ? "border-sand-900 bg-sand-900 text-cream shadow-card-flat"
-                : "border-sand-100 bg-white/80 text-sand-700 hover:border-sand-200 hover:bg-white"
+                ? "border-brand-primary bg-brand-primary text-white shadow-card-flat"
+                : "border-transparent bg-slate-50 text-sand-700 hover:border-slate-200 hover:bg-white"
             }`}
           >
             <span aria-hidden>{tab.emoji}</span>

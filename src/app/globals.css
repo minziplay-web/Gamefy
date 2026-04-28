@@ -3,30 +3,65 @@
 @theme inline {
   --font-sans: var(--font-sans);
 
-  --color-page: #faf9f7;
+  --color-page: #fbfdff;
   --color-cream: #ffffff;
-  --color-sand-50: #fbfaf8;
-  --color-sand-100: #ece8e2;
-  --color-sand-200: #d9d1c7;
-  --color-sand-300: #bfb2a4;
-  --color-sand-400: #9f8d7c;
-  --color-sand-500: #7c6c5d;
-  --color-sand-600: #605245;
-  --color-sand-700: #493d33;
-  --color-sand-800: #342b24;
-  --color-sand-900: #211b16;
-  --color-sand-950: #14100d;
-  --color-coral: #cf715e;
-  --color-coral-strong: #b95c49;
-  --color-coral-soft: #f4dfd9;
+  --color-sand-50: #f8fafc;
+  --color-sand-100: #eef2f7;
+  --color-sand-200: #dbe4ef;
+  --color-sand-300: #c1cedd;
+  --color-sand-400: #90a2b7;
+  --color-sand-500: #64768d;
+  --color-sand-600: #4c5d73;
+  --color-sand-700: #37465a;
+  --color-sand-800: #243043;
+  --color-sand-900: #172031;
+  --color-sand-950: #0e1522;
 
+  --color-brand-primary: #4a5699;
+  --color-brand-light: #6277ba;
+  --color-brand-strong: #172a63;
+  --color-brand-soft: #e9eeff;
+  --color-brand-wash: #f7f9ff;
+
+  --color-daily-primary: #d8892b;
+  --color-daily-accent: #a96522;
+  --color-daily-soft: #fff8eb;
+  --color-daily-track: #f4e6d0;
+  --color-daily-text: #6b431a;
+
+  --color-recap-primary: #c45fa0;
+  --color-recap-strong: #4a5699;
+  --color-recap-soft: #f8e6f4;
+  --color-recap-wash: #eef2ff;
+  --color-recap-text: #8d3d73;
+
+  --color-profile-primary: #4a5699;
+  --color-profile-strong: #172a63;
+  --color-profile-soft: #e9eeff;
+  --color-profile-wash: #f7f9ff;
+  --color-profile-text: #314171;
+
+  --color-archive-primary: #8f2f4a;
+  --color-archive-strong: #331827;
+  --color-archive-mid: #b54860;
+  --color-archive-soft: #fce8ea;
+  --color-archive-wash: #fff7f8;
+  --color-archive-text: #5c1e32;
+
+  --color-award-primary: #f0d043;
+  --color-award-soft: #fff8d6;
+  --color-award-text: #5f4900;
+  --color-success-soft: #e8f8ef;
+  --color-success-text: #17643b;
+  --color-danger-soft: #fff0f1;
+  --color-danger-text: #8f2f4a;
   --radius-card: 1.75rem;
   --radius-pill: 999px;
 
-  --shadow-card-raised: 0 20px 40px -24px rgba(36, 27, 19, 0.22),
-    0 2px 4px -2px rgba(36, 27, 19, 0.08);
-  --shadow-card-flat: 0 1px 2px rgba(36, 27, 19, 0.04),
-    0 4px 12px -8px rgba(36, 27, 19, 0.06);
+  --shadow-card-raised: 0 20px 40px -24px rgba(21, 32, 52, 0.18),
+    0 2px 4px -2px rgba(21, 32, 52, 0.08);
+  --shadow-card-flat: 0 1px 2px rgba(21, 32, 52, 0.04),
+    0 4px 12px -8px rgba(21, 32, 52, 0.08);
 }
 
 :root {
@@ -40,10 +75,10 @@
 
 html {
   background:
-    radial-gradient(circle at 88% 12%, rgba(212, 186, 245, 0.16), transparent 22%),
-    radial-gradient(circle at 82% 86%, rgba(150, 218, 255, 0.18), transparent 24%),
-    radial-gradient(circle at 14% 84%, rgba(236, 160, 146, 0.12), transparent 22%),
-    linear-gradient(180deg, #ffffff 0%, #fbfaf8 56%, #f5f2ee 100%);
+    radial-gradient(circle at 92% 10%, rgba(98, 119, 186, 0.09), transparent 24%),
+    radial-gradient(circle at 8% 28%, rgba(196, 95, 160, 0.025), transparent 24%),
+    radial-gradient(circle at 82% 88%, rgba(96, 165, 250, 0.1), transparent 26%),
+    linear-gradient(180deg, #ffffff 0%, #fcfdff 56%, #f6f8fc 100%);
   background-attachment: fixed;
   min-height: 100%;
 }
@@ -57,6 +92,19 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-feature-settings: "ss01", "cv11";
+}
+
+body::before {
+  pointer-events: none;
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background-image:
+    linear-gradient(rgba(74, 86, 153, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74, 86, 153, 0.03) 1px, transparent 1px);
+  background-size: 42px 42px;
+  mask-image: linear-gradient(180deg, transparent 0%, black 16%, black 80%, transparent 100%);
 }
 
 a {
@@ -129,10 +177,10 @@ button {
 @keyframes heart-glow {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(223, 109, 87, 0.55);
+    box-shadow: 0 0 0 0 rgba(229, 89, 79, 0.55);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(223, 109, 87, 0);
+    box-shadow: 0 0 0 8px rgba(229, 89, 79, 0);
   }
 }
 
@@ -218,7 +266,7 @@ button {
   input:focus-visible,
   textarea:focus-visible,
   select:focus-visible {
-    outline: 2px solid var(--color-coral);
+    outline: 2px solid #2563eb;
     outline-offset: 2px;
   }
 }

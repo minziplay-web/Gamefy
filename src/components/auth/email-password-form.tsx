@@ -112,7 +112,7 @@ export function EmailPasswordForm() {
           className="min-h-12 w-full rounded-2xl border border-sand-200 bg-white px-4 text-base text-sand-950 outline-none placeholder:text-sand-400 focus:border-sand-400"
         />
         {passwordHint ? (
-          <p className="text-xs text-amber-700">{passwordHint}</p>
+          <p className="text-xs text-daily-text">{passwordHint}</p>
         ) : null}
       </div>
 
@@ -134,7 +134,7 @@ export function EmailPasswordForm() {
       </p>
 
       {authState.status === "error" ? (
-        <p className="rounded-2xl bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <p className="rounded-2xl bg-danger-soft px-4 py-3 text-sm text-danger-text">
           {authState.message}
         </p>
       ) : null}

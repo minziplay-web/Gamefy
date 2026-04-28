@@ -49,7 +49,7 @@ import type {
 
 type QuestionLike = Pick<
   QuestionDoc,
-  "text" | "category" | "type" | "options"
+  "text" | "category" | "type" | "options" | "imagePath"
 >;
 
 export function useHomeViewState(): HomeViewState {
@@ -525,21 +525,17 @@ function getQuestionSource(
   item: DailyRunItemDocLike,
   questions: Map<string, QuestionDoc>,
 ): QuestionLike | null {
-  const liveQuestion = questions.get(item.questionId);
-  if (liveQuestion) {
-    return liveQuestion;
+  if (item.questionSnapshot) {
+    return {
+      text: item.questionSnapshot.text,
+      category: item.questionSnapshot.category,
+      type: item.type,
+      options: item.questionSnapshot.options,
+      imagePath: item.questionSnapshot.imagePath,
+    };
   }
 
-  if (!item.questionSnapshot) {
-    return null;
-  }
-
-  return {
-    text: item.questionSnapshot.text,
-    category: item.questionSnapshot.category,
-    type: item.type,
-    options: item.questionSnapshot.options,
-  };
+  return questions.get(item.questionId) ?? null;
 }
 
 type DailyRunItemDocLike = NonNullable<DailyRunDoc["items"]>[number];

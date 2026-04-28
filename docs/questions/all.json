@@ -1,1562 +1,387 @@
 [
-  {
-    "text": "Wer flext am meisten, ohne es zu merken?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer beendet einen Streit am ehesten mit einem Witz?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist die unkonventionellste Person der Gruppe?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat den teuersten Geschmack?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat den heißesten Gossip auf Lager?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist spontaner?",
-    "category": "hot_takes",
-    "type": "duel_1v1",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde in einer Zombie-Apokalypse als Erster zum Helden werden?",
-    "category": "hot_takes",
-    "type": "duel_1v1",
-    "targetMode": "live"
-  },
-  {
-    "text": "Wer reagiert am dramatischsten, wenn man seine Pommes klaut?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist der größte Soft-Drama-Fan?",
-    "category": "hot_takes",
-    "type": "duel_1v1",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer kennt den allerheißesten Gossip in der Gruppe?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal einer Lehrkraft ehrlich die Meinung gesagt?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist am ehesten in zwei Minuten zu schnell zu vertraut mit Fremden?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer könnte stundenlang über sein Lieblingsthema reden, ohne Pause zu machen?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat heimlich am meisten Glück verdient?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde am ehesten ein Buch über sich selbst schreiben?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist in einer Krise als Erster zur Stelle?",
-    "category": "hot_takes",
-    "type": "duel_1v1",
-    "targetMode": "both"
-  },
-  {
-    "text": "Welche Seite der Gruppe würdest du am liebsten ändern, wenn du könntest?",
-    "category": "hot_takes",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wer würde in einer stillen Bibliothek am ehesten aus Versehen pupsen?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde im Bewerbungsgespräch beim Schwitzen aus dem Fenster gucken und so tun, als sei nichts?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde am ehesten als Letzter merken, dass die Hose offen ist?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat den größten Geheim-Spleen, den keiner so richtig kennt?",
-    "category": "hot_takes",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde bei einem Gruppenprojekt heimlich am ehesten das Ruder übernehmen?",
-    "category": "hot_takes",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat das größte Talent, überzeugend Unsinn zu erzählen?",
-    "category": "hot_takes",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde am ehesten spontan einen Flug buchen?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat am ehesten eine peinliche Spotify-Playlist?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde bei einem Horrorfilm am lautesten schreien?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Wer würde am ehesten ohne Google Maps im Kreis laufen?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Wer verschluckt sich am wahrscheinlichsten an seinem eigenen Getränk?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Wer ist der bessere Partyplaner?",
-    "category": "pure_fun",
-    "type": "duel_1v1",
-    "targetMode": "both"
-  },
-  {
-    "text": "Welches Duo bringt zusammen das größte Chaos?",
-    "category": "pure_fun",
-    "type": "duel_2v2",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde bei einer Quizshow am weitesten kommen?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde bei Survivor am längsten durchhalten?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer könnte am ehesten eine Sekte gründen?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hätte die peinlichste Karaoke-Hymne?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Wer würde im Escape-Room als Erster durchdrehen?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Welches Duo würde bei Wer wird Millionär bis zur Telefonjoker-Katastrophe kommen?",
-    "category": "pure_fun",
-    "type": "duel_2v2",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer kann sich am besten dumm stellen, wenn's ihm passt?",
-    "category": "pure_fun",
-    "type": "duel_1v1",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat garantiert eine peinliche Cringe-Phase hinter sich?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde in einer Survival-Show am schnellsten heulen?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Wer hat schon mal versehentlich seinem Chef ein Herz oder einen Kuss geschickt?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist schon mal frontal gegen eine Glastür gelaufen?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal Toilettenpapier am Schuh nach draußen getragen?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal eine fremde Person mit 'Mama' angesprochen?",
-    "category": "pure_fun",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal eine Sprachnachricht im falschen Chat gelandet?",
-    "category": "pure_fun",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal ohne zu fragen das letzte Stück Pizza vom Tisch geklaut?",
-    "category": "pure_fun",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat sich schon mal selbst zugewunken, weil er dachte das Spiegelbild sei ein Kumpel?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Wer hat sich beim Niesen schon mal Cola, Saft oder Wasser aus der Nase gespritzt?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Wer hat schon mal beim Karaoke so gequält, dass das Mikro plötzlich aus war?",
-    "category": "pure_fun",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Was schätzt du am meisten an unserer Gruppe?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Welche Seite von dir zeigst du in der Gruppe bisher nicht?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Was war bisher dein schwierigster Moment und wer hat dir geholfen?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wofür schämst du dich, obwohl du es eigentlich nicht müsstest?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wann hast du dich zuletzt richtig stolz auf dich selbst gefühlt?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Was hättest du gerne schon mit 18 gewusst?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wovor hast du insgeheim am meisten Angst?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Was ist dein größter unerfüllter Wunsch?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Gibt es etwas, wofür du dir selbst nie verziehen hast?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Welche Lüge erzählst du dir selbst am häufigsten?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Was würdest du jemandem sagen wollen, der nicht mehr da ist?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Was glaubst du, denken die anderen wirklich über dich?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Welche Phase deines Lebens würdest du gern noch einmal erleben?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wovon redest du selten, obwohl es dich oft beschäftigt?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wer wirkt nach außen stark, ist aber eigentlich verletzlich?",
-    "category": "deep_talk",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Welche peinliche Sache aus deiner Vergangenheit beschäftigt dich heute noch?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Was war die dümmste Aktion, die du je deinem besten Freund gestanden hast?",
-    "category": "deep_talk",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Was war für dich bisher der beste gemeinsame Moment der Gruppe?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Welcher peinliche Moment mit jemandem aus der Gruppe sitzt noch tief?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wer hat bisher die schrägste Story der Gruppe erlebt?",
-    "category": "memories",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Welches gemeinsame Lied bringt dich sofort zurück?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Welche Nacht mit der Gruppe würdest du gern noch einmal erleben?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Welcher Insider aus alten Zeiten funktioniert immer noch?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wann habt ihr das letzte Mal so richtig weinend gelacht?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Welche Story wird von euch immer wieder erzählt, obwohl sie jeder kennt?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Welches Event der Gruppe darf nie in Vergessenheit geraten?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Welches Missgeschick ist heute ein echter Running Gag?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wer hat am meisten Nostalgie fürs Früher?",
-    "category": "memories",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wird als Erster zu viel weinen, wenn ihr alte Fotos anschaut?",
-    "category": "memories",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Wer erinnert sich an Dinge, die alle anderen längst vergessen haben?",
-    "category": "memories",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Welche peinliche Gruppen-Aktion ist bis heute Legende?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wer war auf einer gemeinsamen Reise als Letzter heulend?",
-    "category": "memories",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Welches gemeinsame Foto darf nie wieder ans Tageslicht?",
-    "category": "memories",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Mit wem verbindest du die chaotischsten Gruppenerinnerungen?",
-    "category": "memories",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer war schon mal Teil eines Moments, über den ihr heute noch lacht?",
-    "category": "memories",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer verdient in zehn Jahren das meiste Geld?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde am ehesten morgen kündigen und ein Jahr Pause machen?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat den schrägsten Lebenstraum?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wird mit 40 immer noch jedes Wochenende feiern?",
-    "category": "career_life",
-    "type": "duel_1v1",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wird als Erster ein eigenes Business haben?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wandert am ehesten aus?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer bricht als Erster alles ab und startet komplett neu?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer arbeitet mit 65 noch, weil er nicht loslassen kann?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wird am ehesten im Lotto gewinnen und es keinem erzählen?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer könnte am ehesten in einem TED-Talk frei sprechen?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde sich für Ruhm auf Trash-TV blamieren?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wird am ehesten Reise-Influencer?",
-    "category": "career_life",
-    "type": "duel_1v1",
-    "targetMode": "both"
-  },
-  {
-    "text": "Was wäre dein eigentlicher Traumjob, wenn Geld keine Rolle spielen würde?",
-    "category": "career_life",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Was würdest du tun, wenn du plötzlich Millionär wärst?",
-    "category": "career_life",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wer würde am ehesten beim Vorstellungsgespräch falsch grüßen?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal in einer Mail aus Versehen den Chef geduzt?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat sich schon mal so blamiert, dass er den Job fast hingeschmissen hätte?",
-    "category": "career_life",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer aus der Gruppe heiratet als Letzter?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer schreibt seinem Ex am ehesten noch Jahre später?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer plant beim ersten Date schon heimlich das erste gemeinsame Wochenende?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer macht in einer Beziehung am ehesten den extra Schritt?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wem würdest du dein Kind zum Babysitten anvertrauen?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat das schönste Lächeln in der Gruppe?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wäre die beste Schwiegermutter oder der beste Schwiegervater?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat die beste Ehe-Prognose?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde in einer Fernbeziehung die meisten Sprachnachrichten schicken?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist in einer Beziehung am loyalsten in stressigen Phasen?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer guckt im Café am ehesten heimlich, was die anderen essen?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer plant beim ersten Date schon das erste gemeinsame Wochenende?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer verliebt sich am schnellsten?",
-    "category": "relationships",
-    "type": "duel_1v1",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde für Liebe wirklich alles aufgeben?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist in der Freundschaft der loyalste?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal einem Date heimlich Knoblauchatem entgegen geatmet?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal eine Sprachnachricht für den Crush an die eigene Mutter geschickt?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hätte beim Date am ehesten Spinat zwischen den Zähnen und es nicht bemerken?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal einen Date-Spot ausgesucht, der dann komplett geschlossen war?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat sich schon mal beim Date in der Toilette versteckt, um zu fliehen?",
-    "category": "relationships",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer gibt am ehesten richtig gute Beziehungsratschläge?",
-    "category": "relationships",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer merkt als Erstes, wenn zwischen zwei Leuten was läuft?",
-    "category": "relationships",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat das ungewöhnlichste Hobby?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer könnte ernsthaft Influencer werden?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist heimlich Nerd für irgendwas total Nischiges?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Würdest du eher nie wieder Sport machen oder nie wieder Serien schauen?",
-    "category": "hobbies_interests",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Nie wieder Sport",
-      "Nie wieder Serien"
-    ]
-  },
-  {
-    "text": "Wer kauft sich ein teures Hobby und lässt es nach zwei Wochen liegen?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer könnte ernsthaft einen Marathon laufen?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer sucht sich im Urlaub die unerwartetste Stadtführung aus?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer könnte am ehesten ein eigenes Kochbuch schreiben?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat die seltsamste Musikvorliebe?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde sich sofort ein Boot kaufen, wenn er könnte?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde in einer Reality-Show am weitesten kommen?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer scrollt nachts heimlich stundenlang durch TikTok?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Würdest du eher nie wieder Konzerte oder nie wieder Restaurants besuchen?",
-    "category": "hobbies_interests",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Nie wieder Konzerte",
-      "Nie wieder Restaurants"
-    ]
-  },
-  {
-    "text": "Wer würde Urlaub am liebsten in einer Bibliothek verbringen?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde sich beim Workout-Video selbst auf den Boden hauen?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal etwas gebacken, das selbst der Hund nicht wollte?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde im Yoga-Kurs am ehesten einschlafen?",
-    "category": "hobbies_interests",
-    "type": "single_choice",
-    "targetMode": "live"
-  },
-  {
-    "text": "Wer könnte sich komplett in ein neues Hobby reinnerden?",
-    "category": "hobbies_interests",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hätte am ehesten Lust auf einen komplett unnötigen, aber lustigen Workshop?",
-    "category": "hobbies_interests",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat am ehesten schon mal in der Öffentlichkeit gefickt?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wäre im Bett am wildesten?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wäre überraschend gefühlvoll im Bett?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat am ehesten schon mal jemanden aus der Gruppe sexuell attraktiv gefunden?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wer hätte am ehesten Bock auf einen Dreier?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer schaut am meisten Porno?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat die wildeste Sex-Story zu erzählen?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Würdest du eher Sex mit deinem Ex oder mit einem Freund deines Ex?",
-    "category": "dirty",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Mit dem Ex",
-      "Mit einem Freund des Ex"
-    ]
-  },
-  {
-    "text": "Wer hatte den peinlichsten ersten Sex?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wer hatte am ehesten schon Sex im Elternhaus, während die Eltern da waren?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist am ehesten ein heimlicher BDSM-Fan?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat das exotischste Porno-Genre im Verlauf?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer landet als Erster im Swingerclub?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat am ehesten schon Geld für Sex bezahlt oder bekommen?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wer hatte am ehesten neulich ein richtiges Sex-Comeback nach langer Pause?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wäre am ehesten der laute Stöhner?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Würdest du eher Sex mit jemandem aus der Gruppe oder mit deinem Chef haben?",
-    "category": "dirty",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Mit jemandem aus der Gruppe",
-      "Mit dem Chef"
-    ]
-  },
-  {
-    "text": "Wer ruft beim Sex am ehesten den falschen Namen?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal beim Sex spontan losgelacht?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist schon mal beim Klick auf ein zwielichtiges Video erwischt worden?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal ein Sex-Spielzeug gekauft und es danach nie benutzt?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal beim Sex aus Versehen den falschen Namen genannt?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde Pornos am ehesten wie eine Sportübertragung kommentieren?",
-    "category": "dirty",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer kennt dich wirklich am besten?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer merkt am schnellsten, wenn es dir nicht gut geht?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer weiß am meisten Geheimnisse von dir?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde dich auch nach 10 Jahren ohne Kontakt sofort verstehen?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer könnte deinen Lebenslauf aus dem Kopf erzählen?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer weiß noch, was du früher mal werden wolltest?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer erinnert sich noch an deinen ersten Crush?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer kennt auch deine dunkelste Phase?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat dich zuletzt wirklich überrascht?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer ist der Gruppen-Historiker — erinnert sich an alles?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer verpasst garantiert keinen Geburtstag?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde dich auch nach 10 Jahren ohne Kontakt sofort verstehen?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer kennt dich besser als deine eigene Familie?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer liest deine Stimmung am zuverlässigsten zwischen den Zeilen?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer kennt deinen peinlichsten Spitznamen aus alten Zeiten?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer weiß noch, was dein erster Berufswunsch als Kind war?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat einen Insider-Witz mit dir, der heute noch funktioniert?",
-    "category": "group_knowledge",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer merkt sofort, wenn du nur so tust, als wäre alles okay?",
-    "category": "group_knowledge",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer könnte dir mitten in der Nacht antworten und dich direkt beruhigen?",
-    "category": "group_knowledge",
-    "type": "multi_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Würdest du eher nie wieder feiern oder nie wieder verreisen?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Nie wieder feiern",
-      "Nie wieder verreisen"
-    ]
-  },
-  {
-    "text": "Würdest du eher nackt vor der ganzen Gruppe stehen oder deine letzten zehn Porno-Suchbegriffe vorlesen?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Nackt vor der Gruppe",
-      "Suchverlauf vorlesen"
-    ]
-  },
-  {
-    "text": "Würdest du eher zehn Jahre keinen Sex haben oder zehn Jahre kein Internet?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Kein Sex",
-      "Kein Internet"
-    ]
-  },
-  {
-    "text": "Würdest du eher arm aber geliebt oder reich aber einsam leben?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Arm und geliebt",
-      "Reich und einsam"
-    ]
-  },
-  {
-    "text": "Würdest du einen Tag lang lieber nur die Wahrheit sagen oder nur lügen müssen?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Nur Wahrheit",
-      "Nur Lügen"
-    ]
-  },
-  {
-    "text": "Würdest du eher deine Schulzeit nochmal erleben oder deine ganze 20er-Dekade?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Schulzeit nochmal",
-      "20er nochmal"
-    ]
-  },
-  {
-    "text": "Würdest du eher eine Woche ohne Handy oder einen Monat ohne Alkohol?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Woche ohne Handy",
-      "Monat ohne Alkohol"
-    ]
-  },
-  {
-    "text": "Würdest du eher alles von dir wissen oder alles von den anderen wissen?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Alles von mir",
-      "Alles von den anderen"
-    ]
-  },
-  {
-    "text": "Würdest du für eine Million Euro ein Jahr ohne die Gruppe leben oder nie mehr verreisen?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Ein Jahr ohne Gruppe",
-      "Nie mehr verreisen"
-    ]
-  },
-  {
-    "text": "Würdest du eher deinen schlimmsten Fehler öffentlich posten oder nie wieder Kaffee trinken?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Fehler posten",
-      "Nie wieder Kaffee"
-    ]
-  },
-  {
-    "text": "Würdest du eher immer im Pyjama leben oder immer im Business-Outfit?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Immer Pyjama",
-      "Immer Business-Outfit"
-    ]
-  },
-  {
-    "text": "Würdest du eher jede Lüge der letzten fünf Jahre eingestehen oder zehn Kilo zunehmen?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Lügen eingestehen",
-      "Zehn Kilo zunehmen"
-    ]
-  },
-  {
-    "text": "Würdest du eher jedes Date komplett selbst zahlen oder nie mehr daten?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Immer selbst zahlen",
-      "Nie mehr daten"
-    ]
-  },
-  {
-    "text": "Würdest du eher bei jedem neuen Job von vorn anfangen oder nie befördert werden?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Immer von vorn",
-      "Nie befördert"
-    ]
-  },
-  {
-    "text": "Würdest du eher die Gedanken aller Menschen hören oder nur die deines besten Freundes?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Alle hören",
-      "Nur den besten Freund hören"
-    ]
-  },
-  {
-    "text": "Würdest du eher eine Stunde im Aufzug feststecken oder versehentlich ein peinliches Selfie an deinen Chef schicken?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Stunde Aufzug",
-      "Selfie an Chef"
-    ]
-  },
-  {
-    "text": "Würdest du eher auf einer Bühne stolpern oder beim Niesen heimlich pupsen?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Auf der Bühne stolpern",
-      "Beim Niesen pupsen"
-    ]
-  },
-  {
-    "text": "Würdest du eher dein Handy eine Woche verlieren oder eine Woche keine Memes lesen?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Handy weg",
-      "Keine Memes"
-    ]
-  },
-  {
-    "text": "Würdest du eher bei jedem Niesen laut 'lol' sagen oder bei jedem Lachen sofort 'haha' tippen müssen?",
-    "category": "would_you_rather",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Lol beim Niesen",
-      "Haha tippen beim Lachen"
-    ]
-  },
-  {
-    "text": "Wer glaubt heimlich am ehesten, dass die Mondlandung gefakt war?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat am ehesten eine YouTube-Watch-History voller dubioser Doku-Theorien?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde nach drei Bier am ehesten von Reptiloiden anfangen?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer könnte am ehesten Mitglied einer geheimen Loge sein und es nie zugeben?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat am ehesten Aluhut-Energie, ohne es zu merken?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde 5G ernsthaft für mehr halten als nur schnelles Internet?",
-    "category": "conspiracy",
-    "type": "duel_1v1",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat am ehesten schon mal ernsthaft den Begriff 'Lügenpresse' genutzt?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wäre am ehesten in einem Discord-Server für Flat-Earther aktiv?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer fällt am schnellsten auf eine WhatsApp-Kettennachricht rein?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer würde nach einem Espresso ungefragt erklären, wer wirklich Kennedy erschossen hat?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Würdet ihr eher glauben, dass Vögel Drohnen sind oder dass Pilze die Erde regieren?",
-    "category": "conspiracy",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Vögel sind Drohnen",
-      "Pilze regieren die Erde"
-    ]
-  },
-  {
-    "text": "Wer würde am ehesten vor einer Sonnenfinsternis schnell Konserven hamstern?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat am ehesten heimlich Angst, dass das WLAN ihn überwacht?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer wäre der überraschendste Insider in einer geheimen Verschwörung der Gruppe?",
-    "category": "conspiracy",
-    "type": "duel_1v1",
-    "targetMode": "both"
-  },
-  {
-    "text": "Wer hat schon mal eine wirre Theorie so überzeugend vorgetragen, dass alle kurz unsicher waren?",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Welche absurde Theorie würdest du heimlich gerne wahr finden?",
-    "category": "conspiracy",
-    "type": "open_text",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Wer würde eher bei einem Klopfgeräusch denken: 'Das war Geheimdienst.'",
-    "category": "conspiracy",
-    "type": "single_choice",
-    "targetMode": "both"
-  },
-  {
-    "text": "Würdest du eher erfahren, dass Aliens unter uns leben oder dass alle Promis nur AIs sind?",
-    "category": "conspiracy",
-    "type": "either_or",
-    "targetMode": "both",
-    "options": [
-      "Aliens unter uns",
-      "Promis sind AIs"
-    ]
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Bossy_Boots.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Bubble_Buddy.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Doing_Time.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/House_Fancy.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Just_One_Bite.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Krab_Borg.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Krusty_Towers.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Life_of_Crime.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Nature_Pants.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Night_Light.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Procrastination.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/SB-129.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Sandy_SpongeBob_and_the_Worm.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/SpongeGuard_on_Duty.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Squidward_the_Unfriendly_Ghost.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/Tea_at_the_Treedome.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/The_Algaes_Always_Greener.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/The_Bully.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/To_Love_a_Patty.webp",
-    "targetMode": "daily"
-  },
-  {
-    "text": "Beschreibe das Bild, Meme it!",
-    "category": "meme_it",
-    "type": "meme_caption",
-    "imagePath": "/memes/To_SquarePants_or_Not_to_SquarePants.webp",
-    "targetMode": "daily"
-  }
+  { "text": "Wer lügt am überzeugendsten, wenn er muss?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat das schlechteste Poker-Face?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist heimlich am eitelsten?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde bei einem Sachschaden einfach abhauen?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat die giftigste Zunge, wenn er sauer ist?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wäre am gefährlichsten mit zu viel Macht?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist in Wirklichkeit der Drama-König oder die Drama-Königin der Gruppe?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer googelt seinen Ex noch heimlich?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer flext am meisten, ohne es zu merken?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist spontaner?", "category": "hot_takes", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Wer würde in einer Zombie-Apokalypse als Erster zum Verräter?", "category": "hot_takes", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Wer reagiert am dramatischsten, wenn man seine Pommes klaut?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer kennt den allerheißesten Gossip in der Gruppe?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat schon mal einer Lehrkraft oder einem Chef ehrlich die Meinung gesagt?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer könnte stundenlang über sein Lieblingsthema reden, ohne Pause zu machen?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde am ehesten ein Buch über sich selbst schreiben?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist in einer Krise als Erster zur Stelle?", "category": "hot_takes", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Welche Seite der Gruppe würdest du am liebsten ändern, wenn du könntest?", "category": "hot_takes", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer würde in einer stillen Bibliothek am ehesten aus Versehen pupsen?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat den größten Geheim-Spleen, den keiner so richtig kennt?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde bei einem Gruppenprojekt heimlich am ehesten das Ruder übernehmen?", "category": "hot_takes", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer hat das größte Talent, überzeugend Unsinn zu erzählen?", "category": "hot_takes", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer schreibt am häufigsten Nachrichten und bereut sie sofort danach?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hält sich für klüger als er ist?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde als Einziger bei einem Flashmob mitmachen — und wer würde sich verstecken?", "category": "hot_takes", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Wer hat die unangenehmsten Angewohnheiten, von denen er nichts weiß?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer stellt heimlich alle Beteiligten in einem Streit auf die Probe?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde bei einer Beichte die meisten Überraschungen rauslassen?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Gibt es etwas an dir selbst, das du anderen in der Gruppe nie zeigen würdest?", "category": "hot_takes", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer legt im Streit nach, obwohl er weiß, dass er Unrecht hat?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat die größte Kluft zwischen Selbst- und Fremdbild?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde am ehesten jemanden ghosten und sich dabei nicht schlecht fühlen?", "category": "hot_takes", "type": "single_choice", "targetMode": "both" },
+
+  { "text": "Wer würde am ehesten spontan einen Flug buchen?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat am ehesten eine peinliche Spotify-Playlist?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde bei einem Horrorfilm am lautesten schreien?", "category": "pure_fun", "type": "single_choice", "targetMode": "live" },
+  { "text": "Wer würde am ehesten ohne Google Maps im Kreis laufen?", "category": "pure_fun", "type": "single_choice", "targetMode": "live" },
+  { "text": "Wer verschluckt sich am wahrscheinlichsten an seinem eigenen Getränk?", "category": "pure_fun", "type": "single_choice", "targetMode": "live" },
+  { "text": "Wer ist der bessere Partyplaner?", "category": "pure_fun", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Welches Duo bringt zusammen das größte Chaos?", "category": "pure_fun", "type": "duel_2v2", "targetMode": "both" },
+  { "text": "Wer würde bei einer Quizshow am weitesten kommen?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde bei Survivor am längsten durchhalten?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer könnte am ehesten eine Sekte gründen?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hätte die peinlichste Karaoke-Hymne?", "category": "pure_fun", "type": "single_choice", "targetMode": "live" },
+  { "text": "Wer würde im Escape-Room als Erster durchdrehen?", "category": "pure_fun", "type": "single_choice", "targetMode": "live" },
+  { "text": "Welches Duo würde bei Wer wird Millionär bis zur Telefonjoker-Katastrophe kommen?", "category": "pure_fun", "type": "duel_2v2", "targetMode": "both" },
+  { "text": "Wer kann sich am besten dumm stellen, wenn's ihm passt?", "category": "pure_fun", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Wer hat garantiert eine peinliche Cringe-Phase hinter sich?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde in einer Survival-Show am schnellsten heulen?", "category": "pure_fun", "type": "single_choice", "targetMode": "live" },
+  { "text": "Wer hat schon mal versehentlich seinem Chef ein Herz geschickt?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist schon mal frontal gegen eine Glastür gelaufen?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat schon mal Toilettenpapier am Schuh nach draußen getragen?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat schon mal eine fremde Person mit 'Mama' angesprochen?", "category": "pure_fun", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer hat schon mal eine Sprachnachricht im falschen Chat gelandet?", "category": "pure_fun", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer hat sich selbst zugewunken, weil er dachte das Spiegelbild sei ein Kumpel?", "category": "pure_fun", "type": "single_choice", "targetMode": "live" },
+  { "text": "Wer hat sich beim Niesen schon mal Cola aus der Nase gespritzt?", "category": "pure_fun", "type": "single_choice", "targetMode": "live" },
+  { "text": "Wer singt Werbejingles laut mit, wenn er allein ist?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer käme am ehesten in eine TV-Doku über seltsame Hobbys?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wäre der schlimmste Co-Pilot auf einem Roadtrip?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde im Supermarkt spontan den falschen Wagen nach Hause schieben?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer schreibt die chaotischsten Sprachnachrichten — atemlos, ohne Punkt und Komma?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde beim Strandurlaub am ersten Tag einen Sonnenbrand kriegen?", "category": "pure_fun", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Welches Duo würde zusammen am schnellsten in einen touristischen Touri-Trap tappen?", "category": "pure_fun", "type": "duel_2v2", "targetMode": "live" },
+  { "text": "Wer benutzt heimlich einen komplett bescheuerten Desktop-Hintergrund?", "category": "pure_fun", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde bei einem Live-Konzert die falsche Liedzeile mitgrölen und sich nicht schämen?", "category": "pure_fun", "type": "single_choice", "targetMode": "live" },
+
+  { "text": "Was schätzt du am meisten an unserer Gruppe?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welche Seite von dir zeigst du in der Gruppe bisher nicht?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was war bisher dein schwierigster Moment und wer hat dir geholfen?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wofür schämst du dich, obwohl du es eigentlich nicht müsstest?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wann hast du dich zuletzt richtig stolz auf dich selbst gefühlt?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was hättest du gerne schon mit 18 gewusst?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wovor hast du insgeheim am meisten Angst?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was ist dein größter unerfüllter Wunsch?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Gibt es etwas, wofür du dir selbst nie verziehen hast?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welche Lüge erzählst du dir selbst am häufigsten?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was würdest du jemandem sagen wollen, der nicht mehr da ist?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was glaubst du, denken die anderen wirklich über dich?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welche Phase deines Lebens würdest du gern noch einmal erleben?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wovon redest du selten, obwohl es dich oft beschäftigt?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer wirkt nach außen stark, ist aber eigentlich verletzlich?", "category": "deep_talk", "type": "single_choice", "targetMode": "both" },
+  { "text": "Was trägst du mit dir herum, das du noch niemandem erzählt hast?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wenn dein 90-jähriges Ich dir heute einen Satz sagen könnte — welchen?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was bereust du bisher am meisten nicht getan zu haben?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welche Version von dir vermisst du manchmal?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was wäre dein letzter Satz, wenn du wüsstest, dass morgen alles vorbei ist?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Glaubst du, dass du die Person bist, die du mal werden wolltest?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wann warst du das letzte Mal wirklich einsam — obwohl du nicht allein warst?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was würdest du anders machen, wenn du wüsstest, dass dich niemand beurteilt?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welchen Traum hast du schon so lange, dass du ihn fast nicht mehr glaubst?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was hat dich zuletzt wirklich verändert?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer in der Gruppe hat dich mal wirklich überrascht — positiv oder negativ?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Gibt es eine Entscheidung, die dein Leben komplett umgeworfen hat?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was machst du, wenn du merkst, dass eine Freundschaft sich verändert?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer hat dich auf eine Art geprägt, die du lange nicht zugeben wolltest?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer aus der Gruppe gibt am meisten, ohne jemals was zurückzufordern?", "category": "deep_talk", "type": "single_choice", "targetMode": "both" },
+  { "text": "Was ist das Mutigste, das du je getan hast?", "category": "deep_talk", "type": "open_text", "targetMode": "daily" },
+
+  { "text": "Was war für dich bisher der beste gemeinsame Moment der Gruppe?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welcher peinliche Moment mit jemandem aus der Gruppe sitzt noch tief?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer hat bisher die schrägste Story der Gruppe erlebt?", "category": "memories", "type": "single_choice", "targetMode": "both" },
+  { "text": "Welches gemeinsame Lied bringt dich sofort zurück?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welche Nacht mit der Gruppe würdest du gern noch einmal erleben?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welcher Insider aus alten Zeiten funktioniert immer noch?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wann habt ihr das letzte Mal so richtig weinend gelacht?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welche Story wird von euch immer wieder erzählt, obwohl sie jeder kennt?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welches Event der Gruppe darf nie in Vergessenheit geraten?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welches Missgeschick ist heute ein echter Running Gag?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer hat am meisten Nostalgie fürs Früher?", "category": "memories", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wird als Erster zu viel weinen, wenn ihr alte Fotos anschaut?", "category": "memories", "type": "single_choice", "targetMode": "live" },
+  { "text": "Wer erinnert sich an Dinge, die alle anderen längst vergessen haben?", "category": "memories", "type": "single_choice", "targetMode": "both" },
+  { "text": "Welche peinliche Gruppen-Aktion ist bis heute Legende?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer war auf einer gemeinsamen Reise als Letzter heulend?", "category": "memories", "type": "single_choice", "targetMode": "both" },
+  { "text": "Welches gemeinsame Foto darf nie wieder ans Tageslicht?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Mit wem verbindest du die chaotischsten Gruppenerinnerungen?", "category": "memories", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer war schon mal Teil eines Moments, über den ihr heute noch lacht?", "category": "memories", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Welcher Moment hat die Gruppe am meisten zusammengeschweißt?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was war die spontanste Aktion der Gruppe, die trotzdem perfekt war?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was ist das absurdeste Ding, das ihr als Gruppe je gemacht habt?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welche Tradition der Gruppe klingt von außen total weird?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "An welchen gemeinsamen Moment denkst du immer wieder, ohne Anlass?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was war der wildeste Abend, bei dem alles schiefgelaufen ist — aber trotzdem unvergesslich wurde?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer hat einmal etwas getan, das alle anderen fassungslos gemacht hat?", "category": "memories", "type": "single_choice", "targetMode": "both" },
+  { "text": "Was war der mutigste Moment, den ihr als Gruppe erlebt habt?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Welcher Urlaub mit der Gruppe war eigentlich eine Katastrophe, aber heute eure beste Story?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wann habt ihr euch das letzte Mal wirklich gestritten — und wie ist es ausgegangen?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Gibt es ein Foto von euch, das eure Freundschaft perfekt zusammenfasst?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was war der Moment, in dem du gemerkt hast, dass ihr wirklich beste Freunde seid?", "category": "memories", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer hat schon mal etwas getan, das die ganze Gruppe beschämt hat — und es trotzdem gelacht?", "category": "memories", "type": "single_choice", "targetMode": "both" },
+
+  { "text": "Wer verdient in zehn Jahren das meiste Geld?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde am ehesten morgen kündigen und ein Jahr Pause machen?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat den schrägsten Lebenstraum?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wird mit 40 immer noch jedes Wochenende feiern?", "category": "career_life", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Wer wird als Erster ein eigenes Business haben?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wandert am ehesten aus?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer bricht als Erster alles ab und startet komplett neu?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer arbeitet mit 65 noch, weil er nicht loslassen kann?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wird am ehesten im Lotto gewinnen und es keinem erzählen?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer könnte am ehesten in einem TED-Talk frei sprechen?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde sich für Ruhm auf Trash-TV blamieren?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wird am ehesten Reise-Influencer?", "category": "career_life", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Was wäre dein eigentlicher Traumjob, wenn Geld keine Rolle spielen würde?", "category": "career_life", "type": "open_text", "targetMode": "daily" },
+  { "text": "Was würdest du tun, wenn du plötzlich Millionär wärst?", "category": "career_life", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer würde am ehesten beim Vorstellungsgespräch falsch grüßen?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat schon mal in einer Mail aus Versehen den Chef geduzt?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat sich schon mal so blamiert, dass er den Job fast hingeschmissen hätte?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer kündigt morgen und bucht einen One-Way-Flug?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wird am ehesten für Geld seine Überzeugungen verkaufen?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer lebt heimlich nach einem Masterplan, den er noch niemandem erklärt hat?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Was steht auf deiner Bucket List, das du immer wieder verschiebst?", "category": "career_life", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer wäre die größte Katastrophe als Chef?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat einen Job, bei dem keiner so richtig versteht, was er da eigentlich den ganzen Tag macht?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde am ehesten ein Startup gründen und nach drei Monaten aufgeben?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde seinen Traumjob für ein deutlich höheres Gehalt aufgeben?", "category": "career_life", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Was hält dich gerade davon ab, das zu tun, was du eigentlich tun willst?", "category": "career_life", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer wäre am zufriedensten, wenn er im Home-Office verschwinden könnte und nie wieder ins Büro müsste?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat das Zeug zum CEO — und wer sollte auf keinen Fall CEO werden?", "category": "career_life", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Wie sähe dein Leben in 10 Jahren aus, wenn du heute alle Angst fallenlässt?", "category": "career_life", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer würde am ehesten einen Gang zurückschalten und Vollzeit reisen?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist mit seinem Leben gerade heimlich unzufrieden, zeigt es aber nicht?", "category": "career_life", "type": "single_choice", "targetMode": "both" },
+
+  { "text": "Wer aus der Gruppe heiratet als Letzter?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer schreibt seinem Ex am ehesten noch Jahre später?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer plant beim ersten Date schon heimlich das erste gemeinsame Wochenende?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer macht in einer Beziehung am ehesten den extra Schritt?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wem würdest du dein Kind zum Babysitten anvertrauen?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wäre die beste Schwiegermutter oder der beste Schwiegervater?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat die beste Ehe-Prognose?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde in einer Fernbeziehung die meisten Sprachnachrichten schicken?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist in einer Beziehung am loyalsten in stressigen Phasen?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer verliebt sich am schnellsten?", "category": "relationships", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Wer würde für Liebe wirklich alles aufgeben?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist in der Freundschaft der loyalste?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat schon mal beim Date heimlich das Handy gecheckt?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hätte beim Date am ehesten Spinat zwischen den Zähnen und es nicht bemerken?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer gibt am ehesten richtig gute Beziehungsratschläge?", "category": "relationships", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer merkt als Erstes, wenn zwischen zwei Leuten was läuft?", "category": "relationships", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer wäre in einer Beziehung eher der Stalker-Ex?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer verliebt sich zu schnell?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer gibt in einer Beziehung zu schnell nach?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Glaubst du an Liebe auf den ersten Blick?", "category": "relationships", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer würde nach einer Trennung am schnellsten über den Ex hinwegkommen?", "category": "relationships", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Wer hat die romantischsten Vorstellungen von einer Beziehung — und wird deshalb am meisten enttäuscht?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Was ist für dich das absolute K.O.-Kriterium in einer Beziehung?", "category": "relationships", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer würde am ehesten eine Beziehung führen, von der niemand in der Gruppe weiß?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer in der Gruppe wäre der nervigste Beziehungsmensch — immer mit Pärchen-Content?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat schon mal jemandem aus der Gruppe heimlich nachgetrauert?", "category": "relationships", "type": "single_choice", "targetMode": "daily" },
+  { "text": "Wer ist am romantischsten, wenn man ihn wirklich kennt?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Was sagst du dir selbst über Liebe, das du eigentlich gar nicht glaubst?", "category": "relationships", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer hätte am ehesten eine geheime Zuneigung zu jemandem in der Gruppe, die er nie zugeben würde?", "category": "relationships", "type": "single_choice", "targetMode": "daily" },
+  { "text": "Wer würde am ehesten einen Heiratsantrag mit einem Flashmob machen?", "category": "relationships", "type": "single_choice", "targetMode": "both" },
+  { "text": "Was würdest du heute anders machen, wenn du deine erste große Liebe noch einmal treffen würdest?", "category": "relationships", "type": "open_text", "targetMode": "daily" },
+
+  { "text": "Wer hat das ungewöhnlichste Hobby?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer könnte ernsthaft Influencer werden?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist heimlich Nerd für irgendwas total Nischiges?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Würdest du eher nie wieder Sport machen oder nie wieder Serien schauen?", "category": "hobbies_interests", "type": "either_or", "targetMode": "both", "options": ["Nie wieder Sport", "Nie wieder Serien"] },
+  { "text": "Wer kauft sich ein teures Hobby und lässt es nach zwei Wochen liegen?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer könnte ernsthaft einen Marathon laufen?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer könnte am ehesten ein eigenes Kochbuch schreiben?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat die seltsamste Musikvorliebe?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer scrollt nachts heimlich stundenlang durch TikTok?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Würdest du eher nie wieder Konzerte oder nie wieder Restaurants besuchen?", "category": "hobbies_interests", "type": "either_or", "targetMode": "both", "options": ["Nie wieder Konzerte", "Nie wieder Restaurants"] },
+  { "text": "Wer würde Urlaub am liebsten in einer Bibliothek verbringen?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat schon mal etwas gebacken, das selbst der Hund nicht wollte?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde im Yoga-Kurs am ehesten einschlafen?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "live" },
+  { "text": "Wer könnte sich komplett in ein neues Hobby reinnerden?", "category": "hobbies_interests", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer hätte am ehesten Lust auf einen komplett unnötigen, aber lustigen Workshop?", "category": "hobbies_interests", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer würde ernsthaft einen Töpferkurs starten und danach nie mehr töpfern?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer konsumiert heimlich trashigen Reality TV?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Würdest du eher dein Handy für eine Woche abgeben oder eine Woche nicht schlafen dürfen?", "category": "hobbies_interests", "type": "either_or", "targetMode": "both", "options": ["Woche ohne Handy", "Woche ohne Schlaf"] },
+  { "text": "Wer hätte am ehesten ein heimliches Faible für true-crime-Podcasts?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Würdest du eher ein Instrument lernen oder eine neue Sprache?", "category": "hobbies_interests", "type": "either_or", "targetMode": "both", "options": ["Instrument lernen", "Sprache lernen"] },
+  { "text": "Wer würde einen kompletten Monat Social-Media-Detox aushalten?", "category": "hobbies_interests", "type": "duel_1v1", "targetMode": "both" },
+  { "text": "Wer hätte am ehesten schon tausend Bücher gelesen, wenn er keine Arbeit hätte?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde am ehesten einen Hund kaufen, nicht für sich, sondern weil er die Reaktion auf Videos süß findet?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wäre am ehesten bereit, monatelang für ein Konzert quer durch Europa zu reisen?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Würdest du eher ein Jahr lang jeden Tag kochen oder jeden Tag Sport machen?", "category": "hobbies_interests", "type": "either_or", "targetMode": "both", "options": ["Jeden Tag kochen", "Jeden Tag Sport"] },
+  { "text": "Wer hat das seltsamste Abend-Ritual, das keiner kennt?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde am ehesten einen Kalender für seine Lieblings-TV-Serie führen?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat heimlich schon mal Fan-Briefe geschrieben oder wollte es?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wäre der kompromissloseste Reisepartner — will immer Kultur und Museen, kein Strand?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer sammelt heimlich etwas Absurdes — Tassen, Pflaster-Designs, Streichholzschachteln?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde in einem Improvisations-Theater sofort glänzen?", "category": "hobbies_interests", "type": "single_choice", "targetMode": "both" },
+
+  { "text": "Wer hat am ehesten schon mal in der Öffentlichkeit Sex gehabt?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wäre im Bett am wildesten?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wäre überraschend gefühlvoll im Bett?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat am ehesten schon mal jemanden aus der Gruppe sexuell attraktiv gefunden?", "category": "dirty", "type": "single_choice", "targetMode": "daily" },
+  { "text": "Wer hätte am ehesten Bock auf einen Dreier?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer schaut am häufigsten Pornos?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat die wildeste Sex-Story zu erzählen?", "category": "dirty", "type": "single_choice", "targetMode": "daily" },
+  { "text": "Würdest du eher Sex mit deinem Ex oder mit einem Freund deines Ex?", "category": "dirty", "type": "either_or", "targetMode": "both", "options": ["Mit dem Ex", "Mit einem Freund des Ex"] },
+  { "text": "Wer hatte den peinlichsten ersten Sex?", "category": "dirty", "type": "single_choice", "targetMode": "daily" },
+  { "text": "Wer hatte am ehesten schon Sex im Elternhaus, während die Eltern da waren?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist am ehesten ein heimlicher BDSM-Fan?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat das exotischste Porno-Genre im Verlauf?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer landet als Erster im Swingerclub?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hatte am ehesten neulich ein richtiges Sex-Comeback nach langer Pause?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer wäre am ehesten der laute Stöhner?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Würdest du eher Sex mit jemandem aus der Gruppe oder mit deinem Chef haben?", "category": "dirty", "type": "either_or", "targetMode": "both", "options": ["Mit jemandem aus der Gruppe", "Mit dem Chef"] },
+  { "text": "Wer ruft beim Sex am ehesten den falschen Namen?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat schon mal beim Sex spontan losgelacht?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist schon mal beim Klick auf ein zwielichtiges Video erwischt worden?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat schon mal ein Sex-Spielzeug gekauft und es danach nie benutzt?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde Pornos am ehesten wie eine Sportübertragung kommentieren?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat die wildeste Fantasie, die alle in Schockstarre versetzen würde?", "category": "dirty", "type": "single_choice", "targetMode": "daily" },
+  { "text": "Würdest du eher Rollenspielen oder einem One-Night-Stand mit einem Fremden?", "category": "dirty", "type": "either_or", "targetMode": "both", "options": ["Rollenspiel", "One-Night-Stand mit Fremdem"] },
+  { "text": "Wer hat am ehesten schon mal in der Arbeit oder Uni über eine Kollegin oder einen Kollegen fantasiert?", "category": "dirty", "type": "single_choice", "targetMode": "daily" },
+  { "text": "Wer würde im Bett am ehesten ein Selfie wollen?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Würdest du eher drei Monate zölibatär leben oder drei Monate kein Alkohol?", "category": "dirty", "type": "either_or", "targetMode": "both", "options": ["Drei Monate kein Sex", "Drei Monate kein Alkohol"] },
+  { "text": "Wer hat schon mal beim Tinder-Swipen jemanden aus der Gruppe gesehen?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hätte am ehesten Lust auf eine Open Relationship?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Was war die mutigste sexuelle Sache, die du je getan hast — ohne Details, nur Ja oder Nein?", "category": "dirty", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer ist am ehesten derjenige, der nach dem Sex sofort das Handy aufmacht?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hätte am ehesten Geld für eine Nacht mit einem Prominenten bezahlt?", "category": "dirty", "type": "single_choice", "targetMode": "both" },
+
+  { "text": "Wer kennt dich wirklich am besten?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer merkt am schnellsten, wenn es dir nicht gut geht?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer weiß am meisten Geheimnisse von dir?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde dich auch nach 10 Jahren ohne Kontakt sofort verstehen?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer könnte deinen Lebenslauf aus dem Kopf erzählen?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer weiß noch, was du früher mal werden wolltest?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer erinnert sich noch an deinen ersten Crush?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer kennt auch deine dunkelste Phase?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat dich zuletzt wirklich überrascht?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer ist der Gruppen-Historiker — erinnert sich an alles?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer verpasst garantiert keinen Geburtstag?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer kennt dich besser als deine eigene Familie?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer liest deine Stimmung am zuverlässigsten zwischen den Zeilen?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer kennt deinen peinlichsten Spitznamen aus alten Zeiten?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer weiß noch, was dein erster Berufswunsch als Kind war?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat einen Insider-Witz mit dir, der heute noch funktioniert?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer merkt sofort, wenn du nur so tust, als wäre alles okay?", "category": "group_knowledge", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer könnte dir mitten in der Nacht antworten und dich direkt beruhigen?", "category": "group_knowledge", "type": "multi_choice", "targetMode": "both" },
+  { "text": "Wer könnte dein Passwort erraten?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer weiß, was dich wirklich antreibt?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer kennt dich besser als du dich selbst?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde als Einziger deinen Kaffee genau so machen, wie du ihn haben willst?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer könnte dich in drei Sätzen perfekt beschreiben — auch die Seiten, die du selbst nicht magst?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer würde am ehesten merken, wenn du dich heimlich verliebst?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer weiß, wann du zuletzt wirklich geweint hast?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer kennt deine größte Schwäche und würde sie trotzdem nie gegen dich verwenden?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer bemerkt als Erster, wenn du dich verändert hast — auch wenn du es selbst nicht siehst?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer könnte in deinem Namen Nachrichten schreiben, ohne dass jemand den Unterschied merkt?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer hat das feinste Gespür dafür, wenn du gerade eigentlich in Ruhe gelassen werden willst?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+  { "text": "Wer aus der Gruppe würdest du nachts um 3 Uhr anrufen — und warum?", "category": "group_knowledge", "type": "open_text", "targetMode": "daily" },
+  { "text": "Wer weiß, welche Musik du hörst, wenn du traurig bist?", "category": "group_knowledge", "type": "single_choice", "targetMode": "both" },
+
+  { "text": "Würdest du eher deine gesamte Google-Suchhistorie oder alle deine Chatverläufe der Gruppe zeigen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Google-Suchhistorie zeigen", "Chatverläufe zeigen"] },
+  { "text": "Würdest du eher nackt vor der ganzen Gruppe stehen oder deine letzten zehn Porno-Suchbegriffe vorlesen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Nackt vor der Gruppe", "Suchverlauf vorlesen"] },
+  { "text": "Würdest du eher zehn Jahre keinen Sex haben oder zehn Jahre kein Internet?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Kein Sex", "Kein Internet"] },
+  { "text": "Würdest du eher arm aber geliebt oder reich aber einsam leben?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Arm und geliebt", "Reich und einsam"] },
+  { "text": "Würdest du eher dumm und glücklich oder schlau und unglücklich sein?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Dumm und glücklich", "Schlau und unglücklich"] },
+  { "text": "Würdest du eher Gedanken lesen oder unsichtbar sein können?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Gedanken lesen", "Unsichtbar sein"] },
+  { "text": "Würdest du eher für immer alles rappen oder nur noch in Rätseln sprechen müssen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Alles rappen", "Nur in Rätseln sprechen"] },
+  { "text": "Würdest du eher ständig Schluckauf oder eine permanent laufende Nase haben?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Permanenter Schluckauf", "Laufende Nase"] },
+  { "text": "Würdest du eher Fell am ganzen Körper bekommen oder komplett kahl werden?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Fell am ganzen Körper", "Komplett kahl"] },
+  { "text": "Würdest du eher ständig pupsen oder ständig rülpsen müssen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Ständig pupsen", "Ständig rülpsen"] },
+  { "text": "Würdest du eher jeden Tag deines Lebens Pizza essen oder nie wieder Pizza essen dürfen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Jeden Tag Pizza", "Nie wieder Pizza"] },
+  { "text": "Würdest du eher 100% mehr Geld verdienen oder nur noch halb so lange arbeiten müssen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Doppeltes Gehalt", "Halbe Arbeitszeit"] },
+  { "text": "Würdest du eher deine Schulzeit nochmal erleben oder deine ganzen 20er?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Schulzeit nochmal", "20er nochmal"] },
+  { "text": "Würdest du für eine Million Euro ein Jahr ohne die Gruppe leben oder nie mehr verreisen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Ein Jahr ohne Gruppe", "Nie mehr verreisen"] },
+  { "text": "Würdest du eher einen Dinosaurier oder ein Alien als Haustier haben?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Dinosaurier", "Alien"] },
+  { "text": "Würdest du eher deinen schlimmsten Fehler öffentlich posten oder nie wieder Kaffee trinken?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Fehler öffentlich posten", "Nie wieder Kaffee"] },
+  { "text": "Würdest du eher jede Lüge der letzten fünf Jahre eingestehen oder zehn Kilo zunehmen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Alle Lügen eingestehen", "Zehn Kilo zunehmen"] },
+  { "text": "Würdest du eher eine erfüllte Karriere oder ein erfülltes Liebesleben haben?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Erfüllte Karriere", "Erfülltes Liebesleben"] },
+  { "text": "Würdest du eher immer Flip-Flops tragen oder immer Anzug oder Kleid tragen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Überall Flip-Flops", "Immer schick gekleidet"] },
+  { "text": "Würdest du einen Tag lang lieber nur die Wahrheit sagen oder nur lügen müssen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Nur Wahrheit", "Nur Lügen"] },
+  { "text": "Würdest du eher für immer alleine reisen oder nie wieder in den Urlaub fahren?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Immer alleine reisen", "Nie mehr Urlaub"] },
+  { "text": "Würdest du eher wissen, wann du stirbst, oder wissen, wie du stirbst?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Wissen wann", "Wissen wie"] },
+  { "text": "Würdest du eher nie wieder Musik hören oder nie wieder Filme schauen können?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Nie wieder Musik", "Nie wieder Filme"] },
+  { "text": "Würdest du eher jede Konversation per Rap führen oder immer in einem britischen Akzent sprechen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Alles rappen", "Britischer Akzent"] },
+  { "text": "Würdest du eher die nächsten fünf Jahre keine neuen Freundschaften schließen oder alle aktuellen Freundschaften um fünf Jahre zurücksetzen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Keine neuen Freundschaften", "Alle Freundschaften fünf Jahre zurück"] },
+  { "text": "Würdest du eher immer 3 Stunden zu früh oder immer 3 Stunden zu spät ankommen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Immer zu früh", "Immer zu spät"] },
+  { "text": "Würdest du eher 24 Stunden lang jeden Gedanken laut aussprechen müssen oder jeden Witz erklären müssen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Gedanken laut aussprechen", "Jeden Witz erklären"] },
+  { "text": "Würdest du eher bei jedem Meeting schlafen können oder bei jedem Date schlafen müssen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Im Meeting schlafen", "Beim Date schlafen"] },
+  { "text": "Würdest du eher deinen schlechtesten Moment als Tattoo tragen oder deinen schlechtesten Satz auf einem T-Shirt?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Schlimmster Moment als Tattoo", "Schlimmster Satz als T-Shirt"] },
+  { "text": "Würdest du eher mit dem dumbsten oder dem nervigsten Menschen der Welt zusammenleben?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Mit dem Dümmsten", "Mit dem Nervigsten"] },
+  { "text": "Würdest du eher einmal pro Woche weinend aufwachen ohne Grund oder einmal pro Woche vor Fremden tanzen müssen?", "category": "would_you_rather", "type": "either_or", "targetMode": "both", "options": ["Wöchentlich weinend aufwachen", "Vor Fremden tanzen"] },
+
+  { "text": "War die Mondlandung echt?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, natürlich", "Hollywood-Kulisse"] },
+  { "text": "Ist die Erde eine Kugel?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, Kugel", "Flach, obviously"] },
+  { "text": "Sind Vögel echte Tiere?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Klar doch", "Staatsdrohnen!"] },
+  { "text": "Existieren Außerirdische?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, irgendwo", "Nein, wir sind allein"] },
+  { "text": "Überwacht dich dein Handy-Mikrofon passiv?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, immer", "Nein, Paranoia"] },
+  { "text": "Ist 5G gefährlich?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, eindeutig", "Nein, nur Internet"] },
+  { "text": "Sind Chemtrails real?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, komisch die", "Nein, nur Wasserdampf"] },
+  { "text": "Leben wir in einer Simulation?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, Matrix confirmed", "Nein, das ist real"] },
+  { "text": "Hat die Regierung UFO-Beweise versteckt?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, da ist was", "Nein, alles Quatsch"] },
+  { "text": "Ist Area 51 voll mit Aliens?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, bestimmt", "Nein, nur geheime Technik"] },
+  { "text": "Lebt Elvis noch?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, er taucht unter", "Nein, RIP Elvis"] },
+  { "text": "Existiert Bigfoot wirklich?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, tief im Wald", "Nein, Kerl im Kostüm"] },
+  { "text": "War der Tod von Princess Diana kein Unfall?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Da steckt was dahinter", "Tragischer Unfall"] },
+  { "text": "Haben Pharmaunternehmen Heilmittel absichtlich unterdrückt?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, aus Geldgier", "Nein, Verschwörungstheorie"] },
+  { "text": "War die Titanic Versicherungsbetrug?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, absichtlich versenkt", "Nein, Eisberg war's"] },
+  { "text": "Werden wir heimlich von Reptiloiden regiert?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, ich wusste es", "Nein, das ist krank"] },
+  { "text": "Flache Erde oder Matrix — was wäre krasser?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Erde ist flach", "Wir leben in der Matrix"] },
+  { "text": "Aliens oder KI-Promis — was ist wahrscheinlicher?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Aliens unter uns", "Alle Promis sind AIs"] },
+  { "text": "Welche Verschwörungstheorie findest du heimlich am überzeugendsten?", "category": "conspiracy", "type": "open_text", "targetMode": "daily" },
+  { "text": "Ist der Klimawandel von Eliten absichtlich beschleunigt worden, um Kontrolle zu gewinnen?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, steckt System dahinter", "Nein, menschengemacht aber echt"] },
+  { "text": "Ist Paul McCartney 1966 gestorben und durch einen Doppelgänger ersetzt worden?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, Paul ist tot", "Nein, Quatsch"] },
+  { "text": "Kontrollieren Freimaurer heimlich Regierungen?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, stecken überall drin", "Nein, nur ein Verein"] },
+  { "text": "Ist der Mond eine riesige Raumstation?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Klingt plausibel", "Nein, Gestein"] },
+  { "text": "Wird Trinkwasser heimlich mit Mitteln zur Bevölkerungskontrolle versetzt?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Klingt möglich", "Definitiv nicht"] },
+  { "text": "Ist der 11. September eine False-Flag-Operation gewesen?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Da steckt mehr dahinter", "Nein, war Al-Qaida"] },
+  { "text": "Werden bekannte YouTuber und Streamer von Geheimdiensten beobachtet?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, sicher", "Nein, zu unwichtig"] },
+  { "text": "Ist die Wahl-Software in demokratischen Ländern manipulierbar und wird genutzt?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, wird manipuliert", "Nein, ist sicher"] },
+  { "text": "Hat Tupac seinen Tod inszeniert und lebt noch?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, lebt noch", "Nein, RIP Tupac"] },
+  { "text": "Existiert eine geheime Weltregierung, die alle wichtigen Entscheidungen trifft?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, Schattenstaat", "Nein, Paranoia"] },
+  { "text": "Wurden die Pyramiden von Außerirdischen gebaut?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, zu komplex für Menschen", "Nein, Ägypter halt"] },
+  { "text": "Ist Werbung im Internet auf dein echtes Gespräch angepasst — auch wenn du nichts tippt hast?", "category": "conspiracy", "type": "either_or", "targetMode": "both", "options": ["Ja, die hören zu", "Nein, nur Algorithmus"] },
+
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Helluva_Queen.jpg", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Emotional_Support_Frog.jpg", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Angel_Wings.jpg", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Evil_Egg.jpg", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Leon_Rosie.jpg", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Hazbin_Nails.jpg", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Nifty_Fight.jpg", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Squidward_Blinds.png", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Buzz_Everywhere.png", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Astronaut_Always_Has_Been.png", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Escobar_Waiting.jpg", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Bossy_Boots.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Bubble_Buddy.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Doing_Time.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/House_Fancy.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Just_One_Bite.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Krab_Borg.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Krusty_Towers.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Life_of_Crime.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Nature_Pants.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Night_Light.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Procrastination.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/SB-129.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Sandy_SpongeBob_and_the_Worm.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/SpongeGuard_on_Duty.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Squidward_the_Unfriendly_Ghost.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/Tea_at_the_Treedome.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/The_Algaes_Always_Greener.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/The_Bully.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/To_Love_a_Patty.webp", "targetMode": "daily" },
+  { "text": "Beschreibe das Bild, Meme it!", "category": "meme_it", "type": "meme_caption", "imagePath": "/memes/To_SquarePants_or_Not_to_SquarePants.webp", "targetMode": "daily" }
 ]

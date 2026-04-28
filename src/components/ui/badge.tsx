@@ -1,15 +1,29 @@
 import type { ReactNode } from "react";
 
-type Tone = "neutral" | "dark" | "coral" | "success" | "warning" | "danger";
+type Tone =
+  | "neutral"
+  | "dark"
+  | "accent"
+  | "success"
+  | "warning"
+  | "danger"
+  | "daily"
+  | "recap"
+  | "profile"
+  | "archive";
 type Size = "sm" | "md";
 
 const toneClasses: Record<Tone, string> = {
-  neutral: "bg-sand-100 text-sand-700",
-  dark: "bg-sand-900 text-cream",
-  coral: "bg-coral-soft text-coral-strong",
-  success: "bg-emerald-100 text-emerald-700",
-  warning: "bg-amber-100 text-amber-800",
-  danger: "bg-rose-100 text-rose-700",
+  neutral: "bg-white text-slate-700 ring-slate-200",
+  dark: "bg-slate-900 text-white ring-slate-800",
+  accent: "bg-brand-soft text-brand-primary ring-brand-primary/18",
+  success: "bg-success-soft text-success-text ring-success-text/18",
+  warning: "bg-award-soft text-award-text ring-award-primary/30",
+  danger: "bg-danger-soft text-danger-text ring-danger-text/18",
+  daily: "bg-daily-soft text-daily-text ring-daily-primary/24",
+  recap: "bg-[#fff8fd] text-recap-text ring-recap-primary/20",
+  profile: "bg-profile-soft text-profile-text ring-profile-primary/20",
+  archive: "bg-archive-soft text-archive-primary ring-archive-primary/20",
 };
 
 const sizeClasses: Record<Size, string> = {
@@ -30,7 +44,7 @@ export function Badge({
 }) {
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full font-semibold uppercase ${toneClasses[tone]} ${sizeClasses[size]} ${className}`}
+      className={`inline-flex items-center gap-1.5 rounded-full font-semibold uppercase ring-1 ${toneClasses[tone]} ${sizeClasses[size]} ${className}`}
     >
       {children}
     </span>

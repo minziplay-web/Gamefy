@@ -49,28 +49,46 @@ export function QuestionCardShell({
   onRetry,
 }: Props) {
   const { question } = state;
+  const isRevealed = state.phase === "revealed";
 
   return (
-    <section className="radius-card border border-white/60 bg-white/85 p-5 shadow-card-raised backdrop-blur">
-      <header className="space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <CategoryBadge category={question.category} size="sm" />
-          <span className="ml-auto text-[11px] font-semibold tabular-nums text-sand-500">
-            {question.indexInRun + 1} / {question.totalInRun}
-          </span>
+    <section
+      className={
+        isRevealed
+          ? "overflow-hidden rounded-[2rem] bg-transparent"
+          : "radius-card overflow-hidden border border-daily-primary/24 bg-white shadow-[0_18px_42px_-28px_rgba(23,32,49,0.24)]"
+      }
+    >
+      {!isRevealed ? (
+        <div className="h-1 bg-daily-primary/70" />
+      ) : null}
+      <div className={isRevealed ? "space-y-3" : "p-4 min-[380px]:p-5"}>
+        <header
+          className={
+            isRevealed
+              ? "space-y-2 px-1"
+              : "space-y-3"
+          }
+        >
+          <div className="flex flex-wrap items-center gap-2">
+            <CategoryBadge category={question.category} size="sm" />
+            <span className="ml-auto text-[11px] font-semibold tabular-nums text-sand-500">
+              {question.indexInRun + 1} / {question.totalInRun}
+            </span>
+          </div>
+          <h3 className="text-lg font-semibold leading-snug text-sand-900">
+            {question.text}
+          </h3>
+        </header>
+        <div className={isRevealed ? "" : "mt-4"}>
+          <CardBody
+            state={state}
+            onDraftChange={onDraftChange}
+            onSubmit={onSubmit}
+            onVoteMemeCaption={onVoteMemeCaption}
+            onRetry={onRetry}
+          />
         </div>
-        <h3 className="text-lg font-semibold leading-snug text-sand-900">
-          {question.text}
-        </h3>
-      </header>
-      <div className="mt-4">
-        <CardBody
-          state={state}
-          onDraftChange={onDraftChange}
-          onSubmit={onSubmit}
-          onVoteMemeCaption={onVoteMemeCaption}
-          onRetry={onRetry}
-        />
       </div>
     </section>
   );
@@ -94,6 +112,7 @@ function CardBody({
       <div className="space-y-3">
         <QuestionReveal
           result={state.result}
+          tone="daily"
           onVoteMemeCaption={onVoteMemeCaption}
         />
       </div>
@@ -133,6 +152,7 @@ function CardBody({
       ) : null}
       <Button
         className="w-full"
+        variant="daily"
         disabled={disabled}
         onClick={() => {
           if (currentDraft && draftIsComplete(currentDraft)) {
@@ -253,7 +273,7 @@ function AnswerReviewCard({
   multiline?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-sand-200 bg-sand-50/80 px-4 py-3">
+    <div className="rounded-2xl border border-daily-primary/24 bg-white px-4 py-3">
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sand-500">
         {label}
       </p>
@@ -278,7 +298,7 @@ function MemberAnswerReviewCard({
   fallback: string;
 }) {
   return (
-    <div className="rounded-2xl border border-sand-200 bg-sand-50/80 px-4 py-3">
+    <div className="rounded-2xl border border-daily-primary/24 bg-white px-4 py-3">
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sand-500">
         {label}
       </p>
@@ -287,7 +307,7 @@ function MemberAnswerReviewCard({
           {members.map((member) => (
             <div
               key={member.userId}
-              className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-semibold text-sand-900 shadow-card-flat"
+              className="inline-flex items-center gap-2 rounded-full bg-daily-soft/70 px-3 py-2 text-sm font-semibold text-sand-900 shadow-card-flat"
             >
               <AvatarCircle member={member} size="sm" />
               <span>{member.displayName}</span>

@@ -35,6 +35,8 @@ import type {
   UserDoc,
 } from "@/lib/types/firestore";
 
+type QuestionLike = Pick<QuestionDoc, "text" | "category" | "type" | "options" | "imagePath">;
+
 export function useLobbyViewState(sessionId?: string): LobbyViewState {
   const { authState, isMockMode } = useAuth();
   const [state, setState] = useState<LobbyViewState>(
@@ -114,7 +116,7 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
           .map((participant) => participant.userId),
       );
       const playableItems = items.filter((item) =>
-        isPlayableRunItem(item, questions.get(item.questionId), connectedParticipantIds),
+        isPlayableRunItem(item, getQuestionSource(item, questions), connectedParticipantIds),
       );
 
       if (
@@ -132,7 +134,7 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
       const currentItemPlayable = currentItem
         ? isPlayableRunItem(
             currentItem,
-            questions.get(currentItem.questionId),
+            getQuestionSource(currentItem, questions),
             connectedParticipantIds,
           )
         : false;
@@ -151,7 +153,7 @@ export function useLobbyViewState(sessionId?: string): LobbyViewState {
       const displayQuestionIndex = items
         .slice(0, session.currentQuestionIndex + 1)
         .filter((item) =>
-          isPlayableRunItem(item, questions.get(item.questionId), connectedParticipantIds),
+          isPlayableRunItem(item, getQuestionSource(item, questions), connectedParticipantIds),
         )
         .length - 1;
 
@@ -339,7 +341,7 @@ function buildLivePhase(params: {
     return null;
   }
 
-  const questionDoc = questions.get(currentItem.questionId);
+  const questionDoc = getQuestionSource(currentItem, questions);
   if (!questionDoc) {
     return null;
   }
@@ -411,7 +413,7 @@ function buildFinishedSummary(params: {
   const categoryCounts = new Map<Category, number>();
 
   for (const { item } of items) {
-    const category = questions.get(item.questionId)?.category;
+    const category = getQuestionSource(item, questions)?.category;
     if (category) {
       categoryCounts.set(category, (categoryCounts.get(category) ?? 0) + 1);
     }
@@ -426,7 +428,7 @@ function buildFinishedSummary(params: {
     myAnswersCount: items.filter(({ rawIndex }) => myAnswers.has(rawIndex)).length,
     topCategory,
     rounds: items.flatMap(({ rawIndex, item }, index) => {
-      const questionDoc = questions.get(item.questionId);
+      const questionDoc = getQuestionSource(item, questions);
       if (!questionDoc) {
         return [];
       }
@@ -462,7 +464,7 @@ function buildFinishedSummary(params: {
 
 function mapLiveQuestion(params: {
   questionId: string;
-  question: QuestionDoc;
+  question: QuestionLike;
   index: number;
   total: number;
   members: Map<string, MemberLite>;
@@ -507,6 +509,23 @@ function mapLiveQuestion(params: {
       return { ...base, type: "duel_2v2", teamA: [teamA0, teamA1], teamB: [teamB0, teamB1] };
     }
   }
+}
+
+function getQuestionSource(
+  item: DailyRunItemDoc,
+  questions: Map<string, QuestionDoc>,
+): QuestionLike | null {
+  if (item.questionSnapshot) {
+    return {
+      text: item.questionSnapshot.text,
+      category: item.questionSnapshot.category,
+      type: item.type,
+      options: item.questionSnapshot.options,
+      imagePath: item.questionSnapshot.imagePath,
+    };
+  }
+
+  return questions.get(item.questionId) ?? null;
 }
 
 function mapLiveAnswerDraft(answer: LivePrivateAnswerDoc): DailyAnswerDraft {

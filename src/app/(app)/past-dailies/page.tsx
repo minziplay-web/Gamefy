@@ -15,7 +15,7 @@ export default function PastDailiesPage() {
   if (state.status === "loading") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Vergangenes" title="Vergangene Dailys" />
+        <ScreenHeader eyebrow="Vergangenes" title="Archiv" theme="archive" />
         <SkeletonCard />
         <SkeletonCard />
       </div>
@@ -25,7 +25,7 @@ export default function PastDailiesPage() {
   if (state.status === "error") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Vergangenes" title="Vergangene Dailys" />
+        <ScreenHeader eyebrow="Vergangenes" title="Archiv" theme="archive" />
         <ErrorBanner message={state.message} />
       </div>
     );
@@ -35,7 +35,8 @@ export default function PastDailiesPage() {
     <div className="space-y-4">
       <ScreenHeader
         eyebrow="Vergangenes"
-        title="Vergangene Dailys"
+        title="Archiv"
+        theme="archive"
         subtitle="Klapp ältere Tage auf und schau dir die Auflösungen an."
       />
       <PastDailies

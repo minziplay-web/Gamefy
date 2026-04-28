@@ -32,7 +32,7 @@ export function AdminMemberList({
 
   return (
     <div className="space-y-3">
-      <div className="rounded-2xl border border-sand-100 bg-white/85 p-4">
+      <div className="rounded-2xl border border-sand-200/80 bg-white p-4">
         <p className="text-sm font-medium text-sand-700">
           Hier kannst du Mitglieder aus der App entfernen. Der Account bleibt bei Firebase
           bestehen, ist aber in Gamefy nicht mehr aktiv. Bonus-Trophäen kannst du hier
@@ -44,9 +44,9 @@ export function AdminMemberList({
         <p
           className={`rounded-xl px-3 py-2 text-sm ${
             removeStatus === "error"
-              ? "bg-rose-50 text-rose-800"
+              ? "bg-danger-soft text-danger-text"
               : removeStatus === "success"
-                ? "bg-emerald-50 text-emerald-800"
+                ? "bg-success-soft text-success-text"
                 : "bg-sand-50 text-sand-700"
           }`}
         >
@@ -62,7 +62,7 @@ export function AdminMemberList({
           return (
             <li
               key={member.userId}
-              className="flex items-center justify-between gap-3 rounded-2xl border border-white/60 bg-white/85 px-4 py-3"
+              className="flex items-center justify-between gap-3 rounded-2xl border border-sand-200/80 bg-white px-4 py-3"
             >
               <div className="flex min-w-0 items-center gap-3">
                 <AvatarCircle
@@ -87,7 +87,7 @@ export function AdminMemberList({
                       </Badge>
                     ) : null}
                     {isSelf ? (
-                      <Badge tone="coral" size="sm">
+                      <Badge tone="accent" size="sm">
                         Du
                       </Badge>
                     ) : null}
@@ -103,7 +103,7 @@ export function AdminMemberList({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800"
+                  className="text-award-text hover:bg-award-soft hover:text-award-text"
                   disabled={!onGrantTrophy || removeStatus === "running" || !member.onboardingCompleted}
                   onClick={() => onGrantTrophy?.(member)}
                 >
@@ -112,7 +112,7 @@ export function AdminMemberList({
                 <Button
                   variant="ghost"
                   size="sm"
-                  className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                  className="text-danger-text hover:bg-danger-soft hover:text-archive-strong"
                   disabled={!onRemove || removeStatus === "running" || isSelf || isAdmin}
                   onClick={() => onRemove?.(member)}
                 >

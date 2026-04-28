@@ -14,7 +14,7 @@ export function AppShell({
     <div className="min-h-dvh bg-page text-sand-900">
       {isTestFirebaseProject() ? (
         <div className="sticky top-0 z-40 mx-auto w-full max-w-screen-sm px-4 pt-3">
-          <div className="rounded-full border border-amber-300 bg-amber-100/95 px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-amber-900 shadow-sm backdrop-blur">
+          <div className="rounded-full border border-brand-primary/45 bg-white/95 px-3 py-2 text-center text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-primary shadow-sm backdrop-blur">
             Testsystem · mijija-test
           </div>
         </div>

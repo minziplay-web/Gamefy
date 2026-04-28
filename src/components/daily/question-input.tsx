@@ -121,8 +121,8 @@ function SingleChoiceInput({
             }
             className={`flex min-h-28 flex-col items-center justify-center gap-2.5 rounded-2xl border-2 p-3 text-sm font-medium text-center transition ${
               active
-                ? "border-coral bg-coral/5 text-sand-900"
-                : "border-sand-100 bg-white text-sand-700 hover:border-sand-200"
+                ? "border-daily-primary bg-daily-soft/70 text-sand-900"
+                : "border-slate-200 bg-white text-sand-700 hover:border-daily-primary/50"
             } disabled:opacity-60`}
           >
             <AvatarCircle member={candidate} size="md" />
@@ -183,14 +183,14 @@ function MultiChoiceInput({
               onClick={() => toggle(candidate.userId)}
               className={`relative flex min-h-28 flex-col items-center justify-center gap-2.5 rounded-2xl border-2 p-3 text-sm font-medium text-center transition ${
                 active
-                  ? "border-coral bg-coral/5 text-sand-900"
-                  : "border-sand-100 bg-white text-sand-700 hover:border-sand-200"
+                  ? "border-daily-primary bg-daily-soft/70 text-sand-900"
+                  : "border-slate-200 bg-white text-sand-700 hover:border-daily-primary/50"
               } disabled:opacity-60`}
             >
               {active ? (
                 <span
                   aria-hidden
-                  className="absolute right-1.5 top-1.5 inline-flex size-5 items-center justify-center rounded-full bg-coral text-[11px] font-bold text-white"
+                  className="absolute right-1.5 top-1.5 inline-flex size-5 items-center justify-center rounded-full bg-daily-text text-[11px] font-bold text-white"
                 >
                   ✓
                 </span>
@@ -273,8 +273,8 @@ function Duel1v1Input({
             }
             className={`flex min-h-40 flex-col items-center justify-center gap-3 rounded-3xl border-2 p-4 transition ${
               active
-                ? "border-coral bg-coral/5"
-                : "border-sand-100 bg-white hover:border-sand-200"
+                ? "border-daily-primary bg-daily-soft/70"
+                : "border-slate-200 bg-white hover:border-daily-primary/50"
             } disabled:opacity-60`}
           >
             <AvatarCircle member={member} size="lg" />
@@ -326,8 +326,8 @@ function Duel2v2Input({
             }
             className={`flex min-h-44 flex-col items-center justify-center gap-3 rounded-3xl border-2 p-4 transition ${
               active
-                ? "border-coral bg-coral/5"
-                : "border-sand-100 bg-white hover:border-sand-200"
+                ? "border-daily-primary bg-daily-soft/70"
+                : "border-slate-200 bg-white hover:border-daily-primary/50"
             } disabled:opacity-60`}
           >
             <div className="flex items-center gap-2">
@@ -413,8 +413,8 @@ function EitherOrInput({
             }
             className={`flex min-h-16 w-full items-center justify-center rounded-3xl border-2 px-4 text-center text-base font-semibold transition ${
               active
-                ? "border-coral bg-coral/5 text-sand-900"
-                : "border-sand-100 bg-white text-sand-700 hover:border-sand-200"
+                ? "border-daily-primary bg-daily-soft/70 text-sand-900"
+                : "border-slate-200 bg-white text-sand-700 hover:border-daily-primary/50"
             } disabled:opacity-60`}
           >
             {label}

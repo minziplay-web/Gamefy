@@ -6,9 +6,11 @@ import { createPortal } from "react-dom";
 export function MemeImage({
   imagePath,
   caption,
+  frame = "standalone",
 }: {
   imagePath: string;
   caption?: string;
+  frame?: "standalone" | "stage";
 }) {
   const [open, setOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -36,21 +38,21 @@ export function MemeImage({
 
   const modal = open ? (
     <div
-      className="fixed inset-0 z-100 flex items-center justify-center bg-black/90 p-2"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/95"
       onClick={() => setOpen(false)}
       role="dialog"
       aria-modal="true"
       aria-label="Meme-Vollansicht"
     >
       <div
-        className="relative flex max-h-full max-w-full"
+        className="relative flex h-dvh w-screen items-center justify-center"
         onClick={(event) => event.stopPropagation()}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={imagePath}
           alt="Meme-Vorlage"
-          className="block max-h-[95dvh] max-w-[100vw] select-none object-contain"
+          className="block h-auto max-h-dvh w-screen select-none object-contain"
           draggable={false}
         />
         {caption ? (
@@ -94,7 +96,7 @@ export function MemeImage({
         className="block w-full cursor-zoom-in"
         aria-label="Meme vergrößern"
       >
-        <MemeFigure imagePath={imagePath} caption={caption} />
+        <MemeFigure imagePath={imagePath} caption={caption} frame={frame} />
       </button>
       {mounted && modal ? createPortal(modal, document.body) : null}
     </>
@@ -104,12 +106,18 @@ export function MemeImage({
 function MemeFigure({
   imagePath,
   caption,
+  frame,
 }: {
   imagePath: string;
   caption?: string;
+  frame: "standalone" | "stage";
 }) {
   return (
-    <div className="relative overflow-hidden rounded-2xl border border-sand-200 bg-sand-50">
+    <div
+      className={`relative overflow-hidden bg-slate-950 ${
+        frame === "stage" ? "" : "rounded-[1.35rem] shadow-card-flat"
+      }`}
+    >
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={imagePath}

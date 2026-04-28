@@ -50,7 +50,7 @@ export function ProfileNameEditor({ user }: { user: AppUser }) {
   };
 
   return (
-    <section className="space-y-3 rounded-3xl border border-white/60 bg-white/85 p-4 shadow-card-flat backdrop-blur-sm">
+    <section className="space-y-3 rounded-3xl border border-brand-primary/35 bg-white p-4 shadow-card-flat">
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sand-500">
           Anzeigename
@@ -59,7 +59,7 @@ export function ProfileNameEditor({ user }: { user: AppUser }) {
           So erscheinst du in Fragen, Ergebnissen und im Profil.
         </p>
       </div>
-      <div className="space-y-4 rounded-2xl border border-dashed border-sand-200 bg-sand-50/60 p-4">
+      <div className="space-y-4 rounded-2xl border border-dashed border-brand-primary/35 bg-profile-wash p-4">
         <TextField
           label="Anzeigename"
           value={draft}
@@ -78,12 +78,17 @@ export function ProfileNameEditor({ user }: { user: AppUser }) {
         <div className="flex gap-3">
           <Button
             className="flex-1"
+            variant="profile"
             disabled={!hasChanges || trimmed.length < 2 || status === "saving"}
             onClick={handleSave}
           >
             {status === "saving" ? "Speichert..." : "Speichern"}
           </Button>
-          <Button variant="ghost" className="flex-1" onClick={handleCancel}>
+          <Button
+            variant="ghost"
+            className="flex-1 text-brand-primary hover:bg-profile-soft hover:text-profile-strong"
+            onClick={handleCancel}
+          >
             Zurücksetzen
           </Button>
         </div>

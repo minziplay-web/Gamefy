@@ -15,7 +15,7 @@ export function DailyProgress({
           {answered} / {total} beantwortet
         </span>
       </div>
-      <ProgressBar value={answered} total={total} />
+      <ProgressBar value={answered} total={total} tone="daily" />
     </div>
   );
 }

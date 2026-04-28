@@ -19,13 +19,13 @@ export function DailyCompletionCard({
   const allAnswered = missing === 0 && total > 0;
 
   return (
-    <Card className="space-y-5 text-center">
-      <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-coral text-3xl text-white shadow-card-flat">
+    <Card className="space-y-5 border-daily-primary/55 bg-white text-center shadow-[0_18px_45px_rgba(243,154,43,0.12)]">
+      <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-linear-to-br from-daily-primary to-daily-accent text-3xl text-white shadow-[0_18px_40px_rgba(229,89,79,0.28)]">
         <span aria-hidden>{allAnswered ? "✓" : "…"}</span>
       </div>
       <div className="space-y-2">
         {allAnswered ? (
-          <p className="mx-auto inline-flex items-center rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-emerald-700">
+          <p className="mx-auto inline-flex items-center rounded-full bg-success-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.16em] text-success-text">
             Alles gespeichert
           </p>
         ) : null}
@@ -42,7 +42,7 @@ export function DailyCompletionCard({
           </p>
         ) : null}
       </div>
-      <div className="rounded-2xl bg-sand-50 px-4 py-4">
+      <div className="rounded-2xl bg-white px-4 py-4 ring-1 ring-daily-primary/35">
         <p className="text-lg font-semibold tabular-nums text-sand-900">
           {answered} / {total}
         </p>
@@ -51,7 +51,10 @@ export function DailyCompletionCard({
         </p>
       </div>
       <Link href="/" className="block">
-        <Button className="w-full" variant={allAnswered ? "primary" : "secondary"}>
+        <Button
+          className="w-full"
+          variant={allAnswered ? "daily" : "secondary"}
+        >
           Zurück zum Home
         </Button>
       </Link>

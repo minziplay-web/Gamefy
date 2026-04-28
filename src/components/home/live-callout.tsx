@@ -25,7 +25,7 @@ export function LiveCallout({
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
           <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.14em] text-cream">
-            <span className="size-1.5 animate-pulse rounded-full bg-coral" />
+            <span className="size-1.5 animate-pulse rounded-full bg-brand-primary" />
             Live
           </span>
           <h2 className="text-xl font-semibold leading-tight">

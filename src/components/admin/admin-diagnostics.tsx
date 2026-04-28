@@ -7,7 +7,7 @@ import type {
   AdminDiagnosticIssue,
 } from "@/lib/types/frontend";
 
-type BadgeTone = "neutral" | "dark" | "coral" | "success" | "warning" | "danger";
+type BadgeTone = "neutral" | "dark" | "accent" | "success" | "warning" | "danger";
 
 const DAILY_STATE_TONE: Record<
   AdminDailyDiagnostics["state"],
@@ -28,7 +28,7 @@ export function AdminDiagnostics({
   const { counts } = daily;
 
   return (
-    <section className="space-y-3 radius-card border border-white/60 bg-white/85 p-4 shadow-card-flat backdrop-blur-sm">
+    <section className="space-y-3 radius-card border border-sand-200/80 bg-white p-4 shadow-card-flat backdrop-blur-sm">
       <header className="flex items-center justify-between px-1">
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sand-500">
           Daily-Status
@@ -107,8 +107,8 @@ function IssueList({ issues }: { issues: AdminDiagnosticIssue[] }) {
           key={`${issue.code}-${idx}`}
           className={`flex items-start gap-2 rounded-lg px-2.5 py-1.5 text-xs ${
             issue.severity === "error"
-              ? "bg-rose-50 text-rose-800"
-              : "bg-amber-50 text-amber-800"
+              ? "bg-danger-soft text-danger-text"
+              : "border border-daily-primary/35 bg-white text-daily-text"
           }`}
         >
           <span aria-hidden className="shrink-0">

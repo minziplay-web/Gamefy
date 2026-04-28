@@ -78,14 +78,14 @@ export function LobbyWaitingRoom({
                   aria-label={p.connected ? "verbunden" : "getrennt"}
                   className={`absolute -bottom-0.5 -right-0.5 size-4 rounded-full ring-2 ring-white ${
                     p.connected
-                      ? "bg-emerald-500"
+                      ? "bg-success-text"
                       : "bg-sand-300"
                   } ${p.connected ? "" : "animate-pulse"}`}
                 />
                 {p.isHost ? (
                   <span
                     aria-label="Host"
-                    className="absolute -top-1 -left-1 inline-flex size-5 items-center justify-center rounded-full bg-coral text-[10px] text-white ring-2 ring-white"
+                    className="absolute -left-1 -top-1 inline-flex size-5 items-center justify-center rounded-full bg-brand-primary text-[10px] text-white ring-2 ring-white"
                   >
                     ★
                   </span>

@@ -20,7 +20,7 @@ export function ToggleSwitch({
       disabled={disabled}
       onClick={() => onChange(!checked)}
       className={`relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition disabled:opacity-50 ${
-        checked ? "bg-coral" : "bg-sand-200"
+        checked ? "bg-brand-primary" : "bg-slate-200"
       }`}
     >
       <span

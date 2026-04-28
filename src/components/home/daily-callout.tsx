@@ -18,7 +18,7 @@ export function DailyCallout({
 }) {
   if (!teaser) {
     return (
-      <Card className="space-y-3">
+      <Card className="space-y-3 border-recap-primary/22 bg-white shadow-[0_18px_38px_-26px_rgba(23,32,49,0.18)]">
         <Badge tone="neutral">Daily</Badge>
         <h2 className="text-xl font-semibold text-sand-900">
           Heute ist noch nichts live
@@ -32,7 +32,7 @@ export function DailyCallout({
 
   if (teaser.isUnplayable) {
     return (
-      <Card className="space-y-3">
+      <Card className="space-y-3 border-recap-primary/22 bg-white shadow-[0_18px_38px_-26px_rgba(23,32,49,0.18)]">
         <Badge tone="warning">
           <span aria-hidden>⚠️</span>
           Daily
@@ -50,7 +50,7 @@ export function DailyCallout({
 
   if (teaser.status === "scheduled") {
     return (
-      <Card className="space-y-3">
+      <Card className="space-y-3 border-recap-primary/22 bg-white shadow-[0_18px_38px_-26px_rgba(23,32,49,0.18)]">
         <Badge tone="neutral">Daily geplant</Badge>
         <h2 className="text-xl font-semibold text-sand-900">
           Gleich geht es los
@@ -65,7 +65,7 @@ export function DailyCallout({
 
   if (teaser.status === "closed") {
     return (
-      <Card className="space-y-4">
+      <Card className="space-y-4 border-recap-primary/22 bg-white shadow-[0_18px_38px_-26px_rgba(23,32,49,0.18)]">
         <div className="flex items-start justify-between gap-4">
           <div className="space-y-2">
             <Badge tone="neutral">Daily beendet</Badge>
@@ -76,12 +76,12 @@ export function DailyCallout({
           <ProgressPill answered={teaser.answeredByMe} total={teaser.totalQuestions} />
         </div>
         {teaser.hasIncompleteItems ? (
-          <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+          <p className="rounded-xl border border-recap-primary/28 bg-white px-3 py-2 text-xs font-medium text-recap-text">
             Einige Fragen konnten heute nicht ausgespielt werden.
           </p>
         ) : null}
         <Link href="/daily" className="block">
-          <Button className="w-full" variant="secondary">
+          <Button className="w-full" variant="recap">
             Ergebnisse ansehen
           </Button>
         </Link>
@@ -115,10 +115,10 @@ export function DailyCallout({
       : "Daily starten";
 
   return (
-    <Card className="space-y-4">
+    <Card className="space-y-4 border-recap-primary/22 bg-white shadow-[0_18px_38px_-26px_rgba(23,32,49,0.18)]">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <Badge tone={hasCustomQuestionNotice ? "warning" : "coral"}>
+          <Badge tone={hasCustomQuestionNotice ? "warning" : "recap"}>
             {hasCustomQuestionNotice ? (
               <>
                 <span aria-hidden>🏆</span>
@@ -134,9 +134,9 @@ export function DailyCallout({
         </div>
         <ProgressPill answered={teaser.answeredByMe} total={playable} />
       </div>
-      <ProgressBar value={teaser.answeredByMe} total={playable} />
+      <ProgressBar value={teaser.answeredByMe} total={playable} tone="recap" />
       {teaser.hasIncompleteItems ? (
-        <p className="rounded-xl bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+        <p className="rounded-xl border border-recap-primary/28 bg-white px-3 py-2 text-xs font-medium text-recap-text">
           Einige Fragen konnten heute nicht ausgespielt werden.
         </p>
       ) : null}
@@ -144,7 +144,7 @@ export function DailyCallout({
         {body}
       </p>
       <Link href="/daily" className="block">
-        <Button className="w-full">{buttonLabel}</Button>
+        <Button className="w-full" variant="recap">{buttonLabel}</Button>
       </Link>
     </Card>
   );
@@ -158,10 +158,10 @@ function ProgressPill({
   total: number;
 }) {
   return (
-    <div className="shrink-0 rounded-2xl bg-sand-100 px-3 py-2 text-right text-[11px] font-semibold leading-tight text-sand-700">
-      <span className="block text-base text-sand-900">
+    <div className="shrink-0 rounded-2xl bg-[#fff8fd] px-3 py-2 text-right text-[11px] font-semibold leading-tight text-recap-text ring-1 ring-recap-primary/14">
+      <span className="block text-base text-sand-950">
         {answered}
-        <span className="text-sand-400">/{total}</span>
+        <span className="text-recap-primary/55">/{total}</span>
       </span>
       <span className="tracking-wide">beantwortet</span>
     </div>

@@ -362,8 +362,8 @@ export async function importQuestions(raw: string, createdBy: string) {
         {
           ...item,
           active: true,
-          dailyLocked: false,
-          dailyLockedDateKey: null,
+          dailyLocked: existing?.data.dailyLocked ?? false,
+          dailyLockedDateKey: existing?.data.dailyLockedDateKey ?? null,
           source: existing?.data.source ?? "admin_pool",
           ownerUserId: existing?.data.ownerUserId ?? null,
           targetDateKey: existing?.data.targetDateKey ?? null,
@@ -1150,12 +1150,19 @@ function buildQuestionImportExactKey(
 }
 
 function buildQuestionImportIdentityKey(
-  question: Pick<QuestionDoc, "text" | "category" | "targetMode">,
+  question: Pick<
+    QuestionDoc,
+    "text" | "category" | "type" | "targetMode" | "imagePath"
+  >,
 ) {
   return JSON.stringify({
     text: question.text.trim().toLocaleLowerCase("de-DE"),
     category: question.category,
     targetMode: question.targetMode,
+    imagePath:
+      question.type === "meme_caption"
+        ? question.imagePath?.trim() ?? null
+        : null,
   });
 }
 

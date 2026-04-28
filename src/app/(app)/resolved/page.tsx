@@ -16,7 +16,7 @@ export default function ResolvedPage() {
   if (state.status === "loading") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Aufgelöst" title="Aufgelöst" />
+        <ScreenHeader eyebrow="Aufgelöst" title="Recap" theme="recap" />
         <SkeletonCard />
         <SkeletonCard />
       </div>
@@ -26,7 +26,7 @@ export default function ResolvedPage() {
   if (state.status === "error") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Aufgelöst" title="Aufgelöst" />
+        <ScreenHeader eyebrow="Aufgelöst" title="Recap" theme="recap" />
         <ErrorBanner message={state.message} />
       </div>
     );
@@ -36,7 +36,8 @@ export default function ResolvedPage() {
     <div className="space-y-4">
       <ScreenHeader
         eyebrow="Aufgelöst"
-        title="Heute"
+        title="Recap"
+        theme="recap"
         subtitle="Hier siehst du den Daily-Status und die heutigen Auflösungen."
       />
       <DailyCallout

@@ -23,7 +23,7 @@ export default function LoginPage() {
   return (
     <AppShell hideNav>
       <div className="flex min-h-dvh items-center">
-        <Card className="w-full space-y-6 bg-white/85">
+        <Card className="w-full space-y-6 bg-white">
           <div className="space-y-3">
             <p className="text-sm font-medium uppercase tracking-[0.18em] text-sand-500">
               Login

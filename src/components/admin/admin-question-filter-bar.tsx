@@ -37,13 +37,13 @@ export function AdminQuestionFilterBar({
   const categoryOptions = Object.entries(CATEGORY_LABELS) as Array<[Category, string]>;
 
   return (
-    <div className="space-y-3 rounded-2xl border border-white/50 bg-white/80 p-4">
+    <div className="space-y-3 rounded-[28px] border border-slate-200 bg-white p-4 shadow-card-flat">
       <input
         type="search"
         placeholder="Frage suchen..."
         value={filter.search}
         onChange={(e) => onChange({ ...filter, search: e.target.value })}
-        className="min-h-11 w-full rounded-xl border border-sand-200 bg-white px-3 text-sm text-sand-900 outline-none placeholder:text-sand-400 focus:border-sand-400"
+        className="min-h-11 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm text-sand-900 shadow-card-flat outline-none placeholder:text-sand-400 transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
       />
       <div className="grid grid-cols-2 gap-2 text-sm">
         <SelectField
@@ -91,7 +91,7 @@ function SelectField<T extends string>({
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as T)}
-        className="min-h-10 w-full rounded-xl border border-sand-200 bg-white px-3 text-sm text-sand-900 outline-none focus:border-sand-400"
+        className="min-h-10 w-full rounded-2xl border border-slate-200 bg-white px-3 text-sm text-sand-900 shadow-card-flat outline-none transition focus:border-slate-400 focus:ring-2 focus:ring-slate-200"
       >
         {options.map((opt) => (
           <option key={opt.value} value={opt.value}>
