@@ -384,9 +384,6 @@ function MemeLeaderboard({
                     <p className="truncate text-sm font-semibold text-sand-900">
                       {entry.author?.displayName ?? "Unbekannt"}
                     </p>
-                    <p className="line-clamp-2 text-sm font-medium text-sand-900">
-                      „{entry.text}"
-                    </p>
                   </div>
                   <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums text-coral">
                     <span aria-hidden>❤️</span>
@@ -416,7 +413,6 @@ function MemeLeaderboard({
                 <p className="truncate text-xs font-medium text-sand-500">
                   {entry.author?.displayName ?? "Unbekannt"}
                 </p>
-                <p className="line-clamp-2 text-xs font-medium text-sand-900">„{entry.text}"</p>
               </div>
               <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold tabular-nums text-coral">
                 <span aria-hidden>❤️</span>
