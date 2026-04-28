@@ -358,8 +358,8 @@ function MemeLeaderboard({
               i === 0
                 ? { bg: "bg-amber-400", w: "w-11", border: "border-2 border-amber-300", row: "bg-amber-50", py: "py-3", emoji: "text-xl" }
                 : i === 1
-                  ? { bg: "bg-sand-300", w: "w-9", border: "border-2 border-sand-300", row: "bg-sand-100/60", py: "py-2.5", emoji: "text-lg" }
-                  : { bg: "bg-sand-200", w: "w-8", border: "border-2 border-sand-200", row: "bg-sand-50", py: "py-2.5", emoji: "text-base" };
+                  ? { bg: "bg-slate-300", w: "w-9", border: "border-2 border-slate-300", row: "bg-slate-50", py: "py-2.5", emoji: "text-lg" }
+                  : { bg: "bg-orange-300", w: "w-8", border: "border-2 border-orange-300", row: "bg-orange-50", py: "py-2.5", emoji: "text-base" };
 
             return (
               <li
