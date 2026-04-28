@@ -15,7 +15,6 @@ import {
   dailyMemeVotesCollection,
   dailyPrivateAnswersCollection,
   dailyRunsCollection,
-  dailyRunDoc,
   liveParticipantsCollection,
   liveSessionsCollection,
   questionsCollection,
@@ -52,6 +51,11 @@ type QuestionLike = Pick<
   "text" | "category" | "type" | "options" | "imagePath"
 >;
 
+type DailyRunWithMeta = DailyRunDoc & {
+  runId: string;
+  runNumber: number;
+};
+
 export function useHomeViewState(): HomeViewState {
   const { authState, isMockMode } = useAuth();
   const [state, setState] = useState<HomeViewState>(
@@ -69,7 +73,6 @@ export function useHomeViewState(): HomeViewState {
     }
 
     const dateKey = berlinDateKey();
-    const runRef = dailyRunDoc(dateKey);
     const answersRef = dailyAnswersCollection();
     const memeVotesRef = dailyMemeVotesCollection();
     const privateAnswersRef = dailyPrivateAnswersCollection();
@@ -79,7 +82,6 @@ export function useHomeViewState(): HomeViewState {
     const usersRef = usersCollection();
 
     if (
-      !runRef ||
       !answersRef ||
       !memeVotesRef ||
       !privateAnswersRef ||
@@ -94,11 +96,11 @@ export function useHomeViewState(): HomeViewState {
       return;
     }
 
-    let runData: DailyRunDoc | null = null;
+    let runData: DailyRunWithMeta[] = [];
     let answerQuestionIds = new Set<string>();
     let streakCurrent = 0;
     let activeSession: (LiveSessionDoc & { id?: string }) | null = null;
-    let recentRuns: DailyRunDoc[] = [];
+    let recentRuns: DailyRunWithMeta[] = [];
     let activeSessionParticipantCount = 0;
     let iAmParticipantInActiveSession = false;
     let questions = new Map<string, QuestionDoc>();
@@ -112,21 +114,22 @@ export function useHomeViewState(): HomeViewState {
     let unsubscribeActiveParticipants: (() => void) | null = null;
 
     const emit = () => {
-      const validatedRun = runData
-        ? validateDailyRun({
-            run: runData,
-            questions,
-            activeMemberIds,
-          })
-        : null;
-      const run = runData;
-      const visiblePlayableItems =
-        validatedRun?.playableItems.filter((item) => {
+      const todayRunViews = runData.map((run) => {
+        const validated = validateDailyRun({
+          run,
+          questions,
+          activeMemberIds,
+        });
+        const visibleItems = validated.playableItems.filter((item) => {
           const question = questions.get(item.questionId);
           return !question
             || !shouldHideUserTrophyQuestionForUser(question, authState.user.userId);
-        }) ?? [];
-      const visiblePlayableQuestionIds = visiblePlayableItems.map((item) => item.questionId);
+        });
+        return { run, validated, visibleItems };
+      });
+      const visiblePlayableQuestionKeys = todayRunViews.flatMap(({ run, visibleItems }) =>
+        visibleItems.map((item) => answerKey(run.runId, item.questionId)),
+      );
       const memberMap = new Map(
         Array.from(users.entries()).map(([userId, user]) => [
           userId,
@@ -139,7 +142,7 @@ export function useHomeViewState(): HomeViewState {
       );
       const targetCustomQuestionDateKey = getCustomQuestionTargetDateKey({
         todayDateKey: dateKey,
-        hasTodayRun: Boolean(runData),
+        hasTodayRun: runData.length > 0,
       });
       const myCustomQuestions = Array.from(questions.entries())
         .map(([questionId, question]) => ({
@@ -168,16 +171,18 @@ export function useHomeViewState(): HomeViewState {
         isPendingUserTrophyQuestion(question, targetCustomQuestionDateKey),
       );
       const activeCustomQuestionNotice =
-        runData && validatedRun
-          ? [...visiblePlayableItems]
+        runData.length > 0
+          ? [...todayRunViews.flatMap((view) =>
+              view.visibleItems.map((item) => ({ item, run: view.run })),
+            )]
               .reverse()
-              .map((item) => {
+              .map(({ item, run }) => {
                 const question = questions.get(item.questionId);
                 if (!question || !isUserTrophyQuestion(question)) {
                   return null;
                 }
 
-                if (answerQuestionIds.has(item.questionId)) {
+                if (answerQuestionIds.has(answerKey(run.runId, item.questionId))) {
                   return null;
                 }
 
@@ -196,7 +201,7 @@ export function useHomeViewState(): HomeViewState {
           : null;
 
       const buildReviewItems = (
-        runToRender: DailyRunDoc,
+        runToRender: DailyRunWithMeta,
         mode: "today" | "past" = "today",
       ) => {
         const validated = validateDailyRun({
@@ -226,6 +231,8 @@ export function useHomeViewState(): HomeViewState {
           }
 
           const question = mapDailyQuestion({
+            runId: runToRender.runId,
+            runNumber: runToRender.runNumber,
             questionId: item.questionId,
             question: questionDoc,
             index,
@@ -238,10 +245,11 @@ export function useHomeViewState(): HomeViewState {
             return [];
           }
 
-          const reviewKey = `${runToRender.dateKey}_${item.questionId}`;
+          const reviewKey = answerKey(runToRender.runId, item.questionId);
           const myAnswerDoc = allMyDailyAnswers.find(
             (answer) =>
-              answer.dateKey === runToRender.dateKey && answer.questionId === item.questionId,
+              (answer.runId ?? answer.dateKey) === runToRender.runId
+              && answer.questionId === item.questionId,
           );
           const myAnswer = myAnswerDoc
             ? mapDailyAnswerDraft(myAnswerDoc as DailyAnswerDoc)
@@ -249,6 +257,10 @@ export function useHomeViewState(): HomeViewState {
           return [
             {
               dateKey: runToRender.dateKey,
+              runId: runToRender.runId,
+              runNumber: runToRender.runNumber,
+              runLabel:
+                runToRender.runNumber > 1 ? `Daily Nr. ${runToRender.runNumber}` : undefined,
               questionId: question.questionId,
               questionText: question.text,
               category: question.category,
@@ -266,18 +278,19 @@ export function useHomeViewState(): HomeViewState {
       };
 
       const dailyRecap =
-        run && validatedRun
-          ? buildReviewItems(run, "today")
-          : [];
+        runData.flatMap((run) => buildReviewItems(run, "today"));
 
       const pastDailies: HomePastDailyReview[] = recentRuns
         .filter((run) => run.dateKey < dateKey)
         .slice(0, 5)
         .map((run) => ({
+          runId: run.runId,
+          runNumber: run.runNumber,
+          runLabel: run.runNumber > 1 ? `Daily Nr. ${run.runNumber}` : undefined,
           dateKey: run.dateKey,
           totalInRun: run.questionCount,
           answeredByMe: allMyDailyAnswers.filter(
-            (answer) => answer.dateKey === run.dateKey,
+            (answer) => (answer.runId ?? answer.dateKey) === run.runId,
           ).length,
           status: resolveDailyRunStatus(run),
           items: buildReviewItems(run, "past"),
@@ -290,17 +303,21 @@ export function useHomeViewState(): HomeViewState {
           localDateLabel: formatBerlinDateLabel(dateKey),
           streakCurrent,
         },
-        dailyTeaser: runData
+        dailyTeaser: runData.length > 0
           ? {
               dateKey,
-              totalQuestions: visiblePlayableQuestionIds.length,
-              answeredByMe: visiblePlayableQuestionIds.filter((questionId) =>
-                answerQuestionIds.has(questionId),
+              totalQuestions: visiblePlayableQuestionKeys.length,
+              answeredByMe: visiblePlayableQuestionKeys.filter((key) =>
+                answerQuestionIds.has(key),
               ).length,
-              status: resolveDailyRunStatus(runData),
-              revealPolicy: runData.revealPolicy,
-              hasIncompleteItems: validatedRun?.hasIncompleteItems,
-              isUnplayable: validatedRun?.isUnplayable,
+              status: runData.some((run) => resolveDailyRunStatus(run) === "active")
+                ? "active"
+                : runData.some((run) => resolveDailyRunStatus(run) === "scheduled")
+                  ? "scheduled"
+                  : "closed",
+              revealPolicy: runData[0]?.revealPolicy ?? "after_answer",
+              hasIncompleteItems: todayRunViews.some((view) => view.validated.hasIncompleteItems),
+              isUnplayable: todayRunViews.every((view) => view.validated.isUnplayable),
             }
           : null,
         dailyRecap,
@@ -366,14 +383,6 @@ export function useHomeViewState(): HomeViewState {
 
     const unsubscribers = [
       onSnapshot(
-        runRef,
-        (snapshot) => {
-          runData = snapshot.exists() ? (snapshot.data() as DailyRunDoc) : null;
-          emit();
-        },
-        handleError("Home-Daily"),
-      ),
-      onSnapshot(
         query(
           privateAnswersRef,
           where("userId", "==", authState.user.userId),
@@ -385,7 +394,7 @@ export function useHomeViewState(): HomeViewState {
           myDailyAnswers = new Map(
             allMyDailyAnswers
               .filter((answer) => answer.dateKey === dateKey)
-              .map((answer) => [answer.questionId, answer]),
+              .map((answer) => [answerKey(answer.runId ?? answer.dateKey, answer.questionId), answer]),
           );
           answeredDateKeys = new Set(
             allMyDailyAnswers.map((answer) => answer.dateKey),
@@ -394,7 +403,7 @@ export function useHomeViewState(): HomeViewState {
             snapshot.docs
               .map((doc) => doc.data() as DailyPrivateAnswerDoc)
               .filter((answer) => answer.dateKey === dateKey)
-              .map((answer) => answer.questionId),
+              .map((answer) => answerKey(answer.runId ?? answer.dateKey, answer.questionId)),
           );
           streakCurrent = computeDailyStreakStats(answeredDateKeys).current;
           emit();
@@ -404,7 +413,21 @@ export function useHomeViewState(): HomeViewState {
       onSnapshot(
         query(runsRef, orderBy("dateKey", "desc")),
         (snapshot) => {
-          recentRuns = snapshot.docs.map((doc) => doc.data() as DailyRunDoc);
+          recentRuns = snapshot.docs.map((doc) => {
+            const data = doc.data() as DailyRunDoc;
+            return {
+              ...data,
+              runId: data.runId ?? doc.id,
+              runNumber: data.runNumber ?? (doc.id === data.dateKey ? 1 : 99),
+            };
+          });
+          runData = recentRuns
+            .filter((run) => run.dateKey === dateKey)
+            .sort((left, right) =>
+              left.runNumber === right.runNumber
+                ? left.runId.localeCompare(right.runId)
+                : left.runNumber - right.runNumber,
+            );
           emit();
         },
         handleError("Home-Daily-Verlauf"),
@@ -415,7 +438,7 @@ export function useHomeViewState(): HomeViewState {
           allPublicAnswers = snapshot.docs
             .map((doc) => doc.data() as DailyAnswerDoc)
             .reduce<Map<string, DailyAnswerDoc[]>>((acc, answer) => {
-              const key = `${answer.dateKey}_${answer.questionId}`;
+              const key = answerKey(answer.runId ?? answer.dateKey, answer.questionId);
               const existing = acc.get(key) ?? [];
               existing.push(answer);
               acc.set(key, existing);
@@ -431,7 +454,7 @@ export function useHomeViewState(): HomeViewState {
           allMemeVotes = snapshot.docs
             .map((doc) => doc.data() as DailyMemeVoteDoc)
             .reduce<Map<string, DailyMemeVoteDoc[]>>((acc, vote) => {
-              const key = `${vote.dateKey}_${vote.questionId}`;
+              const key = answerKey(vote.runId ?? vote.dateKey, vote.questionId);
               const existing = acc.get(key) ?? [];
               existing.push(vote);
               acc.set(key, existing);
@@ -536,6 +559,10 @@ function getQuestionSource(
   }
 
   return questions.get(item.questionId) ?? null;
+}
+
+function answerKey(runId: string, questionId: string) {
+  return `${runId}:${questionId}`;
 }
 
 type DailyRunItemDocLike = NonNullable<DailyRunDoc["items"]>[number];

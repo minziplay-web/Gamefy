@@ -37,7 +37,7 @@ export function ProfileHeader({
         <button
           type="button"
           onClick={onToggleEditing}
-          className="absolute right-4 top-4 z-10 inline-flex size-10 items-center justify-center rounded-full bg-white/90 text-profile-text shadow-card-flat transition hover:bg-white"
+          className="absolute right-3 top-3 z-10 inline-flex size-12 items-center justify-center rounded-full border-2 border-white bg-profile-primary text-lg font-bold text-white shadow-card-raised transition hover:scale-105 hover:bg-profile-strong active:scale-95"
           aria-label={isEditing ? "Bearbeiten beenden" : "Profil bearbeiten"}
         >
           ✎
@@ -51,7 +51,7 @@ export function ProfileHeader({
             <button
               type="button"
               onClick={onEditPhoto}
-              className="absolute -bottom-1 -right-1 inline-flex size-8 items-center justify-center rounded-full border border-white bg-profile-primary text-sm text-cream shadow-sm"
+              className="absolute -bottom-2 -right-2 inline-flex size-12 items-center justify-center rounded-full border-4 border-white bg-profile-primary text-lg font-bold text-white shadow-card-raised transition hover:scale-105 hover:bg-profile-strong active:scale-95"
               aria-label="Profilbild bearbeiten"
             >
               ✎
@@ -67,7 +67,7 @@ export function ProfileHeader({
               <button
                 type="button"
                 onClick={onEditName}
-                className="inline-flex size-8 items-center justify-center rounded-full bg-profile-soft text-sm text-profile-text transition hover:bg-profile-soft"
+                className="inline-flex size-11 items-center justify-center rounded-full bg-profile-primary text-base font-bold text-white shadow-card-flat transition hover:scale-105 hover:bg-profile-strong active:scale-95"
                 aria-label="Anzeigenamen bearbeiten"
               >
                 ✎

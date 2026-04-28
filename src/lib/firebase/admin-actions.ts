@@ -55,7 +55,15 @@ import type {
   QuestionType,
   TargetMode,
 } from "@/lib/types/frontend";
-import type { DailyRunDoc, QuestionDoc, UserDoc } from "@/lib/types/firestore";
+import type {
+  DailyAnswerDoc,
+  DailyFirstAnswerDoc,
+  DailyMemeVoteDoc,
+  DailyPrivateAnswerDoc,
+  DailyRunDoc,
+  QuestionDoc,
+  UserDoc,
+} from "@/lib/types/firestore";
 
 interface AdminCleanupResult {
   finalizedStaleLiveSessions: number;
@@ -505,10 +513,12 @@ export async function resetDailyRunAnswers(
 
 export async function rerollDailyRunQuestion(params: {
   dateKey: DateKey;
+  runId?: string;
   questionId: string;
 }): Promise<AdminDailyQuestionRerollResult> {
   const { dateKey, questionId } = params;
-  const runRef = dailyRunDoc(dateKey);
+  const runId = params.runId ?? dateKey;
+  const runRef = dailyRunDoc(runId);
   const runsRef = dailyRunsCollection();
   const questionsRef = questionsCollection();
   const usersRef = usersCollection();
@@ -614,6 +624,7 @@ export async function rerollDailyRunQuestion(params: {
 
   const deletionResult = await collectDailyQuestionDeletionData({
     dateKey,
+    runId,
     questionId,
     answersRef,
     privateAnswersRef,
@@ -763,7 +774,7 @@ async function upsertDailyRun(params: {
   const { dateKey, createdBy, questionCount, revealPolicy } = params;
   const questionsRef = questionsCollection();
   const usersRef = usersCollection();
-  const runRef = dailyRunDoc(dateKey);
+  let runRef = dailyRunDoc(dateKey);
   const answersRef = dailyAnswersCollection();
   const privateAnswersRef = dailyPrivateAnswersCollection();
   const firstAnswersRef = dailyFirstAnswersCollection();
@@ -781,10 +792,32 @@ async function upsertDailyRun(params: {
     throw new Error("Firestore ist nicht verfügbar.");
   }
 
-  const existingRun = await getDoc(runRef);
+  let existingRun = await getDoc(runRef);
+  let targetRunId = dateKey;
+  let targetRunNumber = 1;
+  let resultMode: AdminRunActionResult["mode"] = params.mode;
+  let existingDailyQuestionIds = new Set<string>();
 
   if (existingRun.exists() && params.mode === "create") {
-    throw new Error("Für heute existiert bereits ein Daily-Run. Bitte explizit ersetzen.");
+    const runsSnapshot = await getDocs(query(dailyRunsCollection()!, where("dateKey", "==", dateKey)));
+    existingDailyQuestionIds = new Set(
+      runsSnapshot.docs.flatMap((entry) => {
+        const data = entry.data() as DailyRunDoc;
+        return data.questionIds ?? [];
+      }),
+    );
+    const existingNumbers = runsSnapshot.docs.map((entry) => {
+      const data = entry.data() as DailyRunDoc;
+      return data.runNumber ?? (entry.id === data.dateKey ? 1 : 1);
+    });
+    targetRunNumber = Math.max(1, ...existingNumbers) + 1;
+    targetRunId = `${dateKey}_${targetRunNumber}`;
+    runRef = dailyRunDoc(targetRunId);
+    if (!runRef) {
+      throw new Error("Firestore ist nicht verfügbar.");
+    }
+    existingRun = await getDoc(runRef);
+    resultMode = "add";
   }
 
   const [questionSnapshot, userSnapshot] = await Promise.all([
@@ -805,6 +838,7 @@ async function upsertDailyRun(params: {
   const customQuestions = allQuestions.filter(
     (question) =>
       isUserTrophyQuestion(question)
+      && !existingDailyQuestionIds.has(question.questionId)
       && question.targetDateKey === dateKey
       && (question.consumedInDailyDateKey == null
         || question.consumedInDailyDateKey === dateKey),
@@ -813,6 +847,7 @@ async function upsertDailyRun(params: {
     .filter(
       (question) =>
         !isUserTrophyQuestion(question)
+        && !existingDailyQuestionIds.has(question.questionId)
         && (question.targetMode === "daily" || question.targetMode === "both")
         && question.dailyLocked !== true
         && canUseQuestionInDaily(question.type, users.length),
@@ -823,6 +858,8 @@ async function upsertDailyRun(params: {
   }
 
   const runPayload = buildDailyRunPayload({
+    runId: targetRunId,
+    runNumber: targetRunNumber,
     dateKey,
     createdBy,
     questionCount,
@@ -842,6 +879,7 @@ async function upsertDailyRun(params: {
   if (params.mode === "replace") {
     const replacementResult = await replaceDailyRunAtomically({
       dateKey,
+      runId: targetRunId,
       runRef,
       runPayload,
       answersRef,
@@ -856,6 +894,8 @@ async function upsertDailyRun(params: {
     });
     return {
       mode: "replace",
+      runId: targetRunId,
+      runNumber: targetRunNumber,
       dateKey,
       questionCount: runPayload.questionCount,
       ...replacementResult,
@@ -869,7 +909,9 @@ async function upsertDailyRun(params: {
     questionIds: customQuestions.map((question) => question.questionId),
   });
   return {
-    mode: "create",
+    mode: resultMode,
+    runId: targetRunId,
+    runNumber: targetRunNumber,
     dateKey,
     questionCount: runPayload.questionCount,
     deletedPublicAnswers: 0,
@@ -880,6 +922,7 @@ async function upsertDailyRun(params: {
 
 async function replaceDailyRunAtomically(params: {
   dateKey: DateKey;
+  runId: string;
   runRef: NonNullable<ReturnType<typeof dailyRunDoc>>;
   runPayload: ReturnType<typeof buildDailyRunPayload>;
   answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
@@ -894,6 +937,7 @@ async function replaceDailyRunAtomically(params: {
 >> {
   const {
     dateKey,
+    runId,
     runRef,
     runPayload,
     answersRef,
@@ -903,6 +947,7 @@ async function replaceDailyRunAtomically(params: {
   } = params;
   const deletionResult = await collectDailyRunDeletionData({
     dateKey,
+    runId,
     answersRef,
     privateAnswersRef,
     firstAnswersRef,
@@ -952,6 +997,7 @@ async function replaceDailyRunAtomically(params: {
 
 async function deleteDailyRunData(params: {
   dateKey: DateKey;
+  runId?: string;
   runRef: NonNullable<ReturnType<typeof dailyRunDoc>>;
   answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
   privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
@@ -963,10 +1009,11 @@ async function deleteDailyRunData(params: {
   | "deletedPrivateAnswers"
   | "deletedFirstAnswerLocks"
 >> {
-  const { runRef, dateKey, answersRef, privateAnswersRef, firstAnswersRef, memeVotesRef } =
+  const { runRef, dateKey, runId = dateKey, answersRef, privateAnswersRef, firstAnswersRef, memeVotesRef } =
     params;
   const deletionResult = await collectDailyRunDeletionData({
     dateKey,
+    runId,
     answersRef,
     privateAnswersRef,
     firstAnswersRef,
@@ -998,13 +1045,14 @@ async function deleteDailyRunData(params: {
 
 async function collectDailyQuestionDeletionData(params: {
   dateKey: DateKey;
+  runId?: string;
   questionId: string;
   answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
   privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
   firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
   memeVotesRef: NonNullable<ReturnType<typeof dailyMemeVotesCollection>>;
 }) {
-  const { dateKey, questionId, answersRef, privateAnswersRef, firstAnswersRef, memeVotesRef } =
+  const { dateKey, runId, questionId, answersRef, privateAnswersRef, firstAnswersRef, memeVotesRef } =
     params;
   const [answersSnapshot, privateAnswersSnapshot, firstAnswersSnapshot, memeVotesSnapshot] =
     await Promise.all([
@@ -1038,30 +1086,36 @@ async function collectDailyQuestionDeletionData(params: {
       ),
     ]);
 
+  const answerDocs = filterDocsByRun(answersSnapshot.docs, runId);
+  const privateAnswerDocs = filterDocsByRun(privateAnswersSnapshot.docs, runId);
+  const firstAnswerDocs = filterDocsByRun(firstAnswersSnapshot.docs, runId);
+  const memeVoteDocs = filterDocsByRun(memeVotesSnapshot.docs, runId);
+
   return {
     docs: [
-      ...answersSnapshot.docs,
-      ...privateAnswersSnapshot.docs,
-      ...firstAnswersSnapshot.docs,
-      ...memeVotesSnapshot.docs,
+      ...answerDocs,
+      ...privateAnswerDocs,
+      ...firstAnswerDocs,
+      ...memeVoteDocs,
     ],
     counts: {
-      deletedPublicAnswers: answersSnapshot.docs.length,
-      deletedPrivateAnswers: privateAnswersSnapshot.docs.length,
-      deletedFirstAnswerLocks: firstAnswersSnapshot.docs.length,
-      deletedMemeVotes: memeVotesSnapshot.docs.length,
+      deletedPublicAnswers: answerDocs.length,
+      deletedPrivateAnswers: privateAnswerDocs.length,
+      deletedFirstAnswerLocks: firstAnswerDocs.length,
+      deletedMemeVotes: memeVoteDocs.length,
     },
   };
 }
 
 async function collectDailyRunDeletionData(params: {
   dateKey: DateKey;
+  runId?: string;
   answersRef: NonNullable<ReturnType<typeof dailyAnswersCollection>>;
   privateAnswersRef: NonNullable<ReturnType<typeof dailyPrivateAnswersCollection>>;
   firstAnswersRef: NonNullable<ReturnType<typeof dailyFirstAnswersCollection>>;
   memeVotesRef: NonNullable<ReturnType<typeof dailyMemeVotesCollection>>;
 }) {
-  const { dateKey, answersRef, privateAnswersRef, firstAnswersRef, memeVotesRef } = params;
+  const { dateKey, runId, answersRef, privateAnswersRef, firstAnswersRef, memeVotesRef } = params;
   const [answersSnapshot, privateAnswersSnapshot, firstAnswersSnapshot, memeVotesSnapshot] =
     await Promise.all([
       getDocs(query(answersRef, where("dateKey", "==", dateKey))),
@@ -1070,19 +1124,38 @@ async function collectDailyRunDeletionData(params: {
       getDocs(query(memeVotesRef, where("dateKey", "==", dateKey))),
     ]);
 
+  const answerDocs = filterDocsByRun(answersSnapshot.docs, runId);
+  const privateAnswerDocs = filterDocsByRun(privateAnswersSnapshot.docs, runId);
+  const firstAnswerDocs = filterDocsByRun(firstAnswersSnapshot.docs, runId);
+  const memeVoteDocs = filterDocsByRun(memeVotesSnapshot.docs, runId);
+
   return {
     docs: [
-      ...answersSnapshot.docs,
-      ...privateAnswersSnapshot.docs,
-      ...firstAnswersSnapshot.docs,
-      ...memeVotesSnapshot.docs,
+      ...answerDocs,
+      ...privateAnswerDocs,
+      ...firstAnswerDocs,
+      ...memeVoteDocs,
     ],
     counts: {
-      deletedPublicAnswers: answersSnapshot.docs.length,
-      deletedPrivateAnswers: privateAnswersSnapshot.docs.length,
-      deletedFirstAnswerLocks: firstAnswersSnapshot.docs.length,
+      deletedPublicAnswers: answerDocs.length,
+      deletedPrivateAnswers: privateAnswerDocs.length,
+      deletedFirstAnswerLocks: firstAnswerDocs.length,
     },
   };
+}
+
+function filterDocsByRun<T extends { data: () => { dateKey?: string; runId?: string } }>(
+  docs: T[],
+  runId?: string,
+) {
+  if (!runId) {
+    return docs;
+  }
+
+  return docs.filter((entry) => {
+    const data = entry.data();
+    return (data.runId ?? data.dateKey) === runId;
+  });
 }
 
 function isOlderThanHours(value: unknown, hours: number) {

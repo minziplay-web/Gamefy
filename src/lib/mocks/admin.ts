@@ -78,19 +78,28 @@ export const mockAdmin: AdminViewState = {
   },
   dailyRuns: [
     {
+      runId: "2026-04-23",
       dateKey: "2026-04-23",
+      runNumber: 1,
+      runLabel: "Daily",
       status: "active",
       questionCount: 5,
       createdByDisplayName: "Leon",
     },
     {
+      runId: "2026-04-22",
       dateKey: "2026-04-22",
+      runNumber: 1,
+      runLabel: "Daily",
       status: "closed",
       questionCount: 5,
       createdByDisplayName: "Leon",
     },
     {
+      runId: "2026-04-21",
       dateKey: "2026-04-21",
+      runNumber: 1,
+      runLabel: "Daily",
       status: "closed",
       questionCount: 5,
       createdByDisplayName: "Leon",

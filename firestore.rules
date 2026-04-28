@@ -14,8 +14,8 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/questions/$(questionId));
     }
 
-    function dailyAnswerRecord(dateKey, questionId, userId) {
-      return get(/databases/$(database)/documents/dailyAnswers/$(dateKey + "_" + questionId + "_" + userId));
+    function dailyAnswerRecord(runId, questionId, userId) {
+      return get(/databases/$(database)/documents/dailyAnswers/$(runId + "_" + questionId + "_" + userId));
     }
 
     function isActiveMember() {
@@ -30,8 +30,8 @@ service cloud.firestore {
       return get(/databases/$(database)/documents/liveSessions/$(sessionId));
     }
 
-    function dailyRunRecord(dateKey) {
-      return get(/databases/$(database)/documents/dailyRuns/$(dateKey));
+    function dailyRunRecord(runId) {
+      return get(/databases/$(database)/documents/dailyRuns/$(runId));
     }
 
     function liveParticipantRecord(sessionId, userId) {
@@ -42,19 +42,14 @@ service cloud.firestore {
       return isSignedIn() && answerId.matches('.*_' + request.auth.uid + '$');
     }
 
-    function questionInDailyRun(dateKey, questionId) {
-      return exists(/databases/$(database)/documents/dailyRuns/$(dateKey))
-        && questionId in dailyRunRecord(dateKey).data.questionIds;
+    function questionInDailyRun(runId, questionId) {
+      return exists(/databases/$(database)/documents/dailyRuns/$(runId))
+        && questionId in dailyRunRecord(runId).data.questionIds;
     }
 
-    function isActiveDailyRun(dateKey) {
-      return exists(/databases/$(database)/documents/dailyRuns/$(dateKey))
-        && dailyRunRecord(dateKey).data.status == "active";
-    }
-
-    function isAnswerableDailyRun(dateKey) {
-      return exists(/databases/$(database)/documents/dailyRuns/$(dateKey))
-        && dailyRunRecord(dateKey).data.status in ["active", "closed"];
+    function isAnswerableDailyRun(runId) {
+      return exists(/databases/$(database)/documents/dailyRuns/$(runId))
+        && dailyRunRecord(runId).data.status in ["active", "closed"];
     }
 
     function isConnectedSessionParticipant(sessionId) {
@@ -159,6 +154,7 @@ service cloud.firestore {
 
     function hasOnlyDailyAnswerFields(data) {
       return data.keys().hasOnly([
+        "runId",
         "dateKey",
         "questionId",
         "userId",
@@ -176,6 +172,7 @@ service cloud.firestore {
 
     function hasOnlyDailyPrivateAnswerFields(data) {
       return data.keys().hasOnly([
+        "runId",
         "dateKey",
         "questionId",
         "userId",
@@ -391,7 +388,9 @@ service cloud.firestore {
 
     function hasOnlyDailyRunFields(data) {
       return data.keys().hasOnly([
+        "runId",
         "dateKey",
+        "runNumber",
         "timezone",
         "status",
         "questionCount",
@@ -404,9 +403,11 @@ service cloud.firestore {
       ]);
     }
 
-    function hasValidDailyRunPayload(data, dateKey) {
+    function hasValidDailyRunPayload(data, runId) {
       return hasOnlyDailyRunFields(data)
-        && data.dateKey == dateKey
+        && data.runId == runId
+        && data.dateKey is string
+        && (!("runNumber" in data) || data.runNumber is number)
         && data.timezone == "Europe/Berlin"
         && data.status in ["scheduled", "active", "closed"]
         && isKnownRevealPolicy(data.revealPolicy)
@@ -610,10 +611,10 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    match /dailyRuns/{dateKey} {
+    match /dailyRuns/{runId} {
       allow read: if isActiveMember();
       allow create, update: if isAdmin()
-        && hasValidDailyRunPayload(request.resource.data, dateKey);
+        && hasValidDailyRunPayload(request.resource.data, runId);
       allow delete: if isAdmin();
     }
 
@@ -624,8 +625,8 @@ service cloud.firestore {
         && hasOnlyDailyAnswerFields(request.resource.data)
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.questionType == questionRecord(request.resource.data.questionId).data.type
-        && isAnswerableDailyRun(request.resource.data.dateKey)
-        && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId)
+        && isAnswerableDailyRun(request.resource.data.runId)
+        && questionInDailyRun(request.resource.data.runId, request.resource.data.questionId)
         && hasValidAnswerPayloadForType(request.resource.data.questionType, request.resource.data);
       allow delete: if isAdmin()
         || (isSignedIn() && resource != null && resource.data.userId == request.auth.uid);
@@ -640,8 +641,8 @@ service cloud.firestore {
         && hasOnlyDailyPrivateAnswerFields(request.resource.data)
         && request.resource.data.userId == request.auth.uid
         && request.resource.data.questionType == questionRecord(request.resource.data.questionId).data.type
-        && isAnswerableDailyRun(request.resource.data.dateKey)
-        && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId)
+        && isAnswerableDailyRun(request.resource.data.runId)
+        && questionInDailyRun(request.resource.data.runId, request.resource.data.questionId)
         && hasValidAnswerPayloadForType(request.resource.data.questionType, request.resource.data);
       allow delete: if isAdmin()
         || (resource != null && isSignedIn() && resource.data.userId == request.auth.uid);
@@ -659,9 +660,9 @@ service cloud.firestore {
     match /dailyFirstAnswers/{docId} {
       allow read: if isActiveMember();
       allow create: if isActiveMember()
-        && request.resource.data.dateKey + "_" + request.resource.data.questionId == docId
+        && request.resource.data.runId + "_" + request.resource.data.questionId == docId
         && request.resource.data.userId == request.auth.uid
-        && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId);
+        && questionInDailyRun(request.resource.data.runId, request.resource.data.questionId);
       allow update: if false;
       allow delete: if isAdmin();
     }
@@ -670,20 +671,20 @@ service cloud.firestore {
       allow read: if isActiveMember();
       allow create: if isActiveMember()
         && request.auth.uid == request.resource.data.voterUserId
-        && voteId == request.resource.data.dateKey + "_"
+        && voteId == request.resource.data.runId + "_"
           + request.resource.data.questionId + "_"
           + request.resource.data.authorUserId + "_"
           + request.resource.data.voterUserId
-        && questionInDailyRun(request.resource.data.dateKey, request.resource.data.questionId)
-        && isAnswerableDailyRun(request.resource.data.dateKey)
-        && exists(/databases/$(database)/documents/dailyAnswers/$(request.resource.data.dateKey + "_" + request.resource.data.questionId + "_" + request.resource.data.authorUserId))
+        && questionInDailyRun(request.resource.data.runId, request.resource.data.questionId)
+        && isAnswerableDailyRun(request.resource.data.runId)
+        && exists(/databases/$(database)/documents/dailyAnswers/$(request.resource.data.runId + "_" + request.resource.data.questionId + "_" + request.resource.data.authorUserId))
         && dailyAnswerRecord(
-          request.resource.data.dateKey,
+          request.resource.data.runId,
           request.resource.data.questionId,
           request.resource.data.authorUserId
         ).data.userId == request.resource.data.authorUserId
         && dailyAnswerRecord(
-          request.resource.data.dateKey,
+          request.resource.data.runId,
           request.resource.data.questionId,
           request.resource.data.authorUserId
         ).data.questionType == "meme_caption";

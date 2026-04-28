@@ -49,7 +49,9 @@ export interface DailyRunItemDoc {
 }
 
 export interface DailyRunDoc {
+  runId?: string;
   dateKey: string;
+  runNumber?: number;
   timezone: "Europe/Berlin";
   status: "scheduled" | "active" | "closed";
   questionCount: number;
@@ -62,6 +64,7 @@ export interface DailyRunDoc {
 }
 
 export interface DailyAnswerDoc {
+  runId?: string;
   dateKey: string;
   questionId: string;
   userId: string;
@@ -81,6 +84,7 @@ export interface DailyAnswerDoc {
 }
 
 export interface DailyPrivateAnswerDoc {
+  runId?: string;
   dateKey: string;
   questionId: string;
   userId: string;
@@ -101,6 +105,7 @@ export interface DailyPrivateAnswerDoc {
 }
 
 export interface DailyFirstAnswerDoc {
+  runId?: string;
   dateKey: string;
   questionId: string;
   userId: string;
@@ -108,6 +113,7 @@ export interface DailyFirstAnswerDoc {
 }
 
 export interface DailyMemeVoteDoc {
+  runId?: string;
   dateKey: string;
   questionId: string;
   authorUserId: string;

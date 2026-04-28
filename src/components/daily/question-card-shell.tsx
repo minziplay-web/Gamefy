@@ -72,6 +72,11 @@ export function QuestionCardShell({
         >
           <div className="flex flex-wrap items-center gap-2">
             <CategoryBadge category={question.category} size="sm" />
+            {question.runLabel ? (
+              <Badge tone="warning" size="sm">
+                {question.runLabel}
+              </Badge>
+            ) : null}
             <span className="ml-auto text-[11px] font-semibold tabular-nums text-sand-500">
               {question.indexInRun + 1} / {question.totalInRun}
             </span>

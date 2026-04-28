@@ -53,6 +53,7 @@ export default function ResolvedPage() {
 
           await submitMemeCaptionVote({
             dateKey: item.dateKey,
+            runId: item.runId,
             questionId: item.questionId,
             authorUserId,
             voterUserId: authState.user.userId,

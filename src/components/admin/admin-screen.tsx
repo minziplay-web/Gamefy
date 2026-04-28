@@ -64,6 +64,7 @@ export function AdminScreen({
   onResetToday?: (dateKey: string) => Promise<AdminDailyDeleteResult>;
   onRerollQuestion?: (
     dateKey: string,
+    runId: string,
     questionId: string,
   ) => Promise<AdminDailyQuestionRerollResult>;
   onDeactivateUser?: (userId: string) => Promise<void>;
@@ -80,6 +81,7 @@ export function AdminScreen({
   } | null>(null);
   const [rerollConfirm, setRerollConfirm] = useState<{
     dateKey: string;
+    runId: string;
     questionId: string;
     text: string;
   } | null>(null);
@@ -287,12 +289,16 @@ export function AdminScreen({
     setState((prev) => {
       if (prev.status !== "ready") return prev;
       const today = berlinDateKey();
-      if (mode === "create" && prev.dailyRuns.some((r) => r.dateKey === today)) return prev;
+      const nextRunNumber =
+        Math.max(0, ...prev.dailyRuns.filter((r) => r.dateKey === today).map((r) => r.runNumber)) + 1;
       return {
         ...prev,
         dailyRuns: [
           {
+            runId: nextRunNumber === 1 ? today : `${today}_${nextRunNumber}`,
             dateKey: today,
+            runNumber: nextRunNumber,
+            runLabel: nextRunNumber === 1 ? "Daily" : `Daily Nr. ${nextRunNumber}`,
             status: "scheduled",
             questionCount: prev.config.draft.dailyQuestionCount,
             createdByDisplayName: "Admin",
@@ -319,15 +325,6 @@ export function AdminScreen({
   };
 
   const requestCreateRun = () => {
-    const today = berlinDateKey();
-    const existing =
-      state.status === "ready"
-        ? state.dailyRuns.find((r) => r.dateKey === today)
-        : undefined;
-    if (existing) {
-      setReplaceConfirm(today);
-      return;
-    }
     void runCreate("create").catch(() => undefined);
   };
 
@@ -408,7 +405,7 @@ export function AdminScreen({
     }));
 
     try {
-      const result = await onRerollQuestion(target.dateKey, target.questionId);
+      const result = await onRerollQuestion(target.dateKey, target.runId, target.questionId);
       setRerollConfirm(null);
       setRunActionState({
         status: "success",
@@ -590,8 +587,9 @@ export function AdminScreen({
           <AdminDailyList
             runs={state.dailyRuns}
             onCreate={requestCreateRun}
-            onRerollQuestion={(dateKey, questionId, text) =>
-              setRerollConfirm({ dateKey, questionId, text })
+            onReplaceToday={() => setReplaceConfirm(berlinDateKey())}
+            onRerollQuestion={(dateKey, runId, questionId, text) =>
+              setRerollConfirm({ dateKey, runId, questionId, text })
             }
             onDeleteRun={(dateKey) =>
               setDeleteRunConfirm({
@@ -737,6 +735,10 @@ function buildImportMessage(result: AdminQuestionImportResult) {
 function buildRunActionMessage(result: AdminRunActionResult) {
   if (result.mode === "create") {
     return `Run für ${result.dateKey} mit ${result.questionCount} Fragen erzeugt.`;
+  }
+
+  if (result.mode === "add") {
+    return `${result.runNumber && result.runNumber > 1 ? `Daily Nr. ${result.runNumber}` : "Weiteres Daily"} für ${result.dateKey} mit ${result.questionCount} Fragen erzeugt.`;
   }
 
   const clearedTotal =

@@ -41,11 +41,12 @@ export async function submitDailyAnswer(params: {
   draft: DailyAnswerDraft;
 }) {
   const { dateKey, user, question, draft } = params;
-  const answerId = `${dateKey}_${question.questionId}_${user.userId}`;
+  const runId = question.runId ?? dateKey;
+  const answerId = `${runId}_${question.questionId}_${user.userId}`;
   const privateRef = dailyPrivateAnswerDoc(answerId);
   const publicRef = dailyAnswerDoc(answerId);
-  const firstAnswerRef = dailyFirstAnswerDoc(`${dateKey}_${question.questionId}`);
-  const runRef = dailyRunDoc(dateKey);
+  const firstAnswerRef = dailyFirstAnswerDoc(`${runId}_${question.questionId}`);
+  const runRef = dailyRunDoc(runId);
   const questionsRef = questionsCollection();
   const questionRef = questionsRef ? doc(questionsRef, question.questionId) : null;
 
@@ -106,6 +107,7 @@ export async function submitDailyAnswer(params: {
     shouldTryFirstAnswerLock = isFirstAnswerForQuestion;
 
     const nextPrivate: DailyPrivateAnswerDoc = {
+      runId,
       dateKey,
       questionId: question.questionId,
       userId: user.userId,
@@ -118,6 +120,7 @@ export async function submitDailyAnswer(params: {
     transaction.set(privateRef, nextPrivate, { merge: true });
 
     const nextPublic: DailyAnswerDoc = {
+      runId,
       dateKey,
       questionId: question.questionId,
       userId: user.userId,
@@ -142,6 +145,7 @@ export async function submitDailyAnswer(params: {
       }
 
       transaction.set(firstAnswerRef, {
+        runId,
         dateKey,
         questionId: question.questionId,
         userId: user.userId,
@@ -164,13 +168,15 @@ export async function submitDailyAnswer(params: {
 
 export async function submitMemeCaptionVote(params: {
   dateKey: string;
+  runId?: string;
   questionId: string;
   authorUserId: string;
   voterUserId: string;
   on: boolean;
 }) {
   const { dateKey, questionId, authorUserId, voterUserId, on } = params;
-  const voteId = `${dateKey}_${questionId}_${authorUserId}_${voterUserId}`;
+  const runId = params.runId ?? dateKey;
+  const voteId = `${runId}_${questionId}_${authorUserId}_${voterUserId}`;
   const voteRef = dailyMemeVoteDoc(voteId);
 
   if (!voteRef) {
@@ -183,6 +189,7 @@ export async function submitMemeCaptionVote(params: {
   }
 
   await setDoc(voteRef, {
+    runId,
     dateKey,
     questionId,
     authorUserId,

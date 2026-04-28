@@ -24,7 +24,7 @@ export function mergeDailyState(
 
   const mergedCards = incoming.cards.map((incomingCard): DailyQuestionCardState => {
     const prevCard = prev.cards.find(
-      (c) => c.question.questionId === incomingCard.question.questionId,
+      (c) => getDailyCardKey(c) === getDailyCardKey(incomingCard),
     );
 
     if (!prevCard) return incomingCard;
@@ -56,6 +56,10 @@ export function mergeDailyState(
   });
 
   return { ...incoming, cards: mergedCards };
+}
+
+function getDailyCardKey(card: DailyQuestionCardState) {
+  return `${card.question.runId ?? "daily"}:${card.question.questionId}`;
 }
 
 export function mergeAdminState(

@@ -51,7 +51,9 @@ export function shuffle<T>(input: T[]): T[] {
 }
 
 export function buildDailyRunPayload(params: {
+  runId?: string;
   dateKey: DateKey;
+  runNumber?: number;
   createdBy: string;
   questionCount: number;
   revealPolicy: RevealPolicy;
@@ -64,6 +66,8 @@ export function buildDailyRunPayload(params: {
 }) {
   const {
     dateKey,
+    runId,
+    runNumber,
     createdBy,
     questionCount,
     revealPolicy,
@@ -124,7 +128,9 @@ export function buildDailyRunPayload(params: {
   ].slice(0, MAX_DAILY_RUN_QUESTIONS);
 
   const payload = {
+    ...(runId ? { runId } : {}),
     dateKey,
+    ...(runNumber ? { runNumber } : {}),
     timezone: "Europe/Berlin" as const,
     status: dateKey === berlinDateKey() ? ("active" as const) : ("scheduled" as const),
     questionCount: items.length,

@@ -93,7 +93,7 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
     const isSelfProfile = viewedUserId === authState.user.userId;
     let members: MemberLite[] = [];
     let viewedUser: UserDoc | null = null;
-    let dailyRuns: DailyRunDoc[] = [];
+    let dailyRuns: Array<DailyRunDoc & { runId: string; runNumber: number }> = [];
     let myDailyAnswers: DailyPrivateAnswerDoc[] = [];
     let myLiveAnswers: LivePrivateAnswerDoc[] = [];
     let dailyAnswers: DailyAnswerDoc[] = [];
@@ -166,14 +166,19 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
       const roundsPlayed = new Set(liveParticipantSessionIds).size;
       const completedDailyCount = dailyRuns.filter((run) => {
         const answeredForRun = myDailyAnswers.filter(
-          (answer) => answer.dateKey === run.dateKey,
+          (answer) => (answer.runId ?? answer.dateKey) === run.runId,
         ).length;
         return run.questionCount > 0 && answeredForRun >= run.questionCount;
       }).length;
       const history: DailyHistoryEntry[] = dailyRuns.slice(0, 10).map((run) => ({
+        runId: run.runId,
+        runNumber: run.runNumber,
+        runLabel: run.runNumber > 1 ? `Daily Nr. ${run.runNumber}` : undefined,
         dateKey: run.dateKey,
         totalInRun: run.questionCount,
-        answeredByMe: myDailyAnswers.filter((answer) => answer.dateKey === run.dateKey).length,
+        answeredByMe: myDailyAnswers.filter(
+          (answer) => (answer.runId ?? answer.dateKey) === run.runId,
+        ).length,
         status: resolveDailyRunStatus(run),
       }));
 
@@ -256,7 +261,20 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
       onSnapshot(
         query(runsRef, orderBy("dateKey", "desc")),
         (snapshot) => {
-          dailyRuns = snapshot.docs.map((doc) => doc.data() as DailyRunDoc);
+          dailyRuns = snapshot.docs
+            .map((doc) => {
+              const data = doc.data() as DailyRunDoc;
+              return {
+                ...data,
+                runId: data.runId ?? doc.id,
+                runNumber: data.runNumber ?? (doc.id === data.dateKey ? 1 : 99),
+              };
+            })
+            .sort((left, right) =>
+              left.dateKey === right.dateKey
+                ? left.runNumber - right.runNumber
+                : right.dateKey.localeCompare(left.dateKey),
+            );
           emit();
         },
         handleError("Profil-Daily-Runs"),

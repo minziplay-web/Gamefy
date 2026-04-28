@@ -72,7 +72,7 @@ export function DailyScreen({
   useEffect(() => {
     if (!scrollTargetRef.current) return;
     scrollTargetRef.current.scrollIntoView({
-      behavior: "smooth",
+      behavior: "auto",
       block: "start",
     });
   }, [currentIndex, showCompletion]);
@@ -149,13 +149,13 @@ export function DailyScreen({
   }
 
   const updateCard = (
-    questionId: string,
+    cardKey: string,
     mutate: (card: DailyQuestionCardState) => DailyQuestionCardState,
   ) => {
     setState((prev) => {
       if (prev.status !== "ready") return prev;
       const nextCards = prev.cards.map((card) =>
-        card.question.questionId === questionId ? mutate(card) : card,
+        getCardKey(card) === cardKey ? mutate(card) : card,
       );
       const answered = nextCards.filter(
         (c) => c.phase === "submitted_waiting_reveal" || c.phase === "revealed",
@@ -168,21 +168,21 @@ export function DailyScreen({
     });
   };
 
-  const handleDraftChange = (questionId: string, draft: DailyAnswerDraft) => {
-    updateCard(questionId, (card) => {
+  const handleDraftChange = (cardKey: string, draft: DailyAnswerDraft) => {
+    updateCard(cardKey, (card) => {
       if (card.phase === "unanswered") return { ...card, draft };
       if (card.phase === "error") return { ...card, lastDraft: draft };
       return card;
     });
   };
 
-  const handleSubmit = (questionId: string, draft: DailyAnswerDraft) => {
+  const handleSubmit = (cardKey: string, draft: DailyAnswerDraft) => {
     const previousIndex = currentIndex;
     const nextUnansweredIndex =
       state.status === "ready"
         ? state.cards.findIndex(
             (card) =>
-              card.question.questionId !== questionId &&
+              getCardKey(card) !== cardKey &&
               (card.phase === "unanswered" || card.phase === "error"),
           )
         : -1;
@@ -190,13 +190,13 @@ export function DailyScreen({
       state.status === "ready"
         ? state.cards.every(
             (card) =>
-              card.question.questionId === questionId ||
+              getCardKey(card) === cardKey ||
               card.phase === "submitted_waiting_reveal" ||
               card.phase === "revealed",
           )
         : false;
 
-    updateCard(questionId, (card) => ({
+    updateCard(cardKey, (card) => ({
       phase: "submitting",
       question: card.question,
       draft,
@@ -208,7 +208,7 @@ export function DailyScreen({
 
     const currentCard =
       state.status === "ready"
-        ? state.cards.find((c) => c.question.questionId === questionId)
+        ? state.cards.find((c) => getCardKey(c) === cardKey)
         : undefined;
 
     if (onSubmitAnswer && currentCard) {
@@ -218,7 +218,7 @@ export function DailyScreen({
             setShowCompletion(true);
           }
 
-          updateCard(questionId, (card) => ({
+          updateCard(cardKey, (card) => ({
             phase: "submitted_waiting_reveal",
             question: card.question,
             myAnswer: draft,
@@ -230,7 +230,7 @@ export function DailyScreen({
               ? error.message
               : "Antwort konnte nicht gespeichert werden.";
           setCurrentIndex(previousIndex);
-          updateCard(questionId, (card) => ({
+          updateCard(cardKey, (card) => ({
             phase: "error",
             question: card.question,
             message,
@@ -246,7 +246,7 @@ export function DailyScreen({
         setShowCompletion(true);
       }
 
-      updateCard(questionId, (card) => {
+      updateCard(cardKey, (card) => {
         return {
           phase: "submitted_waiting_reveal",
           question: card.question,
@@ -309,13 +309,13 @@ export function DailyScreen({
         </div>
       ) : (
         <QuestionCardShell
-          key={currentCard.question.questionId}
+          key={getCardKey(currentCard)}
           state={currentCard}
           onDraftChange={(draft) =>
-            handleDraftChange(currentCard.question.questionId, draft)
+            handleDraftChange(getCardKey(currentCard), draft)
           }
           onSubmit={(draft) =>
-            handleSubmit(currentCard.question.questionId, draft)
+            handleSubmit(getCardKey(currentCard), draft)
           }
           onVoteMemeCaption={
             onVoteMemeCaption
@@ -327,6 +327,10 @@ export function DailyScreen({
       )}
     </div>
   );
+}
+
+function getCardKey(card: DailyQuestionCardState) {
+  return `${card.question.runId ?? "daily"}:${card.question.questionId}`;
 }
 
 function mockResultFor(

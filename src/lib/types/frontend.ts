@@ -139,6 +139,9 @@ export interface CustomDailyQuestionNotice {
 }
 
 export interface DailyRecapItem {
+  runId?: string;
+  runNumber?: number;
+  runLabel?: string;
   dateKey: DateKey;
   questionId: QuestionId;
   questionText: string;
@@ -147,6 +150,9 @@ export interface DailyRecapItem {
 }
 
 export interface HomePastDailyReview {
+  runId?: string;
+  runNumber?: number;
+  runLabel?: string;
   dateKey: DateKey;
   totalInRun: number;
   answeredByMe: number;
@@ -175,6 +181,9 @@ export type HomeViewState =
 // ---------------------------------------------------------
 
 interface DailyQuestionBase {
+  runId?: string;
+  runNumber?: number;
+  runLabel?: string;
   questionId: QuestionId;
   indexInRun: number;
   totalInRun: number;
@@ -514,6 +523,9 @@ export interface ProfileStats {
 }
 
 export interface DailyHistoryEntry {
+  runId?: string;
+  runNumber?: number;
+  runLabel?: string;
   dateKey: DateKey;
   totalInRun: number;
   answeredByMe: number;
@@ -542,6 +554,7 @@ export interface AdminQuestionRow {
   text: string;
   category: Category;
   type: QuestionType;
+  imagePath?: string;
   targetMode: TargetMode;
   active: boolean;
   dailyLocked: boolean;
@@ -559,7 +572,10 @@ export interface AdminQuestionFilter {
 }
 
 export interface AdminDailyRunRow {
+  runId: string;
   dateKey: DateKey;
+  runNumber: number;
+  runLabel: string;
   status: "scheduled" | "active" | "closed";
   questionCount: number;
   createdByDisplayName: string;
@@ -568,6 +584,7 @@ export interface AdminDailyRunRow {
     text: string;
     category: Category;
     type: QuestionType;
+    imagePath?: string;
   }>;
 }
 
@@ -607,7 +624,9 @@ export interface AdminDailyDiagnostics {
 }
 
 export interface AdminRunActionResult {
-  mode: "create" | "replace";
+  mode: "create" | "add" | "replace";
+  runId?: string;
+  runNumber?: number;
   dateKey: DateKey;
   questionCount: number;
   deletedPublicAnswers: number;

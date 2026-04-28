@@ -164,6 +164,7 @@ export function useAdminViewState(): AdminViewState {
               text: data.text,
               category: data.category,
               type: data.type,
+              imagePath: data.imagePath,
               targetMode: data.targetMode,
               active: data.active,
               dailyLocked: data.dailyLocked === true,
@@ -206,9 +207,18 @@ export function useAdminViewState(): AdminViewState {
                   questions.get(item.questionId)?.category ??
                   "pure_fun",
                 type: item.type,
+                imagePath:
+                  item.questionSnapshot?.imagePath ??
+                  questions.get(item.questionId)?.imagePath,
               })) ?? [];
             return {
+              runId: data.runId ?? doc.id,
               dateKey: data.dateKey,
+              runNumber: data.runNumber ?? (doc.id === data.dateKey ? 1 : 99),
+              runLabel:
+                (data.runNumber ?? (doc.id === data.dateKey ? 1 : 99)) > 1
+                  ? `Daily Nr. ${data.runNumber ?? 99}`
+                  : "Daily",
               status: resolveDailyRunStatus(data),
               questionCount: data.questionCount,
               createdByDisplayName: createdByName ?? "Admin",

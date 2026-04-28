@@ -282,6 +282,14 @@ export function AdminQuestionList({
                           aria-label={`${row.text} auswählen`}
                         />
                         <div className="min-w-0 flex-1 space-y-2.5">
+                          {row.type === "meme_caption" && row.imagePath ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={row.imagePath}
+                              alt=""
+                              className="h-40 w-full rounded-2xl border border-sand-100 object-cover shadow-card-flat sm:h-32"
+                            />
+                          ) : null}
                           <p className="text-sm font-semibold leading-relaxed text-sand-900">
                             {row.text}
                           </p>

@@ -26,8 +26,8 @@ export function PastDailies({
     value: boolean,
   ) => Promise<void>;
 }) {
-  const [openDateKey, setOpenDateKey] = useState<string | null>(
-    entries[0]?.dateKey ?? null,
+  const [openEntryKey, setOpenEntryKey] = useState<string | null>(
+    entries[0] ? getPastDailyKey(entries[0]) : null,
   );
 
   if (entries.length === 0) {
@@ -54,22 +54,28 @@ export function PastDailies({
           const complete =
             entry.totalInRun > 0 && entry.answeredByMe === entry.totalInRun;
           const none = entry.answeredByMe === 0;
-          const open = openDateKey === entry.dateKey;
+          const entryKey = getPastDailyKey(entry);
+          const open = openEntryKey === entryKey;
 
           return (
-            <li key={entry.dateKey} className="space-y-3">
+            <li key={entryKey} className="space-y-3">
               <button
                 type="button"
                 onClick={() =>
-                  setOpenDateKey((current) =>
-                    current === entry.dateKey ? null : entry.dateKey,
+                  setOpenEntryKey((current) =>
+                    current === entryKey ? null : entryKey,
                   )
                 }
                 className="flex w-full items-center justify-between rounded-[24px] border-2 border-archive-primary/16 bg-white px-4 py-3 text-left shadow-card-flat transition hover:-translate-y-0.5 hover:border-archive-primary/35 hover:shadow-card-raised"
               >
                 <div className="space-y-0.5">
-                  <p className="text-sm font-semibold text-sand-900">
-                    {formatBerlinDateLabel(entry.dateKey)}
+                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-sand-900">
+                    <span>{formatBerlinDateLabel(entry.dateKey)}</span>
+                    {entry.runLabel ? (
+                      <span className="rounded-full bg-archive-soft px-2 py-0.5 text-[11px] font-bold text-archive-primary">
+                        {entry.runLabel}
+                      </span>
+                    ) : null}
                   </p>
                   <p className="text-xs text-sand-500">Aufgelöste Antworten ansehen</p>
                 </div>
@@ -148,6 +154,10 @@ function PastDailyReviewContent({
       onVoteMemeCaption={onVoteMemeCaption}
     />
   );
+}
+
+function getPastDailyKey(entry: HomePastDailyReview) {
+  return entry.runId ?? entry.dateKey;
 }
 
 function PastDailyResolvedContent({

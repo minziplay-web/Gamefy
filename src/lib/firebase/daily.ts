@@ -9,7 +9,7 @@ import {
   dailyAnswersCollection,
   dailyMemeVotesCollection,
   dailyPrivateAnswersCollection,
-  dailyRunDoc,
+  dailyRunsCollection,
   questionsCollection,
   usersCollection,
 } from "@/lib/firebase/collections";
@@ -41,6 +41,11 @@ type QuestionLike = Pick<
   "text" | "category" | "type" | "options" | "imagePath"
 >;
 
+type DailyRunWithMeta = DailyRunDoc & {
+  runId: string;
+  runNumber: number;
+};
+
 export function useDailyViewState(targetDateKey?: string): DailyViewState {
   const { authState, isMockMode } = useAuth();
   const [state, setState] = useState<DailyViewState>(
@@ -59,7 +64,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
 
     const todayDateKey = berlinDateKey();
     const dateKey = targetDateKey ?? todayDateKey;
-    const runRef = dailyRunDoc(dateKey);
+    const runsRef = dailyRunsCollection();
     const answersRef = dailyAnswersCollection();
     const privateAnswersRef = dailyPrivateAnswersCollection();
     const memeVotesRef = dailyMemeVotesCollection();
@@ -67,7 +72,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
     const usersRef = usersCollection();
 
     if (
-      !runRef ||
+      !runsRef ||
       !answersRef ||
       !privateAnswersRef ||
       !memeVotesRef ||
@@ -80,7 +85,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
       return;
     }
 
-    let runData: DailyRunDoc | null = null;
+    let runData: DailyRunWithMeta[] = [];
     let questions = new Map<string, QuestionDoc>();
     let members = new Map<string, MemberLite>();
     let activeMembers = new Map<string, MemberLite>();
@@ -89,7 +94,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
     let memeVotes = new Map<string, DailyMemeVoteDoc[]>();
 
     const emit = () => {
-      if (!runData) {
+      if (runData.length === 0) {
         setState({
           status: "no_run",
           dateKey,
@@ -98,48 +103,62 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
         return;
       }
 
-      const run = runData;
-      const effectiveRunStatus = resolveDailyRunStatus(run);
-      const validatedRun = validateDailyRun({
-        run,
-        questions,
-        activeMemberIds: new Set(activeMembers.keys()),
-      });
-      const visibleItems = validatedRun.playableItems.filter((item) => {
-        const question = questions.get(item.questionId);
-        return !question
-          || !shouldHideUserTrophyQuestionForUser(question, authState.user.userId);
-      });
-      const playableQuestionIds = new Set(
-        visibleItems.map((item) => item.questionId),
-      );
-      const answeredPlayableCount = Array.from(myAnswers.keys()).filter((questionId) =>
-        playableQuestionIds.has(questionId),
-      ).length;
-      const isCatchUpMode = dateKey < todayDateKey;
-      const holdResultsUntilFinished =
-        (effectiveRunStatus === "active" || isCatchUpMode) &&
-        answeredPlayableCount < visibleItems.length;
+      const activeMemberIds = new Set(activeMembers.keys());
+      const runViews = runData.map((run) => {
+        const status = resolveDailyRunStatus(run);
+        const validated = validateDailyRun({
+          run,
+          questions,
+          activeMemberIds,
+        });
+        const visibleItems = validated.playableItems.filter((item) => {
+          const question = questions.get(item.questionId);
+          return !question
+            || !shouldHideUserTrophyQuestionForUser(question, authState.user.userId);
+        });
+        const playableKeys = new Set(
+          visibleItems.map((item) => answerKey(run.runId, item.questionId)),
+        );
+        const answeredPlayableCount = Array.from(myAnswers.keys()).filter((key) =>
+          playableKeys.has(key),
+        ).length;
+        const isCatchUpMode = dateKey < todayDateKey;
+        const holdResultsUntilFinished =
+          (status === "active" || isCatchUpMode) &&
+          answeredPlayableCount < visibleItems.length;
 
-      if (validatedRun.isUnplayable) {
+        return {
+          run,
+          status,
+          validated,
+          visibleItems,
+          holdResultsUntilFinished,
+        };
+      });
+      const playableRunViews = runViews.filter((view) => !view.validated.isUnplayable);
+
+      if (playableRunViews.length === 0) {
         setState({
           status: "run_unplayable",
           dateKey,
           reason:
-            validatedRun.reason ?? "Der heutige Run enthält keine spielbaren Fragen.",
+            runViews[0]?.validated.reason ?? "Der heutige Run enthält keine spielbaren Fragen.",
           isAdmin: authState.user.role === "admin",
         });
         return;
       }
 
-      const cards = visibleItems.reduce<DailyQuestionCardState[]>(
-        (acc, item, index) => {
+      const cards = playableRunViews.flatMap(({ run, status, visibleItems, holdResultsUntilFinished }) =>
+        visibleItems.reduce<DailyQuestionCardState[]>(
+          (acc, item, index) => {
         const questionDoc = getQuestionSource(item, questions);
         if (!questionDoc) {
           return acc;
         }
 
         const question = mapDailyQuestion({
+              runId: run.runId,
+              runNumber: run.runNumber,
               questionId: item.questionId,
               question: questionDoc,
               index,
@@ -152,13 +171,13 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
           return acc;
         }
 
-        const myAnswerDoc = myAnswers.get(item.questionId);
+        const myAnswerDoc = myAnswers.get(answerKey(run.runId, item.questionId));
         const myAnswer = myAnswerDoc ? mapDailyAnswerDraft(myAnswerDoc) : undefined;
         const reveal = holdResultsUntilFinished
           ? false
           : shouldReveal({
               revealPolicy: run.revealPolicy,
-              runStatus: effectiveRunStatus,
+              runStatus: status,
               dateKey: run.dateKey,
               hasOwnAnswer: Boolean(myAnswer),
             });
@@ -167,10 +186,10 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
           acc.push({
             phase: "revealed",
             question,
-            result: mapQuestionResult({
-              question,
-              publicAnswers: allPublicAnswers.get(item.questionId) ?? [],
-              memeVotes: memeVotes.get(item.questionId) ?? [],
+              result: mapQuestionResult({
+                question,
+              publicAnswers: allPublicAnswers.get(answerKey(run.runId, item.questionId)) ?? [],
+              memeVotes: memeVotes.get(answerKey(run.runId, item.questionId)) ?? [],
               currentUserId: authState.user.userId,
               members,
             }),
@@ -195,21 +214,25 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
             result: mapQuestionResult({
               question,
               myAnswer,
-              publicAnswers: allPublicAnswers.get(item.questionId) ?? [],
-              memeVotes: memeVotes.get(item.questionId) ?? [],
+              publicAnswers: allPublicAnswers.get(answerKey(run.runId, item.questionId)) ?? [],
+              memeVotes: memeVotes.get(answerKey(run.runId, item.questionId)) ?? [],
               currentUserId: authState.user.userId,
               members,
             }),
           });
 
         return acc;
-      }, []);
+      }, []));
 
       setState({
         status: "ready",
         dateKey,
-        runStatus: effectiveRunStatus,
-        revealPolicy: run.revealPolicy,
+        runStatus: playableRunViews.some((view) => view.status === "active")
+          ? "active"
+          : playableRunViews.some((view) => view.status === "scheduled")
+            ? "scheduled"
+            : "closed",
+        revealPolicy: playableRunViews[0]?.run.revealPolicy ?? "after_answer",
         cards,
         progress: {
           answered: cards.filter(
@@ -218,7 +241,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
           ).length,
           total: cards.length,
         },
-        hasIncompleteItems: validatedRun.hasIncompleteItems,
+        hasIncompleteItems: runViews.some((view) => view.validated.hasIncompleteItems),
       });
     };
 
@@ -231,9 +254,22 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
 
     const unsubscribers = [
       onSnapshot(
-        runRef,
+        query(runsRef, where("dateKey", "==", dateKey)),
         (snapshot) => {
-          runData = snapshot.exists() ? (snapshot.data() as DailyRunDoc) : null;
+          runData = snapshot.docs
+            .map((doc) => {
+              const data = doc.data() as DailyRunDoc;
+              return {
+                ...data,
+                runId: data.runId ?? doc.id,
+                runNumber: data.runNumber ?? (doc.id === data.dateKey ? 1 : 99),
+              };
+            })
+            .sort((left, right) =>
+              left.runNumber === right.runNumber
+                ? left.runId.localeCompare(right.runId)
+                : left.runNumber - right.runNumber,
+            );
           emit();
         },
         handleError("Daily-Run"),
@@ -284,7 +320,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
           myAnswers = new Map(
             snapshot.docs.map((doc) => {
               const data = doc.data() as DailyPrivateAnswerDoc;
-              return [data.questionId, data as DailyAnswerDoc];
+              return [answerKey(data.runId ?? data.dateKey, data.questionId), data as DailyAnswerDoc];
             }),
           );
           emit();
@@ -297,9 +333,10 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
           const grouped = new Map<string, DailyAnswerDoc[]>();
           for (const doc of snapshot.docs) {
             const data = doc.data() as DailyAnswerDoc;
-            const list = grouped.get(data.questionId) ?? [];
+            const key = answerKey(data.runId ?? data.dateKey, data.questionId);
+            const list = grouped.get(key) ?? [];
             list.push(data);
-            grouped.set(data.questionId, list);
+            grouped.set(key, list);
           }
           allPublicAnswers = grouped;
           emit();
@@ -312,9 +349,10 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
           const grouped = new Map<string, DailyMemeVoteDoc[]>();
           for (const doc of snapshot.docs) {
             const data = doc.data() as DailyMemeVoteDoc;
-            const list = grouped.get(data.questionId) ?? [];
+            const key = answerKey(data.runId ?? data.dateKey, data.questionId);
+            const list = grouped.get(key) ?? [];
             list.push(data);
-            grouped.set(data.questionId, list);
+            grouped.set(key, list);
           }
           memeVotes = grouped;
           emit();
@@ -334,6 +372,8 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
 }
 
 export function mapDailyQuestion(params: {
+  runId?: string;
+  runNumber?: number;
   questionId: string;
   question: QuestionLike;
   index: number;
@@ -341,8 +381,11 @@ export function mapDailyQuestion(params: {
   members: Map<string, MemberLite>;
   pairing?: DailyRunItemDoc["pairing"];
 }): DailyQuestion | null {
-  const { questionId, question, index, total, members, pairing } = params;
+  const { runId, runNumber, questionId, question, index, total, members, pairing } = params;
   const base = {
+    runId,
+    runNumber,
+    runLabel: runNumber && runNumber > 1 ? `Daily Nr. ${runNumber}` : undefined,
     questionId,
     indexInRun: index,
     totalInRun: total,
@@ -677,6 +720,10 @@ export function mapQuestionResult(params: {
           })),
       };
   }
+}
+
+function answerKey(runId: string, questionId: string) {
+  return `${runId}:${questionId}`;
 }
 
 function getQuestionSource(

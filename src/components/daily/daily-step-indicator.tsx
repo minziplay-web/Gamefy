@@ -48,7 +48,7 @@ export function DailyStepIndicator({
                   : "h-2 flex-1 rounded-full bg-daily-track";
           return (
             <button
-              key={card.question.questionId}
+              key={`${card.question.runId ?? "daily"}:${card.question.questionId}`}
               type="button"
               aria-label={`Frage ${idx + 1} von ${total}`}
               onClick={clickable ? () => onJump?.(idx) : undefined}

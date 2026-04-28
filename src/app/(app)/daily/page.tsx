@@ -64,6 +64,7 @@ export default function DailyPage() {
 
         await submitMemeCaptionVote({
           dateKey: state.dateKey,
+          runId: card.question.runId,
           questionId: card.question.questionId,
           authorUserId,
           voterUserId: authState.user.userId,

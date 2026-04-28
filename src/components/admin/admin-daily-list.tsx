@@ -20,6 +20,7 @@ const STATUS_TONE: Record<
 export function AdminDailyList({
   runs,
   onCreate,
+  onReplaceToday,
   onDeleteRun,
   onResetToday,
   onRerollQuestion,
@@ -29,16 +30,18 @@ export function AdminDailyList({
 }: {
   runs: AdminDailyRunRow[];
   onCreate: () => void;
+  onReplaceToday?: () => void;
   onDeleteRun?: (dateKey: DateKey) => void;
   onResetToday?: () => void;
-  onRerollQuestion?: (dateKey: DateKey, questionId: string, text: string) => void;
+  onRerollQuestion?: (dateKey: DateKey, runId: string, questionId: string, text: string) => void;
   todayDateKey?: DateKey;
   runActionStatus?: "idle" | "running" | "success" | "error";
   runActionMessage?: string;
 }) {
-  const todayRun = todayDateKey
-    ? runs.find((r) => r.dateKey === todayDateKey)
-    : undefined;
+  const todayRuns = todayDateKey
+    ? runs.filter((r) => r.dateKey === todayDateKey)
+    : [];
+  const todayRun = todayRuns[0];
 
   return (
     <div className="space-y-3">
@@ -49,7 +52,7 @@ export function AdminDailyList({
               Heute
             </p>
             <p className="text-sm font-medium text-sand-900">
-              Für heute existiert bereits ein Run mit {todayRun.questionCount} Fragen.
+              Für heute {todayRuns.length === 1 ? "existiert ein Run" : `existieren ${todayRuns.length} Runs`}.
             </p>
           </div>
           {todayRun.items && todayRun.items.length > 0 ? (
@@ -58,14 +61,23 @@ export function AdminDailyList({
                 Heutige Fragen
               </p>
               <ul className="space-y-2">
-                {todayRun.items.map((item, index) => (
+                {todayRuns.flatMap((run) =>
+                  (run.items ?? []).map((item, index) => (
                   <li
-                    key={item.questionId}
+                    key={`${run.runId}_${item.questionId}`}
                     className="flex flex-col gap-3 rounded-2xl border border-sand-200 bg-sand-50/70 px-3 py-3 sm:flex-row sm:items-start sm:justify-between"
                   >
-                    <div className="min-w-0 space-y-1">
+                    {item.type === "meme_caption" && item.imagePath ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={item.imagePath}
+                        alt=""
+                        className="h-24 w-full rounded-2xl object-cover sm:h-20 sm:w-28"
+                      />
+                    ) : null}
+                    <div className="min-w-0 flex-1 space-y-1">
                       <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sand-500">
-                        Frage {index + 1}
+                        {run.runLabel} · Frage {index + 1}
                       </p>
                       <p className="text-sm font-medium leading-6 text-sand-900">
                         {item.text}
@@ -75,14 +87,14 @@ export function AdminDailyList({
                       variant="ghost"
                       className="w-full shrink-0 px-3 text-brand-primary sm:w-auto"
                       onClick={() =>
-                        onRerollQuestion?.(todayRun.dateKey, item.questionId, item.text)
+                        onRerollQuestion?.(run.dateKey, run.runId, item.questionId, item.text)
                       }
                       disabled={runActionStatus === "running" || !onRerollQuestion}
                     >
                       Neu würfeln
                     </Button>
                   </li>
-                ))}
+                )))}
               </ul>
             </div>
           ) : null}
@@ -91,6 +103,14 @@ export function AdminDailyList({
             variant="secondary"
             onClick={onCreate}
             disabled={runActionStatus === "running"}
+          >
+            {runActionStatus === "running" ? "Erzeugt..." : "Weiteres Daily erzeugen"}
+          </Button>
+          <Button
+            className="w-full"
+            variant="ghost"
+            onClick={onReplaceToday}
+            disabled={runActionStatus === "running" || !onReplaceToday}
           >
             {runActionStatus === "running" ? "Rerollt..." : "Heutiges Daily rerollen"}
           </Button>
@@ -135,7 +155,7 @@ export function AdminDailyList({
             const isToday = run.dateKey === todayDateKey;
             return (
               <li
-                key={run.dateKey}
+                key={run.runId}
                 className={`flex flex-col gap-3 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${
                   isToday
                     ? "border-daily-primary/35 bg-white"
@@ -145,6 +165,11 @@ export function AdminDailyList({
                 <div className="w-full min-w-0 space-y-1 sm:w-auto">
                   <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-sand-900">
                     {formatBerlinDateLabel(run.dateKey)}
+                    {run.runNumber > 1 ? (
+                      <Badge tone="warning" size="sm">
+                        {run.runLabel}
+                      </Badge>
+                    ) : null}
                     {isToday ? (
                       <Badge tone="warning" size="sm">
                         heute

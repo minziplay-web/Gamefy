@@ -74,12 +74,12 @@ export default function AdminPage() {
 
         return resetDailyRunAnswers(dateKey);
       }}
-      onRerollQuestion={async (dateKey, questionId) => {
+      onRerollQuestion={async (dateKey, runId, questionId) => {
         if (authState.status !== "authenticated" || state.status !== "ready") {
           throw new Error("Nicht bereit.");
         }
 
-        return rerollDailyRunQuestion({ dateKey, questionId });
+        return rerollDailyRunQuestion({ dateKey, runId, questionId });
       }}
       onDeactivateUser={async (userId) => {
         if (authState.status !== "authenticated" || state.status !== "ready") {

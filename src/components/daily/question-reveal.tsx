@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 
 import { AvatarCircle } from "@/components/ui/avatar";
 import { MemeImage } from "@/components/daily/meme-image";
@@ -549,6 +549,14 @@ function SingleChoiceReveal({
   tone: RevealTone;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const sorted = useMemo(
+    () => [...result.counts].sort((a, b) => b.votes - a.votes),
+    [result.counts],
+  );
+  const votersByTargetId = useMemo(
+    () => groupVotersByTargetId(result.voterRows ?? []),
+    [result.voterRows],
+  );
 
   if (result.totalVotes === 0) {
     return (
@@ -558,7 +566,6 @@ function SingleChoiceReveal({
     );
   }
 
-  const sorted = [...result.counts].sort((a, b) => b.votes - a.votes);
   const withVotes = sorted.filter((row) => row.votes > 0);
   const hiddenCount = sorted.length - withVotes.length;
 
@@ -567,9 +574,7 @@ function SingleChoiceReveal({
       {withVotes.map((row, idx) => {
         const isMine = row.candidate.userId === result.myChoiceUserId;
         const isTop = idx === 0;
-        const voters = (result.voterRows ?? [])
-              .filter((voteRow) => voteRow.target.userId === row.candidate.userId)
-              .map((voteRow) => voteRow.voter);
+        const voters = votersByTargetId.get(row.candidate.userId) ?? [];
         const expanded = expandedId === row.candidate.userId;
 
         return (
@@ -612,6 +617,18 @@ function MultiChoiceReveal({
   tone: RevealTone;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const sorted = useMemo(
+    () => [...result.counts].sort((a, b) => b.votes - a.votes),
+    [result.counts],
+  );
+  const votersByTargetId = useMemo(
+    () => groupVotersByTargetId(result.voterRows ?? []),
+    [result.voterRows],
+  );
+  const myChoices = useMemo(
+    () => new Set(result.myChoiceUserIds ?? []),
+    [result.myChoiceUserIds],
+  );
 
   if (result.totalVoters === 0) {
     return (
@@ -621,10 +638,8 @@ function MultiChoiceReveal({
     );
   }
 
-  const sorted = [...result.counts].sort((a, b) => b.votes - a.votes);
   const withVotes = sorted.filter((row) => row.votes > 0);
   const hiddenCount = sorted.length - withVotes.length;
-  const myChoices = new Set(result.myChoiceUserIds ?? []);
 
   return (
     <div className="overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised">
@@ -635,9 +650,7 @@ function MultiChoiceReveal({
       {withVotes.map((row, idx) => {
         const isMine = myChoices.has(row.candidate.userId);
         const isTop = idx === 0;
-        const voters = (result.voterRows ?? [])
-              .filter((voteRow) => voteRow.target.userId === row.candidate.userId)
-              .map((voteRow) => voteRow.voter);
+        const voters = votersByTargetId.get(row.candidate.userId) ?? [];
         const expanded = expandedId === row.candidate.userId;
 
         return (
@@ -1093,15 +1106,22 @@ function EitherOrReveal({
 }) {
   const toneClasses = revealToneClasses[tone];
   const [expandedIndex, setExpandedIndex] = useState<0 | 1 | null>(null);
+  const votersByOption = useMemo(() => {
+    const grouped = new Map<0 | 1, MemberLite[]>();
+    for (const row of result.voterRows ?? []) {
+      const voters = grouped.get(row.optionIndex) ?? [];
+      voters.push(row.voter);
+      grouped.set(row.optionIndex, voters);
+    }
+    return grouped;
+  }, [result.voterRows]);
 
   return (
     <div className="overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised">
       {result.options.map((opt, idx) => {
         const optionIndex = idx as 0 | 1;
         const isMine = idx === result.myChoiceIndex;
-        const voters = (result.voterRows ?? [])
-              .filter((row) => row.optionIndex === optionIndex)
-              .map((row) => row.voter);
+        const voters = votersByOption.get(optionIndex) ?? [];
         const canToggle = voters.length > 0;
         const expanded = expandedIndex === optionIndex;
 
@@ -1327,33 +1347,45 @@ function VoterChipList({
   expanded: boolean;
   center?: boolean;
 }) {
+  if (!expanded) {
+    return null;
+  }
+
   return (
     <div
-      className={`grid transition-[grid-template-rows,opacity,margin] duration-300 ease-out ${
-        expanded ? "mt-2 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0"
-      }`}
-      aria-hidden={!expanded}
+      className="anim-voter-list mt-2"
+      aria-hidden={false}
     >
-      <div className="overflow-hidden">
-        <div className="border-t border-slate-100 pt-2">
-          <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-sand-400">
-            Gewählt von
-          </p>
-          <ul className={`grid gap-1.5 min-[390px]:flex min-[390px]:flex-wrap ${center ? "min-[390px]:justify-center" : ""}`}>
-            {voters.map((voter) => (
-              <li
-                key={voter.userId}
-                className="inline-flex min-w-0 items-center gap-2 px-0.5 py-1"
-              >
-                <AvatarCircle member={voter} size="sm" />
-                <span className="truncate text-xs font-semibold text-sand-800">
-                  {voter.displayName}
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
+      <div className="border-t border-slate-100 pt-2">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-sand-400">
+          Gewählt von
+        </p>
+        <ul className={`grid gap-1.5 min-[390px]:flex min-[390px]:flex-wrap ${center ? "min-[390px]:justify-center" : ""}`}>
+          {voters.map((voter) => (
+            <li
+              key={voter.userId}
+              className="inline-flex min-w-0 items-center gap-2 px-0.5 py-1"
+            >
+              <AvatarCircle member={voter} size="sm" />
+              <span className="truncate text-xs font-semibold text-sand-800">
+                {voter.displayName}
+              </span>
+            </li>
+          ))}
+        </ul>
       </div>
     </div>
   );
+}
+
+function groupVotersByTargetId(
+  rows: Array<{ voter: MemberLite; target: MemberLite }>,
+) {
+  const grouped = new Map<string, MemberLite[]>();
+  for (const row of rows) {
+    const voters = grouped.get(row.target.userId) ?? [];
+    voters.push(row.voter);
+    grouped.set(row.target.userId, voters);
+  }
+  return grouped;
 }
