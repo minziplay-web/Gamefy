@@ -1,5 +1,6 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import { DailyCompletionCard } from "@/components/daily/daily-completion-card";
@@ -22,6 +23,7 @@ export function DailyScreen({
   state: initial,
   onSubmitAnswer,
   onVoteMemeCaption,
+  completionContent,
 }: {
   state: DailyViewState;
   onSubmitAnswer?: (
@@ -33,6 +35,7 @@ export function DailyScreen({
     authorUserId: string,
     value: boolean,
   ) => Promise<void>;
+  completionContent?: ReactNode;
 }) {
   const [state, setState] = useState(initial);
   useEffect(() => {
@@ -294,10 +297,13 @@ export function DailyScreen({
       ) : null}
 
       {showCompletion || !currentCard ? (
-        <DailyCompletionCard
-          cards={state.cards}
-          revealPolicy={state.revealPolicy}
-        />
+        <div className="space-y-4">
+          <DailyCompletionCard
+            cards={state.cards}
+            revealPolicy={state.revealPolicy}
+          />
+          {showCompletion ? completionContent : null}
+        </div>
       ) : (
         <QuestionCardShell
           key={currentCard.question.questionId}

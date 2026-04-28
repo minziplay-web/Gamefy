@@ -36,13 +36,11 @@ export function DailyCompletionCard({
               ? "Eine Frage fehlt dir noch"
               : `Noch ${missing} Fragen offen`}
         </h2>
-        <p className="text-sm leading-relaxed text-sand-700">
-          {allAnswered
-            ? revealPolicy === "after_answer"
-              ? "Alle Antworten wurden abgeschickt und sicher gespeichert. Du kannst jetzt entspannt zurück zur Startseite."
-              : "Alle Antworten wurden abgeschickt und sicher gespeichert. Die Ergebnisse erscheinen nach Tagesende."
-            : "Du kannst jederzeit zurück und die offenen Fragen beantworten."}
-        </p>
+        {!allAnswered ? (
+          <p className="text-sm leading-relaxed text-sand-700">
+            Du kannst jederzeit zurück und die offenen Fragen beantworten.
+          </p>
+        ) : null}
       </div>
       <div className="rounded-2xl bg-sand-50 px-4 py-4">
         <p className="text-lg font-semibold tabular-nums text-sand-900">

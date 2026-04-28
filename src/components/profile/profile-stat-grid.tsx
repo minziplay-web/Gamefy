@@ -82,7 +82,7 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
       label: "Meme-Trophäen",
       value: hasMemeTrophies ? `${stats.daily.memeTrophyCount}` : "—",
       helper: hasMemeTrophies
-        ? "Bestes Meme des Tages"
+        ? `${stats.daily.availableTrophyCount} frei für eigene Fragen`
         : "Noch kein Tages-Meme gewonnen",
       hasData: hasMemeTrophies,
       accent: "trophy",

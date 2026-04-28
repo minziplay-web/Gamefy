@@ -3,22 +3,22 @@
 @theme inline {
   --font-sans: var(--font-sans);
 
-  --color-page: #f6f1e8;
-  --color-cream: #fffaf2;
-  --color-sand-50: #f8f3ea;
-  --color-sand-100: #eee4d4;
-  --color-sand-200: #dccdb5;
-  --color-sand-300: #c4af8c;
-  --color-sand-400: #a48760;
-  --color-sand-500: #83694a;
-  --color-sand-600: #645039;
-  --color-sand-700: #4f3f2e;
-  --color-sand-800: #372c20;
-  --color-sand-900: #241b13;
-  --color-sand-950: #14100b;
-  --color-coral: #df6d57;
-  --color-coral-strong: #c95945;
-  --color-coral-soft: #fbe5df;
+  --color-page: #faf9f7;
+  --color-cream: #ffffff;
+  --color-sand-50: #fbfaf8;
+  --color-sand-100: #ece8e2;
+  --color-sand-200: #d9d1c7;
+  --color-sand-300: #bfb2a4;
+  --color-sand-400: #9f8d7c;
+  --color-sand-500: #7c6c5d;
+  --color-sand-600: #605245;
+  --color-sand-700: #493d33;
+  --color-sand-800: #342b24;
+  --color-sand-900: #211b16;
+  --color-sand-950: #14100d;
+  --color-coral: #cf715e;
+  --color-coral-strong: #b95c49;
+  --color-coral-soft: #f4dfd9;
 
   --radius-card: 1.75rem;
   --radius-pill: 999px;
@@ -40,9 +40,10 @@
 
 html {
   background:
-    radial-gradient(circle at 0% 0%, rgba(223, 109, 87, 0.12), transparent 42%),
-    radial-gradient(circle at 100% 100%, rgba(196, 175, 140, 0.18), transparent 38%),
-    linear-gradient(180deg, #fffaf2 0%, #f6f1e8 54%, #efe5d4 100%);
+    radial-gradient(circle at 88% 12%, rgba(212, 186, 245, 0.16), transparent 22%),
+    radial-gradient(circle at 82% 86%, rgba(150, 218, 255, 0.18), transparent 24%),
+    radial-gradient(circle at 14% 84%, rgba(236, 160, 146, 0.12), transparent 22%),
+    linear-gradient(180deg, #ffffff 0%, #fbfaf8 56%, #f5f2ee 100%);
   background-attachment: fixed;
   min-height: 100%;
 }

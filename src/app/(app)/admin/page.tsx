@@ -9,6 +9,7 @@ import {
   createDailyRun,
   deleteDailyRun,
   deactivateUser,
+  grantBonusTrophy,
   importQuestions,
   resetDailyRunAnswers,
   replaceDailyRun,
@@ -89,6 +90,13 @@ export default function AdminPage() {
           userId,
           actingUserId: authState.user.userId,
         });
+      }}
+      onGrantTrophy={async (userId) => {
+        if (authState.status !== "authenticated" || state.status !== "ready") {
+          throw new Error("Nicht bereit.");
+        }
+
+        return grantBonusTrophy(userId);
       }}
       onSaveConfig={saveAdminConfig}
     />

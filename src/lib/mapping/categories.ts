@@ -1,6 +1,7 @@
 import type { Category } from "@/lib/types/frontend";
 
 export const CATEGORY_LABELS: Record<Category, string> = {
+  custom: "Deine Frage",
   hot_takes: "Hot Takes",
   pure_fun: "Forreal bruh?",
   deep_talk: "Deep Talk",
@@ -16,6 +17,7 @@ export const CATEGORY_LABELS: Record<Category, string> = {
 };
 
 export const CATEGORY_EMOJI: Record<Category, string> = {
+  custom: "🏆",
   hot_takes: "🔥",
   pure_fun: "😂",
   deep_talk: "💭",
@@ -38,6 +40,7 @@ export const CATEGORY_TONE: Record<
     ring: string;
   }
 > = {
+  custom: { bg: "bg-yellow-100", text: "text-yellow-800", ring: "ring-yellow-200" },
   hot_takes: { bg: "bg-rose-100", text: "text-rose-700", ring: "ring-rose-200" },
   pure_fun: { bg: "bg-amber-100", text: "text-amber-800", ring: "ring-amber-200" },
   deep_talk: { bg: "bg-indigo-100", text: "text-indigo-700", ring: "ring-indigo-200" },

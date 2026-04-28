@@ -7,6 +7,7 @@ export interface UserDoc {
   role: UserRole;
   onboardingCompleted: boolean;
   isActive: boolean;
+  bonusTrophyCount?: number;
   createdAt?: unknown;
   updatedAt?: unknown;
   lastSeenAt?: unknown;
@@ -22,6 +23,10 @@ export interface QuestionDoc {
   dailyLockedDateKey?: string | null;
   options?: string[];
   imagePath?: string;
+  source?: "admin_pool" | "user_trophy";
+  ownerUserId?: string | null;
+  targetDateKey?: string | null;
+  consumedInDailyDateKey?: string | null;
   createdAt?: unknown;
   createdBy?: string;
   updatedAt?: unknown;

@@ -5,6 +5,12 @@ import { useEffect, useState } from "react";
 
 import { useAuth } from "@/lib/auth/auth-context";
 import {
+  getCustomQuestionTargetDateKey,
+  isPendingUserTrophyQuestion,
+  isUserTrophyQuestion,
+  shouldHideUserTrophyQuestionForUser,
+} from "@/lib/daily/custom-daily-questions";
+import {
   dailyAnswersCollection,
   dailyMemeVotesCollection,
   dailyPrivateAnswersCollection,
@@ -21,10 +27,13 @@ import {
   mapQuestionResult,
 } from "@/lib/firebase/daily";
 import { formatListenerError } from "@/lib/firebase/listener-errors";
-import { shouldReveal } from "@/lib/mapping/daily";
 import { resolveDailyRunStatus, validateDailyRun } from "@/lib/mapping/daily-run";
 import { formatBerlinDateLabel, berlinDateKey } from "@/lib/mapping/date";
-import { computeDailyStreakStats } from "@/lib/mapping/stats";
+import {
+  computeAvailableTrophyCount,
+  computeDailyMemeTrophyCount,
+  computeDailyStreakStats,
+} from "@/lib/mapping/stats";
 import { mockHome } from "@/lib/mocks";
 import type { HomePastDailyReview, HomeViewState, MemberLite } from "@/lib/types/frontend";
 import type {
@@ -111,7 +120,13 @@ export function useHomeViewState(): HomeViewState {
           })
         : null;
       const run = runData;
-      const visibleQuestionIds = validatedRun?.playableItems.map((item) => item.questionId) ?? [];
+      const visiblePlayableItems =
+        validatedRun?.playableItems.filter((item) => {
+          const question = questions.get(item.questionId);
+          return !question
+            || !shouldHideUserTrophyQuestionForUser(question, authState.user.userId);
+        }) ?? [];
+      const visiblePlayableQuestionIds = visiblePlayableItems.map((item) => item.questionId);
       const memberMap = new Map(
         Array.from(users.entries()).map(([userId, user]) => [
           userId,
@@ -122,6 +137,63 @@ export function useHomeViewState(): HomeViewState {
           } satisfies MemberLite,
         ]),
       );
+      const targetCustomQuestionDateKey = getCustomQuestionTargetDateKey({
+        todayDateKey: dateKey,
+        hasTodayRun: Boolean(runData),
+      });
+      const myCustomQuestions = Array.from(questions.entries())
+        .map(([questionId, question]) => ({
+          questionId,
+          ...question,
+        }))
+        .filter(
+          (question) =>
+            isUserTrophyQuestion(question)
+            && question.ownerUserId === authState.user.userId,
+        );
+      const earnedTrophies = computeDailyMemeTrophyCount({
+        userId: authState.user.userId,
+        dailyRuns: recentRuns,
+        dailyAnswers: Array.from(allPublicAnswers.values()).flat(),
+        dailyMemeVotes: Array.from(allMemeVotes.values()).flat(),
+      });
+      const bonusTrophies = users.get(authState.user.userId)?.bonusTrophyCount ?? 0;
+      const spentTrophies = myCustomQuestions.length;
+      const availableTrophies = computeAvailableTrophyCount({
+        earnedTrophies,
+        spentCustomQuestions: spentTrophies,
+        bonusTrophies,
+      });
+      const pendingCustomQuestion = myCustomQuestions.find((question) =>
+        isPendingUserTrophyQuestion(question, targetCustomQuestionDateKey),
+      );
+      const activeCustomQuestionNotice =
+        runData && validatedRun
+          ? [...visiblePlayableItems]
+              .reverse()
+              .map((item) => {
+                const question = questions.get(item.questionId);
+                if (!question || !isUserTrophyQuestion(question)) {
+                  return null;
+                }
+
+                if (answerQuestionIds.has(item.questionId)) {
+                  return null;
+                }
+
+                const ownerUserId = question.ownerUserId;
+                return {
+                  questionId: item.questionId,
+                  authorDisplayName:
+                    ownerUserId && users.get(ownerUserId)?.displayName
+                      ? users.get(ownerUserId)!.displayName
+                      : "jemandem",
+                  questionText: question.text,
+                  isMine: ownerUserId === authState.user.userId,
+                };
+              })
+              .find(Boolean) ?? null
+          : null;
 
       const buildReviewItems = (
         runToRender: DailyRunDoc,
@@ -174,20 +246,6 @@ export function useHomeViewState(): HomeViewState {
           const myAnswer = myAnswerDoc
             ? mapDailyAnswerDraft(myAnswerDoc as DailyAnswerDoc)
             : undefined;
-          const reveal =
-            mode === "past"
-              ? true
-              : shouldReveal({
-                  revealPolicy: runToRender.revealPolicy,
-                  runStatus: resolveDailyRunStatus(runToRender),
-                  dateKey: runToRender.dateKey,
-                  hasOwnAnswer: Boolean(myAnswer),
-                });
-
-          if (!reveal) {
-            return [];
-          }
-
           return [
             {
               dateKey: runToRender.dateKey,
@@ -209,7 +267,7 @@ export function useHomeViewState(): HomeViewState {
 
       const dailyRecap =
         run && validatedRun
-          ? buildReviewItems(run, "today").slice(0, 5)
+          ? buildReviewItems(run, "today")
           : [];
 
       const pastDailies: HomePastDailyReview[] = recentRuns
@@ -235,8 +293,8 @@ export function useHomeViewState(): HomeViewState {
         dailyTeaser: runData
           ? {
               dateKey,
-              totalQuestions: visibleQuestionIds.length,
-              answeredByMe: visibleQuestionIds.filter((questionId) =>
+              totalQuestions: visiblePlayableQuestionIds.length,
+              answeredByMe: visiblePlayableQuestionIds.filter((questionId) =>
                 answerQuestionIds.has(questionId),
               ).length,
               status: resolveDailyRunStatus(runData),
@@ -247,6 +305,37 @@ export function useHomeViewState(): HomeViewState {
           : null,
         dailyRecap,
         pastDailies,
+        customQuestionStatus: {
+          targetDateKey: targetCustomQuestionDateKey,
+          availableTrophies,
+          earnedTrophies,
+          bonusTrophies,
+          spentTrophies,
+          pendingQuestion: pendingCustomQuestion
+            ? {
+                questionId: pendingCustomQuestion.questionId,
+                targetDateKey:
+                  pendingCustomQuestion.targetDateKey ?? targetCustomQuestionDateKey,
+                type:
+                  pendingCustomQuestion.type === "open_text"
+                  || pendingCustomQuestion.type === "single_choice"
+                  || pendingCustomQuestion.type === "multi_choice"
+                  || pendingCustomQuestion.type === "either_or"
+                    ? pendingCustomQuestion.type
+                    : "open_text",
+                text: pendingCustomQuestion.text,
+                options:
+                  pendingCustomQuestion.type === "either_or"
+                  && pendingCustomQuestion.options?.length === 2
+                    ? [
+                        pendingCustomQuestion.options[0],
+                        pendingCustomQuestion.options[1],
+                      ]
+                    : undefined,
+              }
+            : null,
+        },
+        customQuestionNotice: activeCustomQuestionNotice,
         activeLiveSession: activeSession
           ? {
               sessionId: activeSession.id ?? "",
@@ -313,7 +402,7 @@ export function useHomeViewState(): HomeViewState {
         handleError("Home-Eigene Antworten"),
       ),
       onSnapshot(
-        query(runsRef, orderBy("dateKey", "desc"), limit(6)),
+        query(runsRef, orderBy("dateKey", "desc")),
         (snapshot) => {
           recentRuns = snapshot.docs.map((doc) => doc.data() as DailyRunDoc);
           emit();

@@ -5,6 +5,7 @@ import {
   canUseQuestionInDaily,
   DEFAULT_DAILY_CATEGORIES,
 } from "@/lib/daily/daily-run-generator";
+import { isUserTrophyQuestion } from "@/lib/daily/custom-daily-questions";
 import { berlinDateKey } from "@/lib/mapping/date";
 import type { Category, DateKey } from "@/lib/types/frontend";
 import type { AppConfigDoc, QuestionDoc, UserDoc } from "@/lib/types/firestore";
@@ -78,19 +79,29 @@ export async function maybeAutoCreateDailyRun(
     ...(snapshot.data() as UserDoc),
   }));
 
-  const eligibleQuestions = questionSnapshot.docs
+  const allQuestions = questionSnapshot.docs
     .map((snapshot) => ({
       questionId: snapshot.id,
       ...(snapshot.data() as QuestionDoc),
-    }))
+    }));
+  const customQuestions = allQuestions.filter(
+    (question) =>
+      isUserTrophyQuestion(question)
+      && question.targetDateKey === dateKey
+      && (question.consumedInDailyDateKey == null
+        || question.consumedInDailyDateKey === dateKey),
+  );
+  const eligibleQuestions = allQuestions
     .filter(
       (question) =>
+        !isUserTrophyQuestion(question)
+        &&
         (question.targetMode === "daily" || question.targetMode === "both") &&
         question.dailyLocked !== true &&
         canUseQuestionInDaily(question.type, users.length),
     );
 
-  if (eligibleQuestions.length === 0) {
+  if (eligibleQuestions.length === 0 && customQuestions.length === 0) {
     throw new Error("Keine freigegebenen Daily-Fragen gefunden.");
   }
 
@@ -111,12 +122,22 @@ export async function maybeAutoCreateDailyRun(
       includedCategories: includedCategories as Category[],
       forcedCategories: forcedCategories as Category[],
     },
+    customQuestions,
     questions: eligibleQuestions,
     userIds: users.map((user) => user.userId),
     updatedAt: FieldValue.serverTimestamp(),
   });
 
   await runRef.set(payload);
+  for (const question of customQuestions) {
+    await db.collection("questions").doc(question.questionId).set(
+      {
+        consumedInDailyDateKey: dateKey,
+        updatedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+  }
 
   return {
     status: "created" as const,

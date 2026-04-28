@@ -94,6 +94,14 @@ export const mockHome: HomeViewState = {
       ],
     },
   ],
+  customQuestionStatus: {
+    targetDateKey: "2026-04-24",
+    availableTrophies: 1,
+    earnedTrophies: 2,
+    bonusTrophies: 0,
+    spentTrophies: 1,
+    pendingQuestion: null,
+  },
   activeLiveSession: {
     sessionId: "sess_123",
     code: "FRND7",

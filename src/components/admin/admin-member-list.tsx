@@ -12,12 +12,14 @@ export function AdminMemberList({
   removeStatus = "idle",
   removeMessage,
   onRemove,
+  onGrantTrophy,
 }: {
   members: AdminMemberRow[];
   currentUserId?: string;
   removeStatus?: "idle" | "running" | "success" | "error";
   removeMessage?: string;
   onRemove?: (member: AdminMemberRow) => void;
+  onGrantTrophy?: (member: AdminMemberRow) => void;
 }) {
   if (members.length === 0) {
     return (
@@ -33,7 +35,8 @@ export function AdminMemberList({
       <div className="rounded-2xl border border-sand-100 bg-white/85 p-4">
         <p className="text-sm font-medium text-sand-700">
           Hier kannst du Mitglieder aus der App entfernen. Der Account bleibt bei Firebase
-          bestehen, ist aber in Gamefy nicht mehr aktiv.
+          bestehen, ist aber in Gamefy nicht mehr aktiv. Bonus-Trophäen kannst du hier
+          direkt vergeben.
         </p>
       </div>
 
@@ -90,18 +93,32 @@ export function AdminMemberList({
                     ) : null}
                   </div>
                   <p className="truncate text-sm text-sand-600">{member.email}</p>
+                  <p className="text-xs font-medium text-sand-500">
+                    Bonus-Trophäen: {member.bonusTrophyCount}
+                  </p>
                 </div>
               </div>
 
-              <Button
-                variant="ghost"
-                size="sm"
-                className="shrink-0 text-rose-700 hover:bg-rose-50 hover:text-rose-800"
-                disabled={!onRemove || removeStatus === "running" || isSelf || isAdmin}
-                onClick={() => onRemove?.(member)}
-              >
-                Entfernen
-              </Button>
+              <div className="flex shrink-0 items-center gap-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-yellow-700 hover:bg-yellow-50 hover:text-yellow-800"
+                  disabled={!onGrantTrophy || removeStatus === "running" || !member.onboardingCompleted}
+                  onClick={() => onGrantTrophy?.(member)}
+                >
+                  🏆 +1
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-rose-700 hover:bg-rose-50 hover:text-rose-800"
+                  disabled={!onRemove || removeStatus === "running" || isSelf || isAdmin}
+                  onClick={() => onRemove?.(member)}
+                >
+                  Entfernen
+                </Button>
+              </div>
             </li>
           );
         })}

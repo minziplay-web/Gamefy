@@ -135,7 +135,7 @@ function MemeCaptionReveal({
       {isLeaderboard ? (
         /* Leaderboard: rendered directly — no inner card, no extra border */
         <div key="leaderboard" className="anim-meme-slide-in">
-          <MemeLeaderboard ranked={ranked} />
+          <MemeLeaderboard ranked={ranked} onSelectMeme={(targetIndex) => setIndex(targetIndex)} />
         </div>
       ) : (
         /* Meme / Winner: image anchored at top, panel swaps below */
@@ -282,10 +282,10 @@ function MemeWinnerPanel({
 }) {
   return (
     <div className="flex min-h-[58px] overflow-hidden rounded-2xl border-2 border-amber-300">
-      {/* Amber strip with crown — mirrors leaderboard gold row */}
+      {/* Amber strip with trophy — mirrors leaderboard gold row */}
       <div className="flex w-11 shrink-0 items-center justify-center bg-amber-400">
         <div className="flex size-8 items-center justify-center rounded-full bg-white/80 shadow-sm">
-          <span className="anim-crown-bob text-xl" aria-hidden>👑</span>
+          <span className="anim-crown-bob text-xl" aria-hidden>🏆</span>
         </div>
       </div>
       {/* Content */}
@@ -329,12 +329,14 @@ function MemeWinnerPanel({
 
 function MemeLeaderboard({
   ranked,
+  onSelectMeme,
 }: {
   ranked: Array<{
     entry: MemeCaptionResult["entries"][number];
     originalIdx: number;
     count: number;
   }>;
+  onSelectMeme?: (index: number) => void;
 }) {
   return (
     <div>
@@ -350,7 +352,7 @@ function MemeLeaderboard({
 
       <ul className="space-y-1.5">
         {ranked.map(({ entry, originalIdx, count }, i) => {
-          const medal = i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
+          const medal = i === 0 ? "🏆" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
 
           if (medal) {
             // Podium rows: decreasing-width colored strip that contains the emoji
@@ -364,8 +366,11 @@ function MemeLeaderboard({
             return (
               <li
                 key={originalIdx}
-                className={`anim-rank-fade-up flex overflow-hidden rounded-2xl ${strip.border}`}
+                className={`anim-rank-fade-up flex overflow-hidden rounded-2xl ${strip.border} transition ${
+                  onSelectMeme ? "cursor-pointer hover:scale-[1.01]" : ""
+                }`}
                 style={{ animationDelay: `${220 + i * 70}ms` }}
+                onClick={onSelectMeme ? () => onSelectMeme(originalIdx) : undefined}
               >
                 {/* Colored accent strip — emoji on white backdrop for contrast */}
                 <div className={`flex shrink-0 items-center justify-center ${strip.w} ${strip.bg}`}>
@@ -398,8 +403,11 @@ function MemeLeaderboard({
           return (
             <li
               key={originalIdx}
-              className="anim-rank-fade-up flex items-center gap-3 rounded-2xl border border-sand-100 bg-sand-50/50 px-3 py-2"
+              className={`anim-rank-fade-up flex items-center gap-3 rounded-2xl border border-sand-100 bg-sand-50/50 px-3 py-2 transition ${
+                onSelectMeme ? "cursor-pointer hover:border-sand-300 hover:bg-sand-50" : ""
+              }`}
               style={{ animationDelay: `${220 + i * 70}ms` }}
+              onClick={onSelectMeme ? () => onSelectMeme(originalIdx) : undefined}
             >
               <div className="flex w-7 shrink-0 items-center justify-center">
                 <span className="text-xs font-semibold tabular-nums text-sand-400">{i + 1}</span>

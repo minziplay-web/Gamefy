@@ -335,6 +335,10 @@ service cloud.firestore {
         "dailyLockedDateKey",
         "options",
         "imagePath",
+        "source",
+        "ownerUserId",
+        "targetDateKey",
+        "consumedInDailyDateKey",
         "createdAt",
         "createdBy",
         "updatedAt",
@@ -347,6 +351,10 @@ service cloud.firestore {
         && isKnownTargetMode(data.targetMode)
         && (data.active == true || data.active == false)
         && (!("dailyLocked" in data) || data.dailyLocked == true || data.dailyLocked == false)
+        && (
+          !("source" in data)
+          || data.source in ["admin_pool", "user_trophy"]
+        )
         && (
           data.type == "either_or"
           ? ("options" in data && data.options.size() == 2)
@@ -370,6 +378,10 @@ service cloud.firestore {
         && request.resource.data.active == resource.data.active
         && request.resource.data.options == resource.data.options
         && request.resource.data.imagePath == resource.data.imagePath
+        && request.resource.data.source == resource.data.source
+        && request.resource.data.ownerUserId == resource.data.ownerUserId
+        && request.resource.data.targetDateKey == resource.data.targetDateKey
+        && request.resource.data.consumedInDailyDateKey == resource.data.consumedInDailyDateKey
         && request.resource.data.dailyLocked == true
         && resource.data.dailyLocked != true
         && request.resource.data.dailyLockedDateKey is string

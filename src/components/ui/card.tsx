@@ -4,8 +4,8 @@ type Tone = "raised" | "flat" | "dark";
 
 const toneClasses: Record<Tone, string> = {
   raised:
-    "border-white/60 bg-white/85 shadow-card-raised backdrop-blur",
-  flat: "border-white/60 bg-white/70 shadow-card-flat backdrop-blur-sm",
+    "border-white/70 bg-white/92 shadow-card-raised backdrop-blur",
+  flat: "border-white/65 bg-white/82 shadow-card-flat backdrop-blur-sm",
   dark: "border-sand-800/60 bg-linear-to-br from-sand-900 via-sand-800 to-sand-700 text-cream shadow-card-raised",
 };
 

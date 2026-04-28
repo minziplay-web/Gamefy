@@ -20,6 +20,7 @@ import {
 import { formatListenerError } from "@/lib/firebase/listener-errors";
 import { resolveDailyRunStatus } from "@/lib/mapping/daily-run";
 import {
+  computeAvailableTrophyCount,
   computeDailyStreakStats,
   computeDailyMemeTrophyCount,
   computeDuelStats,
@@ -116,6 +117,10 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
         dailyAnswers,
         dailyMemeVotes,
       });
+      const bonusTrophyCount = viewedUser.bonusTrophyCount ?? 0;
+      const spentCustomQuestions = Array.from(questions.values()).filter(
+        (question) => question.source === "user_trophy" && question.ownerUserId === viewedUserId,
+      ).length;
       const duelStats = computeDuelStats({
         userId: viewedUserId,
         dailyRuns,
@@ -193,6 +198,11 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
               (answer) => answer.userId === viewedUserId,
             ).length,
             memeTrophyCount,
+            availableTrophyCount: computeAvailableTrophyCount({
+              earnedTrophies: memeTrophyCount,
+              spentCustomQuestions,
+              bonusTrophies: bonusTrophyCount,
+            }),
           },
           live: {
             roundsPlayed,
@@ -337,7 +347,7 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
         handleError("Profil-Live-Antworten"),
       ),
       onSnapshot(
-        query(questionsRef, where("active", "==", true)),
+        questionsRef,
         (snapshot) => {
           questions = new Map(
             snapshot.docs.map((doc) => [doc.id, doc.data() as QuestionDoc]),

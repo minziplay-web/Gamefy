@@ -45,6 +45,7 @@ export function AdminScreen({
   onResetToday,
   onRerollQuestion,
   onDeactivateUser,
+  onGrantTrophy,
   onSaveConfig,
 }: {
   state: AdminViewState;
@@ -66,6 +67,7 @@ export function AdminScreen({
     questionId: string,
   ) => Promise<AdminDailyQuestionRerollResult>;
   onDeactivateUser?: (userId: string) => Promise<void>;
+  onGrantTrophy?: (userId: string) => Promise<void>;
   onSaveConfig?: (
     draft: Extract<AdminViewState, { status: "ready" }>["config"]["draft"],
   ) => Promise<void>;
@@ -617,6 +619,26 @@ export function AdminScreen({
           removeStatus={memberActionState.status}
           removeMessage={memberActionState.message}
           onRemove={setMemberToRemove}
+          onGrantTrophy={async (member) => {
+            setMemberActionState({ status: "running", message: undefined });
+            try {
+              if (onGrantTrophy) {
+                await onGrantTrophy(member.userId);
+              }
+              setMemberActionState({
+                status: "success",
+                message: `${member.displayName} hat jetzt eine Bonus-Trophy bekommen.`,
+              });
+            } catch (error) {
+              setMemberActionState({
+                status: "error",
+                message: getErrorMessage(
+                  error,
+                  "Die Trophy konnte nicht vergeben werden.",
+                ),
+              });
+            }
+          }}
         />
       ) : null}
 

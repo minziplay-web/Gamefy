@@ -102,6 +102,17 @@ export function computeDailyMemeTrophyCount(params: {
   return trophyCount;
 }
 
+export function computeAvailableTrophyCount(params: {
+  earnedTrophies: number;
+  spentCustomQuestions: number;
+  bonusTrophies?: number;
+}) {
+  return Math.max(
+    0,
+    params.earnedTrophies + (params.bonusTrophies ?? 0) - params.spentCustomQuestions,
+  );
+}
+
 export function computeDailyStreakStats(
   answeredDateKeys: Iterable<DateKey>,
   now: Date = new Date(),

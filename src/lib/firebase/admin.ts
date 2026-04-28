@@ -119,6 +119,7 @@ export function useAdminViewState(): AdminViewState {
             photoURL: user.photoURL,
             role: user.role,
             onboardingCompleted: user.onboardingCompleted,
+            bonusTrophyCount: user.bonusTrophyCount ?? 0,
             joinedAtIso: toIsoString(user.createdAt),
           }))
           .sort((left, right) => left.displayName.localeCompare(right.displayName, "de")),

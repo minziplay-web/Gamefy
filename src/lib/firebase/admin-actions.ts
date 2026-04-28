@@ -5,6 +5,7 @@ import {
   doc,
   getDoc,
   getDocs,
+  increment,
   limit,
   orderBy,
   query,
@@ -22,6 +23,7 @@ import {
   DEFAULT_DAILY_CATEGORIES,
   shuffle,
 } from "@/lib/daily/daily-run-generator";
+import { isUserTrophyQuestion } from "@/lib/daily/custom-daily-questions";
 import {
   appConfigDoc,
   dailyAnswersCollection,
@@ -228,6 +230,29 @@ export async function deactivateUser(params: {
   });
 }
 
+export async function grantBonusTrophy(userId: string) {
+  const targetRef = userDoc(userId);
+
+  if (!targetRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  const snapshot = await getDoc(targetRef);
+  if (!snapshot.exists()) {
+    throw new Error("Der Benutzer wurde nicht gefunden.");
+  }
+
+  const user = snapshot.data() as UserDoc;
+  if (!user.isActive) {
+    throw new Error("Inaktive Mitglieder können keine Trophy bekommen.");
+  }
+
+  await updateDoc(targetRef, {
+    bonusTrophyCount: increment(1),
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export function parseQuestionImport(raw: string): ImportQuestionInput[] {
   const parsed = JSON.parse(raw) as unknown;
 
@@ -339,6 +364,10 @@ export async function importQuestions(raw: string, createdBy: string) {
           active: true,
           dailyLocked: false,
           dailyLockedDateKey: null,
+          source: existing?.data.source ?? "admin_pool",
+          ownerUserId: existing?.data.ownerUserId ?? null,
+          targetDateKey: existing?.data.targetDateKey ?? null,
+          consumedInDailyDateKey: existing?.data.consumedInDailyDateKey ?? null,
           createdBy: existing?.data.createdBy ?? createdBy,
           createdAt: existing?.data.createdAt ?? serverTimestamp(),
           updatedAt: serverTimestamp(),
@@ -356,6 +385,10 @@ export async function importQuestions(raw: string, createdBy: string) {
       active: true,
       dailyLocked: false,
       dailyLockedDateKey: null,
+      source: "admin_pool",
+      ownerUserId: null,
+      targetDateKey: null,
+      consumedInDailyDateKey: null,
       createdBy,
       createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
@@ -764,19 +797,28 @@ async function upsertDailyRun(params: {
     ...(snapshot.data() as UserDoc),
   }));
 
-  const eligibleQuestions = questionSnapshot.docs
+  const allQuestions = questionSnapshot.docs
     .map((snapshot) => ({
       questionId: snapshot.id,
       ...(snapshot.data() as QuestionDoc),
-    }))
+    }));
+  const customQuestions = allQuestions.filter(
+    (question) =>
+      isUserTrophyQuestion(question)
+      && question.targetDateKey === dateKey
+      && (question.consumedInDailyDateKey == null
+        || question.consumedInDailyDateKey === dateKey),
+  );
+  const eligibleQuestions = allQuestions
     .filter(
       (question) =>
-        (question.targetMode === "daily" || question.targetMode === "both")
+        !isUserTrophyQuestion(question)
+        && (question.targetMode === "daily" || question.targetMode === "both")
         && question.dailyLocked !== true
         && canUseQuestionInDaily(question.type, users.length),
     );
 
-  if (eligibleQuestions.length === 0) {
+  if (eligibleQuestions.length === 0 && customQuestions.length === 0) {
     throw new Error("Keine freigegebenen Daily-Fragen gefunden.");
   }
 
@@ -786,6 +828,7 @@ async function upsertDailyRun(params: {
     questionCount,
     revealPolicy,
     categoryPlan: params.categoryPlan,
+    customQuestions,
     questions: eligibleQuestions,
     userIds: users.map((user) => user.userId),
     previousCreatedAt: existingRun.exists()
@@ -806,6 +849,11 @@ async function upsertDailyRun(params: {
       firstAnswersRef,
       memeVotesRef,
     });
+    await markCustomQuestionsConsumedByDate({
+      questionsRef,
+      dateKey,
+      questionIds: customQuestions.map((question) => question.questionId),
+    });
     return {
       mode: "replace",
       dateKey,
@@ -815,6 +863,11 @@ async function upsertDailyRun(params: {
   }
 
   await setDoc(runRef, runPayload, { merge: false });
+  await markCustomQuestionsConsumedByDate({
+    questionsRef,
+    dateKey,
+    questionIds: customQuestions.map((question) => question.questionId),
+  });
   return {
     mode: "create",
     dateKey,
@@ -1055,6 +1108,27 @@ function chunkDocs<T>(items: T[], size: number) {
     chunks.push(items.slice(index, index + size));
   }
   return chunks;
+}
+
+async function markCustomQuestionsConsumedByDate(params: {
+  questionsRef: NonNullable<ReturnType<typeof questionsCollection>>;
+  dateKey: DateKey;
+  questionIds: string[];
+}) {
+  const { questionsRef, dateKey, questionIds } = params;
+
+  if (questionIds.length === 0) {
+    return;
+  }
+
+  const batch = writeBatch(questionsRef.firestore);
+  for (const questionId of questionIds) {
+    batch.update(doc(questionsRef, questionId), {
+      consumedInDailyDateKey: dateKey,
+      updatedAt: serverTimestamp(),
+    });
+  }
+  await batch.commit();
 }
 
 function buildQuestionImportExactKey(

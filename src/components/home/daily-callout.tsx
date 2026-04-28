@@ -4,9 +4,18 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { ProgressBar } from "@/components/ui/progress-bar";
-import type { DailyTeaser } from "@/lib/types/frontend";
+import type {
+  CustomDailyQuestionNotice,
+  DailyTeaser,
+} from "@/lib/types/frontend";
 
-export function DailyCallout({ teaser }: { teaser: DailyTeaser | null }) {
+export function DailyCallout({
+  teaser,
+  customQuestionNotice,
+}: {
+  teaser: DailyTeaser | null;
+  customQuestionNotice?: CustomDailyQuestionNotice | null;
+}) {
   if (!teaser) {
     return (
       <Card className="space-y-3">
@@ -83,18 +92,44 @@ export function DailyCallout({ teaser }: { teaser: DailyTeaser | null }) {
   const playable = teaser.totalQuestions;
   const remaining = Math.max(0, playable - teaser.answeredByMe);
   const allAnswered = playable > 0 && remaining === 0;
+  const hasCustomQuestionNotice =
+    teaser.status === "active" && Boolean(customQuestionNotice);
+  const heading = hasCustomQuestionNotice
+    ? "Neue Frage im Daily"
+    : allAnswered
+      ? "Alles für heute beantwortet"
+      : remaining === 1
+        ? "Noch eine Frage wartet"
+        : `Noch ${remaining} Fragen warten`;
+  const body = hasCustomQuestionNotice
+    ? customQuestionNotice?.isMine
+      ? "Deine eigene Frage ist jetzt live im heutigen Daily."
+      : `Eine neue Frage wurde von ${customQuestionNotice?.authorDisplayName} erstellt.`
+    : teaser.revealPolicy === "after_answer"
+      ? "Nach deiner Antwort siehst du direkt, wie die anderen abgestimmt haben."
+      : "Die Ergebnisse werden gesammelt und erst nach Tagesende aufgedeckt.";
+  const buttonLabel = hasCustomQuestionNotice
+    ? "Jetzt anschauen"
+    : allAnswered
+      ? "Zur Daily"
+      : "Daily starten";
 
   return (
     <Card className="space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div className="space-y-2">
-          <Badge tone="coral">Daily</Badge>
+          <Badge tone={hasCustomQuestionNotice ? "warning" : "coral"}>
+            {hasCustomQuestionNotice ? (
+              <>
+                <span aria-hidden>🏆</span>
+                Daily
+              </>
+            ) : (
+              "Daily"
+            )}
+          </Badge>
           <h2 className="text-xl font-semibold leading-tight text-sand-900">
-            {allAnswered
-              ? "Alles für heute beantwortet"
-              : remaining === 1
-                ? "Noch eine Frage wartet"
-                : `Noch ${remaining} Fragen warten`}
+            {heading}
           </h2>
         </div>
         <ProgressPill answered={teaser.answeredByMe} total={playable} />
@@ -106,14 +141,10 @@ export function DailyCallout({ teaser }: { teaser: DailyTeaser | null }) {
         </p>
       ) : null}
       <p className="text-sm leading-relaxed text-sand-700">
-        {teaser.revealPolicy === "after_answer"
-          ? "Nach deiner Antwort siehst du direkt, wie die anderen abgestimmt haben."
-          : "Die Ergebnisse werden gesammelt und erst nach Tagesende aufgedeckt."}
+        {body}
       </p>
       <Link href="/daily" className="block">
-        <Button className="w-full">
-          {allAnswered ? "Zur Daily" : "Daily starten"}
-        </Button>
+        <Button className="w-full">{buttonLabel}</Button>
       </Link>
     </Card>
   );

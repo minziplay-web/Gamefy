@@ -104,6 +104,7 @@ export const mockAdmin: AdminViewState = {
       photoURL: null,
       role: "admin",
       onboardingCompleted: true,
+      bonusTrophyCount: 0,
       joinedAtIso: "2026-04-01T18:20:00.000Z",
     },
     {
@@ -113,6 +114,7 @@ export const mockAdmin: AdminViewState = {
       photoURL: null,
       role: "member",
       onboardingCompleted: true,
+      bonusTrophyCount: 1,
       joinedAtIso: "2026-04-08T17:10:00.000Z",
     },
     {
@@ -122,6 +124,7 @@ export const mockAdmin: AdminViewState = {
       photoURL: null,
       role: "member",
       onboardingCompleted: false,
+      bonusTrophyCount: 0,
       joinedAtIso: "2026-04-15T20:05:00.000Z",
     },
   ],

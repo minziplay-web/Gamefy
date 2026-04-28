@@ -4,6 +4,7 @@ export type SessionId = string;
 export type DateKey = string;
 
 export type Category =
+  | "custom"
   | "hot_takes"
   | "pure_fun"
   | "deep_talk"
@@ -106,6 +107,37 @@ export interface HomeGreeting {
   streakCurrent: number;
 }
 
+export interface CustomDailyQuestionDraft {
+  type: "open_text" | "single_choice" | "multi_choice" | "either_or";
+  text: string;
+  optionA: string;
+  optionB: string;
+}
+
+export interface CustomDailyQuestionSummary {
+  questionId: QuestionId;
+  targetDateKey: DateKey;
+  type: "open_text" | "single_choice" | "multi_choice" | "either_or";
+  text: string;
+  options?: [string, string];
+}
+
+export interface CustomDailyQuestionStatus {
+  targetDateKey: DateKey;
+  availableTrophies: number;
+  earnedTrophies: number;
+  bonusTrophies: number;
+  spentTrophies: number;
+  pendingQuestion: CustomDailyQuestionSummary | null;
+}
+
+export interface CustomDailyQuestionNotice {
+  questionId: QuestionId;
+  authorDisplayName: string;
+  questionText: string;
+  isMine: boolean;
+}
+
 export interface DailyRecapItem {
   dateKey: DateKey;
   questionId: QuestionId;
@@ -130,6 +162,8 @@ export type HomeViewState =
       dailyTeaser: DailyTeaser | null;
       dailyRecap?: DailyRecapItem[];
       pastDailies?: HomePastDailyReview[];
+      customQuestionStatus?: CustomDailyQuestionStatus;
+      customQuestionNotice?: CustomDailyQuestionNotice | null;
       activeLiveSession: LiveSessionTeaser | null;
       canHostLive: boolean;
       showAdminEntry: boolean;
@@ -456,6 +490,7 @@ export interface ProfileStats {
     streakBest: number;
     firstAnswerCount: number;
     memeTrophyCount: number;
+    availableTrophyCount: number;
   };
   live: {
     roundsPlayed: number;
@@ -548,6 +583,7 @@ export interface AdminMemberRow {
   photoURL: string | null;
   role: UserRole;
   onboardingCompleted: boolean;
+  bonusTrophyCount: number;
   joinedAtIso: string | null;
 }
 

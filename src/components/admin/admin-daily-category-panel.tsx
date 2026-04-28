@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { CATEGORY_LABELS } from "@/lib/mapping/categories";
 import type { AdminDailyCategoryPlan, Category } from "@/lib/types/frontend";
 
-const ALL_CATEGORIES = Object.keys(CATEGORY_LABELS) as Category[];
+const ALL_CATEGORIES = (Object.keys(CATEGORY_LABELS) as Category[]).filter(
+  (category) => category !== "custom",
+);
 
 export function AdminDailyCategoryPanel({
   plan,

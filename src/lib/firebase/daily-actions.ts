@@ -16,6 +16,7 @@ import {
   dailyPrivateAnswerDoc,
   questionsCollection,
 } from "@/lib/firebase/collections";
+import { shouldHideUserTrophyQuestionForUser } from "@/lib/daily/custom-daily-questions";
 import { assertValidDraftForQuestion } from "@/lib/mapping/answer-guards";
 import { resolveDailyRunStatus } from "@/lib/mapping/daily-run";
 import { berlinDateKey } from "@/lib/mapping/date";
@@ -30,6 +31,7 @@ import type {
   DailyMemeVoteDoc,
   DailyPrivateAnswerDoc,
   DailyRunDoc,
+  QuestionDoc,
 } from "@/lib/types/firestore";
 
 export async function submitDailyAnswer(params: {
@@ -62,10 +64,11 @@ export async function submitDailyAnswer(params: {
   let shouldTryFirstAnswerLock = false;
 
   await runTransaction(privateRef.firestore, async (transaction) => {
-    const [runSnap, previousPrivateSnap, firstAnswerSnap] = await Promise.all([
+    const [runSnap, previousPrivateSnap, firstAnswerSnap, questionSnap] = await Promise.all([
       transaction.get(runRef),
       transaction.get(privateRef),
       transaction.get(firstAnswerRef),
+      transaction.get(questionRef),
     ]);
 
     if (!runSnap.exists()) {
@@ -80,6 +83,16 @@ export async function submitDailyAnswer(params: {
     }
     if (!(run.questionIds ?? []).includes(question.questionId)) {
       throw new Error("Diese Frage gehört nicht mehr zum aktuellen Daily-Run.");
+    }
+
+    const persistedQuestion = questionSnap.exists()
+      ? (questionSnap.data() as QuestionDoc)
+      : null;
+    if (
+      persistedQuestion
+      && shouldHideUserTrophyQuestionForUser(persistedQuestion, user.userId)
+    ) {
+      throw new Error("Deine eigene Trophy-Frage beantworten die anderen.");
     }
 
     const previousPrivate = previousPrivateSnap.exists()

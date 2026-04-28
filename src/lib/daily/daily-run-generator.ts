@@ -10,6 +10,7 @@ import type {
 import type { DailyRunDoc, QuestionDoc } from "@/lib/types/firestore";
 
 export const MAX_DAILY_CATEGORY_COUNT = 12;
+export const MAX_DAILY_RUN_QUESTIONS = 20;
 
 export const DEFAULT_DAILY_CATEGORIES: Category[] = [
   "hot_takes",
@@ -55,6 +56,7 @@ export function buildDailyRunPayload(params: {
   questionCount: number;
   revealPolicy: RevealPolicy;
   categoryPlan?: AdminDailyCategoryPlan;
+  customQuestions?: Array<{ questionId: string } & QuestionDoc>;
   questions: Array<{ questionId: string } & QuestionDoc>;
   userIds: string[];
   previousCreatedAt?: unknown;
@@ -66,6 +68,7 @@ export function buildDailyRunPayload(params: {
     questionCount,
     revealPolicy,
     categoryPlan,
+    customQuestions = [],
     questions,
     userIds,
     previousCreatedAt,
@@ -78,7 +81,7 @@ export function buildDailyRunPayload(params: {
       : DEFAULT_DAILY_CATEGORIES;
   const forcedCategories = categoryPlan?.forcedCategories ?? [];
 
-  if (includedCategories.length === 0) {
+  if (includedCategories.length === 0 && customQuestions.length === 0) {
     throw new Error("Wähle mindestens eine Kategorie für das Daily aus.");
   }
 
@@ -92,19 +95,58 @@ export function buildDailyRunPayload(params: {
     questionsByCategory.set(question.category, group);
   }
 
-  if (questionsByCategory.size === 0) {
+  if (questionsByCategory.size === 0 && customQuestions.length === 0) {
     throw new Error("Für die gewählten Kategorien gibt es keine freigegebenen Fragen.");
   }
 
-  const missingForcedCategories = forcedCategories.filter(
-    (category) => !questionsByCategory.has(category),
-  );
+  const missingForcedCategories = forcedCategories.filter((category) => !questionsByCategory.has(category));
 
   if (missingForcedCategories.length > 0) {
     throw new Error(
       `Diese Pflicht-Kategorien haben gerade keine freigegebenen Fragen: ${missingForcedCategories.join(", ")}.`,
     );
   }
+
+  const selectedQuestions =
+    questionsByCategory.size === 0
+      ? []
+      : selectPoolQuestions({
+          questionCount: Math.max(0, Math.min(questionCount, MAX_DAILY_RUN_QUESTIONS - customQuestions.length)),
+          questionsByCategory,
+          forcedCategories,
+        });
+
+  const items = [
+    ...customQuestions
+      .slice(0, MAX_DAILY_RUN_QUESTIONS)
+      .map((question) => buildDailyRunItem(question, userIds)),
+    ...selectedQuestions.map((question) => buildDailyRunItem(question, userIds)),
+  ].slice(0, MAX_DAILY_RUN_QUESTIONS);
+
+  const payload = {
+    dateKey,
+    timezone: "Europe/Berlin" as const,
+    status: dateKey === berlinDateKey() ? ("active" as const) : ("scheduled" as const),
+    questionCount: items.length,
+    revealPolicy,
+    questionIds: items.map((item) => item.questionId),
+    items,
+    createdBy,
+    createdAt: previousCreatedAt ?? updatedAt,
+    updatedAt,
+  } satisfies DailyRunDoc;
+
+  assertValidDailyRunPayload(payload);
+
+  return payload;
+}
+
+function selectPoolQuestions(params: {
+  questionCount: number;
+  questionsByCategory: Map<Category, Array<{ questionId: string } & QuestionDoc>>;
+  forcedCategories: Category[];
+}) {
+  const { questionCount, questionsByCategory, forcedCategories } = params;
 
   const selectedCategoryCount = Math.min(
     questionCount,
@@ -125,7 +167,8 @@ export function buildDailyRunPayload(params: {
     ...forcedCategories,
     ...remainingCategories.slice(0, selectedCategoryCount - forcedCategories.length),
   ];
-  const selectedQuestions = chosenCategories.map((category) => {
+
+  return chosenCategories.map((category) => {
     const categoryQuestions = questionsByCategory.get(category);
     if (!categoryQuestions || categoryQuestions.length === 0) {
       throw new Error(`Für ${category} wurde keine freigegebene Frage gefunden.`);
@@ -133,25 +176,6 @@ export function buildDailyRunPayload(params: {
 
     return shuffle(categoryQuestions)[0];
   });
-
-  const items = selectedQuestions.map((question) => buildDailyRunItem(question, userIds));
-
-  const payload = {
-    dateKey,
-    timezone: "Europe/Berlin" as const,
-    status: dateKey === berlinDateKey() ? ("active" as const) : ("scheduled" as const),
-    questionCount: items.length,
-    revealPolicy,
-    questionIds: items.map((item) => item.questionId),
-    items,
-    createdBy,
-    createdAt: previousCreatedAt ?? updatedAt,
-    updatedAt,
-  } satisfies DailyRunDoc;
-
-  assertValidDailyRunPayload(payload);
-
-  return payload;
 }
 
 export function buildDailyRunItem(

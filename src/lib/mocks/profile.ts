@@ -9,6 +9,7 @@ export const mockProfileStats: ProfileStats = {
     streakBest: 11,
     firstAnswerCount: 7,
     memeTrophyCount: 3,
+    availableTrophyCount: 2,
   },
   live: { roundsPlayed: 6, roundsHosted: 2, answersSubmitted: 48 },
   duels: { wins: 13, losses: 9, winRatePercent: 59 },

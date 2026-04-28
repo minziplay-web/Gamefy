@@ -4,6 +4,7 @@ import { onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
 import { useAuth } from "@/lib/auth/auth-context";
+import { shouldHideUserTrophyQuestionForUser } from "@/lib/daily/custom-daily-questions";
 import {
   dailyAnswersCollection,
   dailyMemeVotesCollection,
@@ -104,8 +105,13 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
         questions,
         activeMemberIds: new Set(activeMembers.keys()),
       });
+      const visibleItems = validatedRun.playableItems.filter((item) => {
+        const question = questions.get(item.questionId);
+        return !question
+          || !shouldHideUserTrophyQuestionForUser(question, authState.user.userId);
+      });
       const playableQuestionIds = new Set(
-        validatedRun.playableItems.map((item) => item.questionId),
+        visibleItems.map((item) => item.questionId),
       );
       const answeredPlayableCount = Array.from(myAnswers.keys()).filter((questionId) =>
         playableQuestionIds.has(questionId),
@@ -113,7 +119,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
       const isCatchUpMode = dateKey < todayDateKey;
       const holdResultsUntilFinished =
         (effectiveRunStatus === "active" || isCatchUpMode) &&
-        answeredPlayableCount < validatedRun.playableItems.length;
+        answeredPlayableCount < visibleItems.length;
 
       if (validatedRun.isUnplayable) {
         setState({
@@ -126,7 +132,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
         return;
       }
 
-      const cards = validatedRun.playableItems.reduce<DailyQuestionCardState[]>(
+      const cards = visibleItems.reduce<DailyQuestionCardState[]>(
         (acc, item, index) => {
         const questionDoc = getQuestionSource(item, questions);
         if (!questionDoc) {
@@ -137,7 +143,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
               questionId: item.questionId,
               question: questionDoc,
               index,
-              total: validatedRun.playableItems.length,
+              total: visibleItems.length,
               members: activeMembers,
               pairing: item.pairing,
             });
