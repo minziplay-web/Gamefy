@@ -58,6 +58,21 @@ export function AdminConfigForm({
             onChange={(onboardingEnabled) => onChange({ ...draft, onboardingEnabled })}
           />
         </div>
+        <div className="flex items-center justify-between gap-3 rounded-2xl bg-sand-50 px-4 py-3">
+          <div className="space-y-0.5">
+            <p className="text-sm font-medium text-sand-800">
+              Daily nachts automatisch erzeugen
+            </p>
+            <p className="text-[11px] text-sand-500">
+              Erstellt um 00:00 Uhr automatisch ein neues Daily, wenn für den Tag noch keins existiert.
+            </p>
+          </div>
+          <ToggleSwitch
+            label="Auto-Daily"
+            checked={draft.dailyAutoCreateEnabled}
+            onChange={(dailyAutoCreateEnabled) => onChange({ ...draft, dailyAutoCreateEnabled })}
+          />
+        </div>
       </div>
 
       {saveStatus === "error" && saveError ? (

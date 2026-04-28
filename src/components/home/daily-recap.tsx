@@ -1,5 +1,3 @@
-import Link from "next/link";
-
 import { Card } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { QuestionReveal } from "@/components/daily/question-reveal";
@@ -20,16 +18,10 @@ export function DailyRecap({
 
   return (
     <section className="space-y-3">
-      <header className="flex items-end justify-between gap-3 px-1 pt-2">
+      <header className="px-1 pt-2">
         <h2 className="text-2xl font-semibold leading-tight tracking-tight text-sand-900">
           Heute aufgelöst
         </h2>
-        <Link
-          href="/daily"
-          className="inline-flex min-h-10 items-center rounded-full bg-sand-100 px-3 text-xs font-semibold text-sand-800 transition hover:bg-sand-200"
-        >
-          Alle →
-        </Link>
       </header>
 
       <ul className="space-y-3">

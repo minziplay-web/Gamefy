@@ -17,6 +17,7 @@ import {
 import {
   analyzeTodayDailyDiagnostics,
 } from "@/lib/mapping/admin-diagnostics";
+import { DEFAULT_DAILY_CATEGORIES } from "@/lib/daily/daily-run-generator";
 import { resolveDailyRunStatus } from "@/lib/mapping/daily-run";
 import { berlinDateKey, toIsoString } from "@/lib/mapping/date";
 import { formatListenerError } from "@/lib/firebase/listener-errors";
@@ -29,21 +30,6 @@ import type {
   QuestionDoc,
   UserDoc,
 } from "@/lib/types/firestore";
-
-const DEFAULT_DAILY_CATEGORIES = [
-  "hot_takes",
-  "pure_fun",
-  "deep_talk",
-  "memories",
-  "career_life",
-  "relationships",
-  "hobbies_interests",
-  "dirty",
-  "group_knowledge",
-  "would_you_rather",
-  "conspiracy",
-  "meme_it",
-] as const;
 
 export function useAdminViewState(): AdminViewState {
   const { authState, isMockMode } = useAuth();
@@ -98,6 +84,7 @@ export function useAdminViewState(): AdminViewState {
       dailyQuestionCount: 5,
       dailyRevealPolicy: "after_answer" as const,
       onboardingEnabled: true,
+      dailyAutoCreateEnabled: false,
       dailyIncludedCategories: [...DEFAULT_DAILY_CATEGORIES],
       dailyForcedCategories: [],
     };
@@ -274,6 +261,7 @@ export function useAdminViewState(): AdminViewState {
               dailyQuestionCount: data.dailyQuestionCount,
               dailyRevealPolicy: data.dailyRevealPolicy,
               onboardingEnabled: data.onboardingEnabled,
+              dailyAutoCreateEnabled: data.dailyAutoCreateEnabled === true,
               dailyIncludedCategories:
                 data.dailyIncludedCategories?.length
                   ? data.dailyIncludedCategories

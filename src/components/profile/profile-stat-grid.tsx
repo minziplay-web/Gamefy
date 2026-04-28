@@ -1,4 +1,4 @@
-import { CATEGORY_LABELS } from "@/lib/mapping/categories";
+import { CATEGORY_EMOJI, CATEGORY_LABELS } from "@/lib/mapping/categories";
 import { LIVE_MODE_ENABLED } from "@/lib/config/features";
 import type { Category, ProfileStats } from "@/lib/types/frontend";
 
@@ -7,7 +7,7 @@ interface StatCard {
   value: string;
   helper: string;
   hasData: boolean;
-  accent?: "streak" | "duels" | "votes";
+  accent?: "streak" | "duels" | "votes" | "trophy";
 }
 
 export function ProfileStatGrid({ stats }: { stats: ProfileStats }) {
@@ -53,6 +53,8 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
   const topCategory = pickTopCategory(stats.categoryActivity);
   const hasCategoryActivity = topCategory !== null;
   const hasPublicVotes = stats.publicVotesReceived.total > 0;
+  const hasMemeTrophies = stats.daily.memeTrophyCount > 0;
+  const topRelationship = stats.specialRelationships[0];
 
   return [
     {
@@ -68,13 +70,22 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
     },
     {
       label: "Dailys beantwortet",
-      value: hasAnyDaily ? `${stats.daily.answeredCount}` : "—",
+      value: stats.daily.completedCount > 0 ? `${stats.daily.completedCount}` : "—",
       helper: hasAnyDaily
         ? stats.daily.firstAnswerCount > 0
           ? `${stats.daily.firstAnswerCount}× zuerst`
           : "Noch nie zuerst"
         : "Noch keine Daily beantwortet",
-      hasData: hasAnyDaily,
+      hasData: stats.daily.completedCount > 0,
+    },
+    {
+      label: "Meme-Trophäen",
+      value: hasMemeTrophies ? `${stats.daily.memeTrophyCount}` : "—",
+      helper: hasMemeTrophies
+        ? "Bestes Meme des Tages"
+        : "Noch kein Tages-Meme gewonnen",
+      hasData: hasMemeTrophies,
+      accent: "trophy",
     },
     ...(LIVE_MODE_ENABLED
       ? [
@@ -100,10 +111,18 @@ function buildStatCards(stats: ProfileStats): StatCard[] {
       accent: "votes",
     },
     {
+      label: "Besondere Beziehung",
+      value: topRelationship ? topRelationship.member.displayName : "—",
+      helper: topRelationship
+        ? `${topRelationship.votes}× am häufigsten gewählt`
+        : "Noch keine Personen-Votes",
+      hasData: Boolean(topRelationship),
+    },
+    {
       label: "Top-Kategorie",
       value:
         hasCategoryActivity && topCategory
-          ? CATEGORY_LABELS[topCategory]
+          ? `${CATEGORY_EMOJI[topCategory]} ${CATEGORY_LABELS[topCategory]}`
           : "—",
       helper:
         hasCategoryActivity && topCategory

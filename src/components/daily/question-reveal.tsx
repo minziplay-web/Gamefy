@@ -49,22 +49,14 @@ function MemeCaptionReveal({
   onVote?: (authorUserId: string, value: boolean) => Promise<void>;
 }) {
   const entries = result.entries;
-  const totalSlides = entries.length + 1; // +1 for leaderboard
   const [rawIndex, setIndex] = useState(0);
   const [localVotes, setLocalVotes] = useState<
     Record<string, { iVoted: boolean; count: number }>
   >({});
-  const index = Math.min(Math.max(0, rawIndex), totalSlides - 1);
-
-  const effectiveCount = (e: MemeCaptionResult["entries"][number]) => {
-    const id = e.author?.userId;
-    if (id && localVotes[id]) return localVotes[id].count;
-    return e.thumbsUpCount ?? 0;
-  };
 
   if (entries.length === 0) {
     return (
-      <div className="space-y-3">
+      <div className="flex flex-col gap-3 rounded-card border border-sand-100 bg-white p-3 shadow-card-flat">
         <MemeImage imagePath={result.imagePath} />
         <p className="rounded-2xl bg-sand-50 px-3 py-3 text-sm text-sand-600">
           Noch keine Bildunterschriften.
@@ -73,238 +65,113 @@ function MemeCaptionReveal({
     );
   }
 
-  const isLeaderboard = index === entries.length;
+  const hasLeaderboard = entries.length > 1;
+  const totalSlides = entries.length + 1 + (hasLeaderboard ? 1 : 0);
+  const winnerSlideIndex = entries.length;
+  const leaderboardSlideIndex = hasLeaderboard ? entries.length + 1 : -1;
+  const index = Math.min(Math.max(0, rawIndex), totalSlides - 1);
+
+  const effectiveCount = (e: MemeCaptionResult["entries"][number]) => {
+    const id = e.author?.userId;
+    if (id && localVotes[id]) return localVotes[id].count;
+    return e.thumbsUpCount ?? 0;
+  };
+
+  const effectiveVoted = (e: MemeCaptionResult["entries"][number]) => {
+    const id = e.author?.userId;
+    if (id && localVotes[id] !== undefined) return localVotes[id].iVoted;
+    return e.iVoted ?? false;
+  };
+
+  const ranked = entries
+    .map((e, originalIdx) => ({ entry: e, originalIdx, count: effectiveCount(e) }))
+    .sort((a, b) =>
+      b.count !== a.count ? b.count - a.count : a.originalIdx - b.originalIdx,
+    );
+  const winner = ranked[0];
+
+  const isWinner = index === winnerSlideIndex;
+  const isLeaderboard = index === leaderboardSlideIndex;
   const goPrev = () => setIndex((i) => Math.max(0, i - 1));
   const goNext = () => setIndex((i) => Math.min(totalSlides - 1, i + 1));
 
-  if (isLeaderboard) {
-    const ranked = entries
-      .map((e, originalIdx) => ({ entry: e, originalIdx, count: effectiveCount(e) }))
-      .sort((a, b) =>
-        b.count !== a.count ? b.count - a.count : a.originalIdx - b.originalIdx,
-      );
+  const navLabel = isLeaderboard
+    ? "Rangliste"
+    : isWinner
+      ? "Winner"
+      : `Meme ${index + 1}`;
 
-    const winner = ranked[0];
-    const winnerAuthorId = winner.entry.author?.userId;
-    const winnerLocal = winnerAuthorId ? localVotes[winnerAuthorId] : undefined;
-    const winnerLiked = winnerLocal?.iVoted ?? winner.entry.iVoted ?? false;
+  // Image always shows current meme caption; winner + leaderboard show winning caption
+  const imageEntry = isWinner || isLeaderboard ? winner.entry : entries[index];
 
-    return (
-      <div className="flex flex-col gap-3">
-        <div className="anim-winner-pop space-y-3 rounded-2xl border-2 border-coral bg-linear-to-br from-coral-soft/40 to-white p-4 shadow-card-raised">
-          <div className="flex items-center gap-2">
-            <span className="anim-crown-bob text-xl" aria-hidden>
-              👑
-            </span>
-            <p className="text-xs font-bold uppercase tracking-[0.15em] text-coral">
-              Winner
-            </p>
-          </div>
-          <MemeImage
-            imagePath={result.imagePath}
-            caption={winner.entry.text}
-          />
-          <div className="flex items-center justify-between gap-3">
-            <div className="flex min-w-0 items-center gap-2">
-              {winner.entry.author ? (
-                <>
-                  <AvatarCircle member={winner.entry.author} size="sm" />
-                  <span className="truncate text-sm font-semibold text-sand-900">
-                    {winner.entry.author.displayName}
-                  </span>
-                </>
-              ) : (
-                <span className="text-sm font-semibold text-sand-400">
-                  Unbekannt
-                </span>
-              )}
-            </div>
-            <span
-              className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1 text-sm font-bold ${
-                winnerLiked
-                  ? "anim-heart-glow bg-coral text-white"
-                  : "border border-sand-200 bg-white text-sand-700"
-              }`}
-            >
-              <span aria-hidden>{winnerLiked ? "❤️" : "🤍"}</span>
-              <span className="tabular-nums">{winner.count}</span>
-            </span>
-          </div>
-        </div>
-
-        {ranked.length > 1 ? (
-          <div className="space-y-2">
-            <p className="px-1 text-xs font-semibold uppercase tracking-wider text-sand-500">
-              Rangliste
-            </p>
-            <ul className="divide-y divide-sand-100 overflow-hidden rounded-2xl border border-sand-100 bg-white">
-              {ranked.slice(1).map(({ entry, originalIdx, count }, i) => {
-                const rankIdx = i + 1;
-                const medal =
-                  rankIdx === 1 ? "🥈" : rankIdx === 2 ? "🥉" : null;
-                return (
-                  <li
-                    key={originalIdx}
-                    className="anim-rank-fade-up flex items-center gap-3 px-3 py-3"
-                    style={{ animationDelay: `${320 + rankIdx * 70}ms` }}
-                  >
-                    <div className="flex w-7 shrink-0 items-center justify-center text-base">
-                      {medal ? (
-                        <span aria-hidden>{medal}</span>
-                      ) : (
-                        <span className="text-sm font-semibold text-sand-500 tabular-nums">
-                          {rankIdx + 1}
-                        </span>
-                      )}
-                    </div>
-                    {entry.author ? (
-                      <AvatarCircle member={entry.author} size="sm" />
-                    ) : (
-                      <div className="size-8 shrink-0 rounded-full bg-sand-100" />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-medium text-sand-500">
-                        {entry.author?.displayName ?? "Unbekannt"}
-                      </p>
-                      <p className="line-clamp-1 text-sm font-medium text-sand-900">
-                        „{entry.text}"
-                      </p>
-                    </div>
-                    <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums text-coral">
-                      <span aria-hidden>❤️</span>
-                      {count}
-                    </span>
-                  </li>
-                );
-              })}
-            </ul>
-          </div>
-        ) : null}
-
-        <div className="mt-auto flex items-center justify-between gap-2 pt-2">
-          <button
-            type="button"
-            onClick={goPrev}
-            disabled={index === 0}
-            className="inline-flex size-9 items-center justify-center rounded-full border border-sand-200 bg-white text-sand-700 transition hover:border-sand-300 disabled:opacity-40"
-            aria-label="Vorheriges Meme"
-          >
-            ‹
-          </button>
-
-          <div className="flex flex-1 items-center justify-center gap-1.5">
-            {Array.from({ length: totalSlides }).map((_, i) => (
-              <span
-                key={i}
-                aria-hidden
-                className={`rounded-full transition ${
-                  i === entries.length ? "size-2" : "size-1.5"
-                } ${i === index ? "bg-coral" : "bg-sand-200"}`}
-              />
-            ))}
-          </div>
-
-          <span className="text-xs font-semibold uppercase tracking-wider text-coral">
-            Rangliste
-          </span>
-
-          <button
-            type="button"
-            disabled
-            aria-hidden
-            className="inline-flex size-9 items-center justify-center rounded-full border border-sand-200 bg-white text-sand-700 opacity-40"
-          >
-            ›
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const entry = entries[index];
-  const authorId = entry.author?.userId;
-  const local = authorId ? localVotes[authorId] : undefined;
-  const baseCount = entry.thumbsUpCount ?? 0;
-  const baseVoted = entry.iVoted ?? false;
-  const iVoted = local?.iVoted ?? baseVoted;
-  const count = local?.count ?? baseCount;
-
-  const handleVote = () => {
-    if (!authorId) return;
-    const nextVoted = !iVoted;
-    const nextCount = Math.max(0, count + (nextVoted ? 1 : -1));
-    setLocalVotes((prev) => ({
-      ...prev,
-      [authorId]: { iVoted: nextVoted, count: nextCount },
+  const handleVote = (targetUserId: string) => {
+    const prev = localVotes[targetUserId];
+    const baseEntry = entries.find((e) => e.author?.userId === targetUserId);
+    const currentVoted = prev?.iVoted ?? baseEntry?.iVoted ?? false;
+    const currentCount = prev?.count ?? baseEntry?.thumbsUpCount ?? 0;
+    const nextVoted = !currentVoted;
+    const nextCount = Math.max(0, currentCount + (nextVoted ? 1 : -1));
+    setLocalVotes((lv) => ({
+      ...lv,
+      [targetUserId]: { iVoted: nextVoted, count: nextCount },
     }));
     if (onVote) {
-      void onVote(authorId, nextVoted).catch(() => {
-        setLocalVotes((prev) => ({
-          ...prev,
-          [authorId]: { iVoted: !nextVoted, count },
+      void onVote(targetUserId, nextVoted).catch(() => {
+        setLocalVotes((lv) => ({
+          ...lv,
+          [targetUserId]: { iVoted: currentVoted, count: currentCount },
         }));
       });
     }
   };
 
+  const winnerAuthorId = winner.entry.author?.userId;
+  const currentEntry = !isWinner && !isLeaderboard ? entries[index] : undefined;
+  const currentAuthorId = currentEntry?.author?.userId;
+  const contentKey = isLeaderboard ? "leaderboard" : isWinner ? "winner" : `meme-${index}`;
+
   return (
     <div className="flex flex-col gap-3">
-      <div
-        key={index}
-        className="anim-meme-slide-in space-y-3 rounded-2xl border border-sand-100 bg-white p-3 shadow-card-flat"
-      >
-        <p className="text-xs font-bold uppercase tracking-[0.15em] text-sand-500">
-          Meme · {index + 1} / {entries.length}
-        </p>
-
-        <MemeImage imagePath={result.imagePath} caption={entry.text} />
-
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-sand-50 px-3 py-2.5">
-          <div className="flex min-w-0 items-center gap-3">
-            {entry.author ? (
-              <>
-                <AvatarCircle member={entry.author} size="md" />
-                <div className="min-w-0">
-                  <p className="truncate text-base font-semibold text-sand-900">
-                    {entry.author.displayName}
-                  </p>
-                  <p className="truncate text-xs text-sand-500">
-                    {iVoted ? "Du hast geherzt" : "Gefällt dir das Meme?"}
-                  </p>
-                </div>
-              </>
-            ) : (
-              <span className="text-sm font-semibold text-sand-400">
-                Unbekannt
-              </span>
-            )}
-          </div>
-
-          <button
-            type="button"
-            onClick={handleVote}
-            disabled={!authorId}
-            aria-pressed={iVoted}
-            aria-label={iVoted ? "Herz entfernen" : "Herz vergeben"}
-            className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${
-              iVoted
-                ? "bg-coral text-white shadow-card-flat"
-                : "border-2 border-sand-200 bg-white text-sand-700 hover:border-coral/60 hover:text-coral"
-            } disabled:opacity-50`}
-          >
-            <span aria-hidden>{iVoted ? "❤️" : "🤍"}</span>
-            <span className="tabular-nums">{count}</span>
-          </button>
+      {isLeaderboard ? (
+        /* Leaderboard: rendered directly — no inner card, no extra border */
+        <div key="leaderboard" className="anim-meme-slide-in">
+          <MemeLeaderboard ranked={ranked} />
         </div>
-      </div>
+      ) : (
+        /* Meme / Winner: image anchored at top, panel swaps below */
+        <div className={`rounded-card border p-3 ${isWinner ? "border-amber-200 bg-linear-to-b from-amber-50 to-white shadow-card-raised" : "border-sand-100 bg-white shadow-card-flat"}`}>
+          {/* Image — identical layout in all states, winner overlay is absolute */}
+          <div className={`relative${isWinner ? " rounded-2xl ring-2 ring-amber-400/60" : ""}`}>
+            <MemeImage imagePath={result.imagePath} caption={imageEntry.text} />
+          </div>
+          <div key={contentKey} className="anim-meme-slide-in mt-3">
+            {isWinner ? (
+              <MemeWinnerPanel
+                entry={winner.entry}
+                count={effectiveCount(winner.entry)}
+                iVoted={effectiveVoted(winner.entry)}
+                onVote={winnerAuthorId ? () => handleVote(winnerAuthorId) : undefined}
+              />
+            ) : currentEntry ? (
+              <MemeMiniFooter
+                entry={currentEntry}
+                count={effectiveCount(currentEntry)}
+                iVoted={effectiveVoted(currentEntry)}
+                onVote={currentAuthorId ? () => handleVote(currentAuthorId) : undefined}
+              />
+            ) : null}
+          </div>
+        </div>
+      )}
 
-      <div className="mt-auto flex items-center justify-between gap-2 pt-2">
+      {/* Navigation — identical structure across all states */}
+      <div className="flex items-center justify-between gap-2">
         <button
           type="button"
           onClick={goPrev}
           disabled={index === 0}
           className="inline-flex size-9 items-center justify-center rounded-full border border-sand-200 bg-white text-sand-700 transition hover:border-sand-300 disabled:opacity-40"
-          aria-label="Vorheriges Meme"
+          aria-label="Vorheriger Slide"
         >
           ‹
         </button>
@@ -314,15 +181,21 @@ function MemeCaptionReveal({
             <span
               key={i}
               aria-hidden
-              className={`rounded-full transition ${
-                i === entries.length ? "size-2" : "size-1.5"
-              } ${i === index ? "bg-coral" : "bg-sand-200"}`}
+              className={`rounded-full transition ${i >= winnerSlideIndex ? "size-2" : "size-1.5"} ${
+                i === index ? "bg-coral" : "bg-sand-200"
+              }`}
             />
           ))}
         </div>
 
-        <span className="text-xs font-semibold tabular-nums text-sand-500">
-          {index + 1} / {entries.length}
+        <span
+          className={`text-xs font-semibold ${
+            isWinner || isLeaderboard
+              ? "uppercase tracking-wider text-coral"
+              : "tracking-wider text-sand-500"
+          }`}
+        >
+          {navLabel}
         </span>
 
         <button
@@ -331,12 +204,228 @@ function MemeCaptionReveal({
           disabled={index === totalSlides - 1}
           className="inline-flex size-9 items-center justify-center rounded-full border border-sand-200 bg-white text-sand-700 transition hover:border-sand-300 disabled:opacity-40"
           aria-label={
-            index === entries.length - 1 ? "Zur Rangliste" : "Nächstes Meme"
+            isWinner
+              ? hasLeaderboard
+                ? "Zur Rangliste"
+                : "Letzter Slide"
+              : index === entries.length - 1
+                ? "Zum Winner"
+                : "Nächstes Meme"
           }
         >
           ›
         </button>
       </div>
+    </div>
+  );
+}
+
+function MemeMiniFooter({
+  entry,
+  count,
+  iVoted,
+  onVote,
+}: {
+  entry: MemeCaptionResult["entries"][number];
+  count: number;
+  iVoted: boolean;
+  onVote?: () => void;
+}) {
+  return (
+    <div className="flex min-h-[58px] items-center justify-between gap-3 rounded-2xl bg-sand-50 px-3 py-2.5">
+      <div className="flex min-w-0 items-center gap-3">
+        {entry.author ? (
+          <>
+            <AvatarCircle member={entry.author} size="md" />
+            <div className="min-w-0">
+              <p className="truncate text-base font-semibold text-sand-900">
+                {entry.author.displayName}
+              </p>
+              <p className="truncate text-xs text-sand-500">
+                {iVoted ? "Du hast geherzt" : "Gefällt dir das Meme?"}
+              </p>
+            </div>
+          </>
+        ) : (
+          <span className="text-sm font-semibold text-sand-400">Unbekannt</span>
+        )}
+      </div>
+      <button
+        type="button"
+        onClick={onVote}
+        disabled={!onVote}
+        aria-pressed={iVoted}
+        aria-label={iVoted ? "Herz entfernen" : "Herz vergeben"}
+        className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${
+          iVoted
+            ? "bg-coral text-white shadow-card-flat"
+            : "border-2 border-sand-200 bg-white text-sand-700 hover:border-coral/60 hover:text-coral"
+        } disabled:opacity-50`}
+      >
+        <span aria-hidden>{iVoted ? "❤️" : "🤍"}</span>
+        <span className="tabular-nums">{count}</span>
+      </button>
+    </div>
+  );
+}
+
+function MemeWinnerPanel({
+  entry,
+  count,
+  iVoted,
+  onVote,
+}: {
+  entry: MemeCaptionResult["entries"][number];
+  count: number;
+  iVoted: boolean;
+  onVote?: () => void;
+}) {
+  return (
+    <div className="flex min-h-[58px] overflow-hidden rounded-2xl border-2 border-amber-300">
+      {/* Amber strip with crown — mirrors leaderboard gold row */}
+      <div className="flex w-11 shrink-0 items-center justify-center bg-amber-400">
+        <div className="flex size-8 items-center justify-center rounded-full bg-white/80 shadow-sm">
+          <span className="anim-crown-bob text-xl" aria-hidden>👑</span>
+        </div>
+      </div>
+      {/* Content */}
+      <div className="flex flex-1 items-center justify-between gap-3 bg-amber-50 px-3 py-2.5">
+        <div className="flex min-w-0 items-center gap-3">
+          {entry.author ? (
+            <>
+              <AvatarCircle member={entry.author} size="md" />
+              <div className="min-w-0">
+                <p className="truncate text-base font-semibold text-sand-900">
+                  {entry.author.displayName}
+                </p>
+                <p className="truncate text-xs text-sand-600">
+                  {iVoted ? "Du hast geherzt" : "Bestes Meme"}
+                </p>
+              </div>
+            </>
+          ) : (
+            <span className="text-sm font-semibold text-sand-500">Unbekannt</span>
+          )}
+        </div>
+        <button
+          type="button"
+          onClick={onVote}
+          disabled={!onVote}
+          aria-pressed={iVoted}
+          aria-label={iVoted ? "Herz entfernen" : "Herz vergeben"}
+          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold transition ${
+            iVoted
+              ? "bg-coral text-white shadow-card-flat"
+              : "border-2 border-sand-200 bg-white text-sand-700 hover:border-coral/60 hover:text-coral"
+          } disabled:opacity-50`}
+        >
+          <span aria-hidden>{iVoted ? "❤️" : "🤍"}</span>
+          <span className="tabular-nums">{count}</span>
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function MemeLeaderboard({
+  ranked,
+}: {
+  ranked: Array<{
+    entry: MemeCaptionResult["entries"][number];
+    originalIdx: number;
+    count: number;
+  }>;
+}) {
+  return (
+    <div>
+      {/* Header — matches the imposing winner badge style */}
+      <div className="anim-winner-badge mb-3 flex justify-center">
+        <div className="flex items-center gap-2 rounded-full bg-sand-900 px-5 py-1.5 shadow-card-flat">
+          <span className="text-sm" aria-hidden>🏆</span>
+          <span className="text-[11px] font-black uppercase tracking-[0.22em] text-cream">
+            Rangliste
+          </span>
+        </div>
+      </div>
+
+      <ul className="space-y-1.5">
+        {ranked.map(({ entry, originalIdx, count }, i) => {
+          const medal = i === 0 ? "👑" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
+
+          if (medal) {
+            // Podium rows: decreasing-width colored strip that contains the emoji
+            const strip =
+              i === 0
+                ? { bg: "bg-amber-400", w: "w-11", border: "border-2 border-amber-300", row: "bg-amber-50", py: "py-3", emoji: "text-xl" }
+                : i === 1
+                  ? { bg: "bg-sand-300", w: "w-9", border: "border-2 border-sand-300", row: "bg-sand-100/60", py: "py-2.5", emoji: "text-lg" }
+                  : { bg: "bg-sand-200", w: "w-8", border: "border-2 border-sand-200", row: "bg-sand-50", py: "py-2.5", emoji: "text-base" };
+
+            return (
+              <li
+                key={originalIdx}
+                className={`anim-rank-fade-up flex overflow-hidden rounded-2xl ${strip.border}`}
+                style={{ animationDelay: `${220 + i * 70}ms` }}
+              >
+                {/* Colored accent strip — emoji on white backdrop for contrast */}
+                <div className={`flex shrink-0 items-center justify-center ${strip.w} ${strip.bg}`}>
+                  <div className="flex size-8 items-center justify-center rounded-full bg-white/80 shadow-sm">
+                    <span className={strip.emoji} aria-hidden>{medal}</span>
+                  </div>
+                </div>
+                {/* Row content */}
+                <div className={`flex flex-1 items-center gap-3 ${strip.row} px-3 ${strip.py}`}>
+                  {entry.author ? (
+                    <AvatarCircle member={entry.author} size="md" />
+                  ) : (
+                    <div className="size-9 shrink-0 rounded-full bg-sand-100" />
+                  )}
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-sand-900">
+                      {entry.author?.displayName ?? "Unbekannt"}
+                    </p>
+                    <p className="line-clamp-2 text-sm font-medium text-sand-900">
+                      „{entry.text}"
+                    </p>
+                  </div>
+                  <span className="inline-flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums text-coral">
+                    <span aria-hidden>❤️</span>
+                    {count}
+                  </span>
+                </div>
+              </li>
+            );
+          }
+
+          // Non-podium rows: simple flat style
+          return (
+            <li
+              key={originalIdx}
+              className="anim-rank-fade-up flex items-center gap-3 rounded-2xl border border-sand-100 bg-sand-50/50 px-3 py-2"
+              style={{ animationDelay: `${220 + i * 70}ms` }}
+            >
+              <div className="flex w-7 shrink-0 items-center justify-center">
+                <span className="text-xs font-semibold tabular-nums text-sand-400">{i + 1}</span>
+              </div>
+              {entry.author ? (
+                <AvatarCircle member={entry.author} size="sm" />
+              ) : (
+                <div className="size-7 shrink-0 rounded-full bg-sand-100" />
+              )}
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-xs font-medium text-sand-500">
+                  {entry.author?.displayName ?? "Unbekannt"}
+                </p>
+                <p className="line-clamp-2 text-xs font-medium text-sand-900">„{entry.text}"</p>
+              </div>
+              <span className="inline-flex shrink-0 items-center gap-1 text-xs font-bold tabular-nums text-coral">
+                <span aria-hidden>❤️</span>
+                {count}
+              </span>
+            </li>
+          );
+        })}
+      </ul>
     </div>
   );
 }

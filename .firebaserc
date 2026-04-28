@@ -1,5 +1,7 @@
 {
   "projects": {
+    "live": "mijija-live",
+    "test": "mijija-test",
     "nona": "gameapp-61c29"
   },
   "targets": {},

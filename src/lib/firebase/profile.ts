@@ -7,6 +7,7 @@ import { useAuth } from "@/lib/auth/auth-context";
 import {
   dailyAnswersCollection,
   dailyFirstAnswersCollection,
+  dailyMemeVotesCollection,
   dailyPrivateAnswersCollection,
   dailyRunsCollection,
   liveAnswersCollection,
@@ -20,6 +21,7 @@ import { formatListenerError } from "@/lib/firebase/listener-errors";
 import { resolveDailyRunStatus } from "@/lib/mapping/daily-run";
 import {
   computeDailyStreakStats,
+  computeDailyMemeTrophyCount,
   computeDuelStats,
   computePublicVotesReceivedStats,
   computeSpecialRelationshipStats,
@@ -29,6 +31,7 @@ import type { DailyHistoryEntry, MemberLite, ProfileStats, ProfileViewState } fr
 import type {
   DailyAnswerDoc,
   DailyFirstAnswerDoc,
+  DailyMemeVoteDoc,
   DailyPrivateAnswerDoc,
   DailyRunDoc,
   LiveAnswerDoc,
@@ -59,6 +62,7 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
     const privateAnswersRef = dailyPrivateAnswersCollection();
     const dailyAnswersRef = dailyAnswersCollection();
     const dailyFirstAnswersRef = dailyFirstAnswersCollection();
+    const dailyMemeVotesRef = dailyMemeVotesCollection();
     const liveSessionsRef = liveSessionsCollection();
     const liveParticipantsRef = liveParticipantsGroup();
     const livePrivateAnswersRef = livePrivateAnswersCollection();
@@ -71,6 +75,7 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
       !privateAnswersRef ||
       !dailyAnswersRef ||
       !dailyFirstAnswersRef ||
+      !dailyMemeVotesRef ||
       !liveSessionsRef ||
       !liveParticipantsRef ||
       !livePrivateAnswersRef ||
@@ -92,6 +97,7 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
     let myLiveAnswers: LivePrivateAnswerDoc[] = [];
     let dailyAnswers: DailyAnswerDoc[] = [];
     let dailyFirstAnswers: DailyFirstAnswerDoc[] = [];
+    let dailyMemeVotes: DailyMemeVoteDoc[] = [];
     let liveSessions: Array<LiveSessionDoc & { id: string }> = [];
     let liveParticipantSessionIds: string[] = [];
     let liveAnswers: LiveAnswerDoc[] = [];
@@ -104,6 +110,12 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
       }
 
       const streaks = computeDailyStreakStats(myDailyAnswers.map((answer) => answer.dateKey));
+      const memeTrophyCount = computeDailyMemeTrophyCount({
+        userId: viewedUserId,
+        dailyRuns,
+        dailyAnswers,
+        dailyMemeVotes,
+      });
       const duelStats = computeDuelStats({
         userId: viewedUserId,
         dailyRuns,
@@ -147,6 +159,12 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
         (session) => session.hostUserId === viewedUserId,
       ).length;
       const roundsPlayed = new Set(liveParticipantSessionIds).size;
+      const completedDailyCount = dailyRuns.filter((run) => {
+        const answeredForRun = myDailyAnswers.filter(
+          (answer) => answer.dateKey === run.dateKey,
+        ).length;
+        return run.questionCount > 0 && answeredForRun >= run.questionCount;
+      }).length;
       const history: DailyHistoryEntry[] = dailyRuns.slice(0, 10).map((run) => ({
         dateKey: run.dateKey,
         totalInRun: run.questionCount,
@@ -168,11 +186,13 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
         stats: {
           daily: {
             answeredCount: myDailyAnswers.length,
+            completedCount: completedDailyCount,
             streakCurrent: streaks.current,
             streakBest: streaks.best,
             firstAnswerCount: dailyFirstAnswers.filter(
               (answer) => answer.userId === viewedUserId,
             ).length,
+            memeTrophyCount,
           },
           live: {
             roundsPlayed,
@@ -248,6 +268,16 @@ export function useProfileViewState(targetUserId?: string): ProfileViewState {
           emit();
         },
         handleError("Profil-First-Answers"),
+      ),
+      onSnapshot(
+        dailyMemeVotesRef,
+        (snapshot) => {
+          dailyMemeVotes = snapshot.docs.map(
+            (doc) => doc.data() as DailyMemeVoteDoc,
+          );
+          emit();
+        },
+        handleError("Profil-Meme-Votes"),
       ),
       ...(isSelfProfile
         ? [

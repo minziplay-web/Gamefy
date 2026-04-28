@@ -33,6 +33,7 @@ Fuer einen ersten echten Freundetest:
 Details:
 
 - `docs/firebase-setup.md`
+- `docs/firebase-environments.md`
 - `docs/vercel-deploy.md`
 
 ## Wichtige Pfade

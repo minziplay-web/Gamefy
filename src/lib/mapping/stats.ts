@@ -3,6 +3,7 @@ import { resolveDailyRunStatus } from "@/lib/mapping/daily-run";
 import type { DateKey } from "@/lib/types/frontend";
 import type {
   DailyAnswerDoc,
+  DailyMemeVoteDoc,
   DailyRunItemDoc,
   DailyRunDoc,
   LiveAnswerDoc,
@@ -27,6 +28,78 @@ export interface PublicVoteStats<CategoryKey extends string = string> {
 export interface SpecialRelationshipStats<Member> {
   member: Member;
   votes: number;
+}
+
+export function computeDailyMemeTrophyCount(params: {
+  userId: string;
+  dailyRuns: DailyRunDoc[];
+  dailyAnswers: DailyAnswerDoc[];
+  dailyMemeVotes: DailyMemeVoteDoc[];
+}): number {
+  const { userId, dailyRuns, dailyAnswers, dailyMemeVotes } = params;
+
+  const answersByKey = new Map<string, DailyAnswerDoc[]>();
+  for (const answer of dailyAnswers) {
+    if (answer.questionType !== "meme_caption" || !answer.textAnswer) {
+      continue;
+    }
+    const key = `${answer.dateKey}_${answer.questionId}`;
+    const list = answersByKey.get(key) ?? [];
+    list.push(answer);
+    answersByKey.set(key, list);
+  }
+
+  const votesByKey = new Map<string, DailyMemeVoteDoc[]>();
+  for (const vote of dailyMemeVotes) {
+    const key = `${vote.dateKey}_${vote.questionId}`;
+    const list = votesByKey.get(key) ?? [];
+    list.push(vote);
+    votesByKey.set(key, list);
+  }
+
+  let trophyCount = 0;
+
+  for (const run of dailyRuns) {
+    if (resolveDailyRunStatus(run) !== "closed") {
+      continue;
+    }
+
+    for (const item of run.items ?? []) {
+      if (item.type !== "meme_caption") {
+        continue;
+      }
+
+      const key = `${run.dateKey}_${item.questionId}`;
+      const memeAnswers = answersByKey.get(key) ?? [];
+      if (memeAnswers.length === 0) {
+        continue;
+      }
+
+      const memeVotes = votesByKey.get(key) ?? [];
+      const likesByAuthor = new Map<string, number>();
+      for (const answer of memeAnswers) {
+        likesByAuthor.set(answer.userId, 0);
+      }
+      for (const vote of memeVotes) {
+        likesByAuthor.set(
+          vote.authorUserId,
+          (likesByAuthor.get(vote.authorUserId) ?? 0) + 1,
+        );
+      }
+
+      const topLikeCount = Math.max(...likesByAuthor.values());
+      if (topLikeCount <= 0) {
+        continue;
+      }
+
+      const myLikeCount = likesByAuthor.get(userId);
+      if (myLikeCount === topLikeCount) {
+        trophyCount += 1;
+      }
+    }
+  }
+
+  return trophyCount;
 }
 
 export function computeDailyStreakStats(

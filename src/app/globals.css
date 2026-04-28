@@ -161,14 +161,47 @@ button {
   animation: heart-glow 1.8s ease-in-out infinite;
 }
 
+@keyframes sparkle-pulse {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.35) rotate(18deg);
+    opacity: 0.75;
+  }
+}
+
+@keyframes winner-badge-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.8) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
 .anim-crown-bob {
   display: inline-block;
   animation: crown-bob 1.6s ease-in-out infinite;
   transform-origin: 50% 80%;
 }
 
+.anim-sparkle {
+  display: inline-block;
+  animation: sparkle-pulse 1.8s ease-in-out infinite;
+}
+
+.anim-winner-badge {
+  animation: winner-badge-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-winner-pop,
+  .anim-winner-badge,
+  .anim-sparkle,
   .anim-meme-slide-in,
   .anim-rank-fade-up,
   .anim-heart-glow,

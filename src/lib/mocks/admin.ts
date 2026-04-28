@@ -130,6 +130,7 @@ export const mockAdmin: AdminViewState = {
       dailyQuestionCount: 5,
       dailyRevealPolicy: "after_answer",
       onboardingEnabled: true,
+      dailyAutoCreateEnabled: false,
       dailyIncludedCategories: [
         "hot_takes",
         "pure_fun",

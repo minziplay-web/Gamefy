@@ -431,6 +431,7 @@ service cloud.firestore {
         "dailyQuestionCount",
         "dailyRevealPolicy",
         "onboardingEnabled",
+        "dailyAutoCreateEnabled",
         "dailyIncludedCategories",
         "dailyForcedCategories",
         "liveDefaultQuestionDurationSec",
@@ -444,6 +445,11 @@ service cloud.firestore {
         && data.timezone == "Europe/Berlin"
         && isKnownRevealPolicy(data.dailyRevealPolicy)
         && (data.onboardingEnabled == true || data.onboardingEnabled == false)
+        && (
+          !("dailyAutoCreateEnabled" in data)
+          || data.dailyAutoCreateEnabled == true
+          || data.dailyAutoCreateEnabled == false
+        )
         && data.dailyQuestionCount > 0
         && (
           !("dailyIncludedCategories" in data)

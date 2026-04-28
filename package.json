@@ -12,11 +12,16 @@
     "firebase:login": "firebase login",
     "firebase:use": "firebase use --add",
     "firebase:deploy": "firebase deploy --only firestore:rules,firestore:indexes",
+    "firebase:deploy:live": "firebase deploy --project live --only firestore:rules,firestore:indexes",
+    "firebase:deploy:test": "firebase deploy --project test --only firestore:rules,firestore:indexes",
     "firebase:deploy:storage": "firebase deploy --only storage",
+    "firebase:deploy:storage:live": "firebase deploy --project live --only storage",
+    "firebase:deploy:storage:test": "firebase deploy --project test --only storage",
     "firebase:check-env": "node scripts/check-firebase-env.mjs"
   },
   "dependencies": {
     "firebase": "^12.4.0",
+    "firebase-admin": "^13.8.0",
     "next": "16.2.4",
     "react": "19.2.4",
     "react-dom": "19.2.4"

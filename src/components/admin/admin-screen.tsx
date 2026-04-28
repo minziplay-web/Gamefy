@@ -42,6 +42,7 @@ export function AdminScreen({
   onImportQuestions,
   onCreateRun,
   onDeleteRun,
+  onResetToday,
   onRerollQuestion,
   onDeactivateUser,
   onSaveConfig,
@@ -59,6 +60,7 @@ export function AdminScreen({
     plan: AdminDailyCategoryPlan,
   ) => Promise<AdminRunActionResult>;
   onDeleteRun?: (dateKey: string) => Promise<AdminDailyDeleteResult>;
+  onResetToday?: (dateKey: string) => Promise<AdminDailyDeleteResult>;
   onRerollQuestion?: (
     dateKey: string,
     questionId: string,
@@ -268,7 +270,7 @@ export function AdminScreen({
           message: getErrorMessage(
             error,
             mode === "replace"
-              ? "Der heutige Run konnte nicht ersetzt werden."
+              ? "Das heutige Daily konnte nicht gererollt werden."
               : "Der Run konnte nicht erzeugt werden.",
           ),
           result: prev.result,
@@ -301,7 +303,7 @@ export function AdminScreen({
       status: "success",
       message:
         mode === "replace"
-          ? "Der heutige Run wurde lokal ersetzt."
+          ? "Das heutige Daily wurde lokal gererollt."
           : "Ein neuer Run wurde lokal angelegt.",
       result: {
         mode,
@@ -348,14 +350,24 @@ export function AdminScreen({
     }));
 
     try {
-      const result = onDeleteRun
-        ? await onDeleteRun(target.dateKey)
-        : {
-            dateKey: target.dateKey,
-            deletedPublicAnswers: 0,
-            deletedPrivateAnswers: 0,
-            deletedFirstAnswerLocks: 0,
-          };
+      const result =
+        target.mode === "reset"
+          ? onResetToday
+            ? await onResetToday(target.dateKey)
+            : {
+                dateKey: target.dateKey,
+                deletedPublicAnswers: 0,
+                deletedPrivateAnswers: 0,
+                deletedFirstAnswerLocks: 0,
+              }
+          : onDeleteRun
+            ? await onDeleteRun(target.dateKey)
+            : {
+                dateKey: target.dateKey,
+                deletedPublicAnswers: 0,
+                deletedPrivateAnswers: 0,
+                deletedFirstAnswerLocks: 0,
+              };
       setDeleteRunConfirm(null);
       setRunActionState({
         status: "success",
@@ -621,9 +633,9 @@ export function AdminScreen({
 
       <ConfirmDialog
         open={replaceConfirm !== null}
-        title="Heutigen Run ersetzen?"
-        description="Für heute existiert schon ein Daily-Run. Beim Ersetzen werden neue Fragen ausgewählt. Bereits abgegebene Antworten können dadurch ihre Relevanz verlieren."
-        confirmLabel="Ersetzen"
+        title="Heutiges Daily rerollen?"
+        description="Für heute existiert schon ein Daily. Beim Rerollen werden alle heutigen Fragen neu aus dem Pool gezogen. Bereits abgegebene Antworten, Locks und Herzen gehen dabei für heute verloren."
+        confirmLabel="Rerollen"
         cancelLabel="Abbrechen"
         tone="destructive"
         onCancel={() => setReplaceConfirm(null)}
@@ -654,7 +666,7 @@ export function AdminScreen({
         }
         description={
           deleteRunConfirm?.mode === "reset"
-            ? "Das heutige Daily und alle dazugehörigen Antworten werden entfernt. Danach kannst du ein neues Daily erzeugen."
+            ? "Die heutigen Fragen bleiben bestehen. Es werden nur alle Antworten, First-Answer-Locks und Meme-Herzen entfernt, sodass das Daily wieder wie frisch erzeugt ist."
             : deleteRunConfirm
               ? `Das Daily vom ${deleteRunConfirm.dateKey} und alle dazugehörigen Antworten werden entfernt.`
               : ""
@@ -711,10 +723,10 @@ function buildRunActionMessage(result: AdminRunActionResult) {
     result.deletedFirstAnswerLocks;
 
   if (clearedTotal === 0) {
-    return `Run für ${result.dateKey} ersetzt. ${result.questionCount} Fragen sind jetzt aktiv.`;
+    return `Daily für ${result.dateKey} gererollt. ${result.questionCount} neue Fragen sind jetzt aktiv.`;
   }
 
-  const parts: string[] = [`Run für ${result.dateKey} ersetzt.`];
+  const parts: string[] = [`Daily für ${result.dateKey} gererollt.`];
   if (result.deletedPublicAnswers > 0) {
     parts.push(`${result.deletedPublicAnswers} öffentliche Antworten entfernt`);
   }
@@ -734,7 +746,7 @@ function buildDeleteRunMessage(
 ) {
   const parts = [
     mode === "reset"
-      ? `Daily für ${result.dateKey} zurückgesetzt.`
+      ? `Daily für ${result.dateKey} auf frisch erzeugt zurückgesetzt.`
       : `Daily für ${result.dateKey} gelöscht.`,
   ];
 

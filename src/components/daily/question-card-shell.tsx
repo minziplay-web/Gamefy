@@ -1,12 +1,17 @@
 "use client";
 
+import { AvatarCircle } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { QuestionInput } from "@/components/daily/question-input";
 import { QuestionReveal } from "@/components/daily/question-reveal";
-import type { DailyAnswerDraft, DailyQuestionCardState } from "@/lib/types/frontend";
+import type {
+  DailyAnswerDraft,
+  DailyQuestionCardState,
+  MemberLite,
+} from "@/lib/types/frontend";
 
 interface Props {
   state: DailyQuestionCardState;
@@ -80,9 +85,7 @@ function CardBody({
 }: Props) {
   if (state.phase === "submitted_waiting_reveal") {
     return (
-      <div className="rounded-2xl border border-emerald-200/80 bg-emerald-50/70 px-4 py-3 text-sm font-medium text-emerald-800">
-        Antwort abgegeben. Ergebnis auf der Homepage!
-      </div>
+      <AnswerReview question={state.question} draft={state.myAnswer} />
     );
   }
 
@@ -139,6 +142,161 @@ function CardBody({
       >
         {loading ? "Wird gesendet..." : submitLabel}
       </Button>
+    </div>
+  );
+}
+
+function AnswerReview({
+  question,
+  draft,
+}: {
+  question: DailyQuestionCardState["question"];
+  draft: DailyAnswerDraft;
+}) {
+  switch (question.type) {
+    case "single_choice": {
+      const selected = question.candidates.find(
+        (candidate) =>
+          draft.type === "single_choice" && candidate.userId === draft.selectedUserId,
+      );
+      return (
+        <MemberAnswerReviewCard
+          label="Deine Antwort"
+          members={selected ? [selected] : []}
+          fallback="Auswahl gespeichert"
+        />
+      );
+    }
+    case "multi_choice": {
+      const selectedMembers =
+        draft.type === "multi_choice"
+          ? question.candidates
+              .filter((candidate) => draft.selectedUserIds.includes(candidate.userId))
+          : [];
+      return (
+        <MemberAnswerReviewCard
+          label="Deine Auswahl"
+          members={selectedMembers}
+          fallback="Auswahl gespeichert"
+        />
+      );
+    }
+    case "open_text":
+      return (
+        <AnswerReviewCard
+          label="Deine Antwort"
+          value={draft.type === "open_text" ? draft.textAnswer : "Antwort gespeichert"}
+          multiline
+        />
+      );
+    case "duel_1v1":
+      {
+        const selectedMember =
+          draft.type === "duel_1v1"
+            ? draft.selectedSide === "left"
+              ? question.left
+              : question.right
+            : null;
+        return (
+          <MemberAnswerReviewCard
+            label="Dein Vote"
+            members={selectedMember ? [selectedMember] : []}
+            fallback="Vote gespeichert"
+          />
+        );
+      }
+    case "duel_2v2":
+      return (
+        <MemberAnswerReviewCard
+          label="Dein Vote"
+          members={
+            draft.type === "duel_2v2"
+              ? draft.selectedTeam === "teamA"
+                ? [...question.teamA]
+                : [...question.teamB]
+              : []
+          }
+          fallback="Vote gespeichert"
+        />
+      );
+    case "either_or":
+      return (
+        <AnswerReviewCard
+          label="Deine Antwort"
+          value={
+            draft.type === "either_or" && draft.selectedOptionIndex !== undefined
+              ? question.options[draft.selectedOptionIndex]
+              : "Antwort gespeichert"
+          }
+        />
+      );
+    case "meme_caption":
+      return (
+        <AnswerReviewCard
+          label="Deine Bildunterschrift"
+          value={
+            draft.type === "meme_caption" ? draft.textAnswer : "Meme gespeichert"
+          }
+          multiline
+        />
+      );
+  }
+}
+
+function AnswerReviewCard({
+  label,
+  value,
+  multiline = false,
+}: {
+  label: string;
+  value: string;
+  multiline?: boolean;
+}) {
+  return (
+    <div className="rounded-2xl border border-sand-200 bg-sand-50/80 px-4 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sand-500">
+        {label}
+      </p>
+      <p
+        className={`mt-2 text-sand-900 ${
+          multiline ? "text-[15px] leading-6" : "text-base font-semibold"
+        }`}
+      >
+        {value}
+      </p>
+    </div>
+  );
+}
+
+function MemberAnswerReviewCard({
+  label,
+  members,
+  fallback,
+}: {
+  label: string;
+  members: MemberLite[];
+  fallback: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-sand-200 bg-sand-50/80 px-4 py-3">
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sand-500">
+        {label}
+      </p>
+      {members.length > 0 ? (
+        <div className="mt-2 flex flex-wrap gap-2">
+          {members.map((member) => (
+            <div
+              key={member.userId}
+              className="inline-flex items-center gap-2 rounded-full bg-white px-3 py-2 text-sm font-semibold text-sand-900 shadow-card-flat"
+            >
+              <AvatarCircle member={member} size="sm" />
+              <span>{member.displayName}</span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p className="mt-2 text-base font-semibold text-sand-900">{fallback}</p>
+      )}
     </div>
   );
 }

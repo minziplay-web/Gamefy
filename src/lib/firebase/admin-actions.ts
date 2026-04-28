@@ -16,6 +16,13 @@ import {
 } from "firebase/firestore";
 
 import {
+  buildDailyRunPayload,
+  buildDailyRunItem,
+  canUseQuestionInDaily,
+  DEFAULT_DAILY_CATEGORIES,
+  shuffle,
+} from "@/lib/daily/daily-run-generator";
+import {
   appConfigDoc,
   dailyAnswersCollection,
   dailyFirstAnswersCollection,
@@ -64,22 +71,6 @@ interface ImportQuestionInput {
   imagePath?: string;
 }
 
-const MAX_DAILY_CATEGORY_COUNT = 12;
-const DEFAULT_DAILY_CATEGORIES: Category[] = [
-  "hot_takes",
-  "pure_fun",
-  "deep_talk",
-  "memories",
-  "career_life",
-  "relationships",
-  "hobbies_interests",
-  "dirty",
-  "group_knowledge",
-  "would_you_rather",
-  "conspiracy",
-  "meme_it",
-];
-
 export async function saveAdminConfig(draft: AdminConfigDraft) {
   const target = appConfigDoc();
 
@@ -91,9 +82,10 @@ export async function saveAdminConfig(draft: AdminConfigDraft) {
     target,
     {
       timezone: "Europe/Berlin",
-      dailyQuestionCount: Math.min(draft.dailyQuestionCount, MAX_DAILY_CATEGORY_COUNT),
+      dailyQuestionCount: Math.min(draft.dailyQuestionCount, 12),
       dailyRevealPolicy: draft.dailyRevealPolicy,
       onboardingEnabled: draft.onboardingEnabled,
+      dailyAutoCreateEnabled: draft.dailyAutoCreateEnabled,
       dailyIncludedCategories:
         draft.dailyIncludedCategories.length > 0
           ? draft.dailyIncludedCategories
@@ -430,6 +422,54 @@ export async function deleteDailyRun(dateKey: string): Promise<AdminDailyDeleteR
   };
 }
 
+export async function resetDailyRunAnswers(
+  dateKey: string,
+): Promise<AdminDailyDeleteResult> {
+  const runRef = dailyRunDoc(dateKey);
+  const answersRef = dailyAnswersCollection();
+  const privateAnswersRef = dailyPrivateAnswersCollection();
+  const firstAnswersRef = dailyFirstAnswersCollection();
+  const memeVotesRef = dailyMemeVotesCollection();
+
+  if (!runRef || !answersRef || !privateAnswersRef || !firstAnswersRef || !memeVotesRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  const runSnapshot = await getDoc(runRef);
+  if (!runSnapshot.exists()) {
+    throw new Error("Der Daily-Run wurde nicht gefunden.");
+  }
+
+  const deletionResult = await collectDailyRunDeletionData({
+    dateKey,
+    answersRef,
+    privateAnswersRef,
+    firstAnswersRef,
+    memeVotesRef,
+  });
+
+  for (const chunk of chunkDocs(deletionResult.docs, 450)) {
+    const batch = writeBatch(runRef.firestore);
+    for (const entry of chunk) {
+      batch.delete(entry.ref);
+    }
+    await batch.commit();
+  }
+
+  await setDoc(
+    runRef,
+    {
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+
+  return {
+    dateKey,
+    ...deletionResult.counts,
+  };
+}
+
 export async function rerollDailyRunQuestion(params: {
   dateKey: DateKey;
   questionId: string;
@@ -748,7 +788,12 @@ async function upsertDailyRun(params: {
     categoryPlan: params.categoryPlan,
     questions: eligibleQuestions,
     userIds: users.map((user) => user.userId),
-    previous: existingRun.exists() ? (existingRun.data() as DailyRunDoc) : null,
+    previousCreatedAt: existingRun.exists()
+      ? (existingRun.data() as DailyRunDoc).createdAt
+      : undefined,
+    updatedAt: existingRun.exists()
+      ? serverTimestamp()
+      : Timestamp.now(),
   });
 
   if (params.mode === "replace") {
@@ -778,106 +823,6 @@ async function upsertDailyRun(params: {
     deletedPrivateAnswers: 0,
     deletedFirstAnswerLocks: 0,
   };
-}
-
-function buildDailyRunPayload(params: {
-  dateKey: DateKey;
-  createdBy: string;
-  questionCount: number;
-  revealPolicy: AdminConfigDraft["dailyRevealPolicy"];
-  categoryPlan?: AdminDailyCategoryPlan;
-  questions: Array<{ questionId: string } & QuestionDoc>;
-  userIds: string[];
-  previous: DailyRunDoc | null;
-}) {
-  const {
-    dateKey,
-    createdBy,
-    questionCount,
-    revealPolicy,
-    categoryPlan,
-    questions,
-    userIds,
-    previous,
-  } = params;
-
-  const includedCategories = categoryPlan?.includedCategories ?? [];
-  const forcedCategories = categoryPlan?.forcedCategories ?? [];
-
-  if (includedCategories.length === 0) {
-    throw new Error("Wähle mindestens eine Kategorie für das Daily aus.");
-  }
-
-  const questionsByCategory = new Map<Category, Array<{ questionId: string } & QuestionDoc>>();
-  for (const question of questions) {
-    if (!includedCategories.includes(question.category)) {
-      continue;
-    }
-    const group = questionsByCategory.get(question.category) ?? [];
-    group.push(question);
-    questionsByCategory.set(question.category, group);
-  }
-
-  if (questionsByCategory.size === 0) {
-    throw new Error("Für die gewählten Kategorien gibt es keine freigegebenen Fragen.");
-  }
-
-  const missingForcedCategories = forcedCategories.filter(
-    (category) => !questionsByCategory.has(category),
-  );
-
-  if (missingForcedCategories.length > 0) {
-    throw new Error(
-      `Diese Pflicht-Kategorien haben gerade keine freigegebenen Fragen: ${missingForcedCategories.join(", ")}.`,
-    );
-  }
-
-  const selectedCategoryCount = Math.min(
-    questionCount,
-    MAX_DAILY_CATEGORY_COUNT,
-    questionsByCategory.size,
-  );
-
-  if (forcedCategories.length > selectedCategoryCount) {
-    throw new Error("Du hast mehr Pflicht-Kategorien gewählt als heute Fragen gezogen werden.");
-  }
-
-  const remainingCategories = shuffle(
-    Array.from(questionsByCategory.keys()).filter(
-      (category) => !forcedCategories.includes(category),
-    ),
-  );
-  const chosenCategories = [
-    ...forcedCategories,
-    ...remainingCategories.slice(0, selectedCategoryCount - forcedCategories.length),
-  ];
-  const selectedQuestions = chosenCategories.map((category) => {
-    const categoryQuestions = questionsByCategory.get(category);
-    if (!categoryQuestions || categoryQuestions.length === 0) {
-      throw new Error(`Für ${category} wurde keine freigegebene Frage gefunden.`);
-    }
-
-    return shuffle(categoryQuestions)[0];
-  });
-
-  const items = selectedQuestions.map((question) => buildDailyRunItem(question, userIds));
-
-  const payload = {
-    dateKey,
-    timezone: "Europe/Berlin" as const,
-    status: dateKey === berlinDateKey() ? "active" as const : "scheduled" as const,
-    questionCount: items.length,
-    revealPolicy,
-    questionIds: items.map((item) => item.questionId),
-    items,
-    createdBy,
-    createdAt: previous?.createdAt ?? Timestamp.now(),
-    updatedAt: serverTimestamp(),
-  };
-
-  assertValidDailyRunPayload(payload);
-
-  return payload;
 }
 
 async function replaceDailyRunAtomically(params: {
@@ -1085,74 +1030,6 @@ async function collectDailyRunDeletionData(params: {
       deletedFirstAnswerLocks: firstAnswersSnapshot.docs.length,
     },
   };
-}
-
-function buildPairing(type: QuestionType, userIds: string[]) {
-  const shuffled = shuffle(userIds);
-
-  if (type === "duel_1v1" && shuffled.length >= 2) {
-    return {
-      memberIds: [shuffled[0], shuffled[1]] as [string, string],
-    };
-  }
-
-  if (type === "duel_2v2" && shuffled.length >= 4) {
-    return {
-      teamA: [shuffled[0], shuffled[1]] as [string, string],
-      teamB: [shuffled[2], shuffled[3]] as [string, string],
-    };
-  }
-
-  return undefined;
-}
-
-function buildDailyRunItem(
-  question: { questionId: string } & QuestionDoc,
-  userIds: string[],
-) {
-  const pairing = buildPairing(question.type, userIds);
-  const questionSnapshot = {
-    text: question.text,
-    category: question.category,
-    ...(question.options ? { options: question.options } : {}),
-    ...(question.imagePath ? { imagePath: question.imagePath } : {}),
-  };
-
-  return pairing
-    ? {
-        questionId: question.questionId,
-        type: question.type,
-        questionSnapshot,
-        pairing,
-      }
-    : {
-        questionId: question.questionId,
-        type: question.type,
-        questionSnapshot,
-      };
-}
-
-function canUseQuestionInDaily(type: QuestionType, memberCount: number) {
-  if (type === "duel_1v1") {
-    return memberCount >= 2;
-  }
-
-  if (type === "duel_2v2") {
-    return memberCount >= 4;
-  }
-
-  return true;
-}
-
-function shuffle<T>(input: T[]): T[] {
-  const copy = [...input];
-
-  for (let i = copy.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [copy[i], copy[j]] = [copy[j], copy[i]];
-  }
-
-  return copy;
 }
 
 function isOlderThanHours(value: unknown, hours: number) {

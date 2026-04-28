@@ -213,6 +213,7 @@ export interface AppConfigDoc {
   dailyQuestionCount: number;
   dailyRevealPolicy: RevealPolicy;
   onboardingEnabled: boolean;
+  dailyAutoCreateEnabled?: boolean;
   dailyIncludedCategories?: Category[];
   dailyForcedCategories?: Category[];
   liveDefaultQuestionDurationSec: number;

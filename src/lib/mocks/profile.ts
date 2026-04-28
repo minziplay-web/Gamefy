@@ -4,9 +4,11 @@ import { mockMe, mockMembers } from "@/lib/mocks/members";
 export const mockProfileStats: ProfileStats = {
   daily: {
     answeredCount: 42,
+    completedCount: 9,
     streakCurrent: 4,
     streakBest: 11,
     firstAnswerCount: 7,
+    memeTrophyCount: 3,
   },
   live: { roundsPlayed: 6, roundsHosted: 2, answersSubmitted: 48 },
   duels: { wins: 13, losses: 9, winRatePercent: 59 },

@@ -19,4 +19,8 @@ export function hasFirebaseEnv() {
   );
 }
 
+export function isTestFirebaseProject() {
+  return firebaseConfig.projectId === "mijija-test";
+}
+
 export { firebaseConfig };

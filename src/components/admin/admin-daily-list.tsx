@@ -92,7 +92,7 @@ export function AdminDailyList({
             onClick={onCreate}
             disabled={runActionStatus === "running"}
           >
-            {runActionStatus === "running" ? "Ersetzt..." : "Heutigen Run ersetzen"}
+            {runActionStatus === "running" ? "Rerollt..." : "Heutiges Daily rerollen"}
           </Button>
           <Button
             className="w-full"

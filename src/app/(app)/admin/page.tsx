@@ -10,6 +10,7 @@ import {
   deleteDailyRun,
   deactivateUser,
   importQuestions,
+  resetDailyRunAnswers,
   replaceDailyRun,
   rerollDailyRunQuestion,
   saveAdminConfig,
@@ -64,6 +65,13 @@ export default function AdminPage() {
         }
 
         return deleteDailyRun(dateKey);
+      }}
+      onResetToday={async (dateKey) => {
+        if (authState.status !== "authenticated" || state.status !== "ready") {
+          throw new Error("Nicht bereit.");
+        }
+
+        return resetDailyRunAnswers(dateKey);
       }}
       onRerollQuestion={async (dateKey, questionId) => {
         if (authState.status !== "authenticated" || state.status !== "ready") {

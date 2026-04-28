@@ -8,7 +8,6 @@ import { MemberRail } from "@/components/profile/member-rail";
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileNameEditor } from "@/components/profile/profile-name-editor";
 import { ProfilePhotoEditor } from "@/components/profile/profile-photo-editor";
-import { ProfileSpecialRelationships } from "@/components/profile/profile-special-relationships";
 import { ProfileStatGrid } from "@/components/profile/profile-stat-grid";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -85,7 +84,6 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
         />
       ) : null}
       <ProfileStatGrid stats={state.stats} />
-      <ProfileSpecialRelationships relationships={state.stats.specialRelationships} />
 
       {state.isSelf ? (
         <section className="space-y-3">
@@ -98,7 +96,7 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
 
       <section className="space-y-3">
         <h2 className="px-1 text-sm font-semibold uppercase tracking-[0.14em] text-sand-500">
-          Freunde in der Gruppe
+          Mitglieder
         </h2>
         <MemberRail members={state.members} activeUserId={state.user.userId} />
       </section>

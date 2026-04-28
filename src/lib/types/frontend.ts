@@ -451,9 +451,11 @@ export type LobbyViewState =
 export interface ProfileStats {
   daily: {
     answeredCount: number;
+    completedCount: number;
     streakCurrent: number;
     streakBest: number;
     firstAnswerCount: number;
+    memeTrophyCount: number;
   };
   live: {
     roundsPlayed: number;
@@ -606,6 +608,7 @@ export interface AdminConfigDraft {
   dailyQuestionCount: number;
   dailyRevealPolicy: RevealPolicy;
   onboardingEnabled: boolean;
+  dailyAutoCreateEnabled: boolean;
   dailyIncludedCategories: Category[];
   dailyForcedCategories: Category[];
 }

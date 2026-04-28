@@ -1,0 +1,127 @@
+import { FieldValue } from "firebase-admin/firestore";
+
+import {
+  buildDailyRunPayload,
+  canUseQuestionInDaily,
+  DEFAULT_DAILY_CATEGORIES,
+} from "@/lib/daily/daily-run-generator";
+import { berlinDateKey } from "@/lib/mapping/date";
+import type { Category, DateKey } from "@/lib/types/frontend";
+import type { AppConfigDoc, QuestionDoc, UserDoc } from "@/lib/types/firestore";
+
+import { getFirebaseAdminDb } from "@/lib/firebase/admin-server";
+
+const SYSTEM_CREATED_BY = "__system__";
+
+export async function maybeAutoCreateDailyRun(
+  now: Date = new Date(),
+  options?: { force?: boolean },
+) {
+  const db = getFirebaseAdminDb();
+  const configRef = db.collection("appConfig").doc("main");
+  const configSnapshot = await configRef.get();
+  const config = (configSnapshot.data() ?? null) as AppConfigDoc | null;
+
+  if (!config) {
+    return {
+      status: "skipped" as const,
+      reason: "missing_config",
+      message: "appConfig/main fehlt.",
+    };
+  }
+
+  if (config.dailyAutoCreateEnabled !== true) {
+    return {
+      status: "skipped" as const,
+      reason: "disabled",
+      message: "Auto-Daily ist deaktiviert.",
+    };
+  }
+
+  const timezone = config.timezone ?? "Europe/Berlin";
+  const berlinHour = Number(
+    new Intl.DateTimeFormat("en-GB", {
+      timeZone: timezone,
+      hour: "2-digit",
+      hour12: false,
+    }).format(now),
+  );
+
+  if (options?.force !== true && berlinHour !== 0) {
+    return {
+      status: "skipped" as const,
+      reason: "outside_window",
+      message: `Noch nicht Mitternacht in ${timezone}.`,
+    };
+  }
+
+  const dateKey = berlinDateKey(now);
+  const runRef = db.collection("dailyRuns").doc(dateKey);
+  const existingRun = await runRef.get();
+
+  if (existingRun.exists) {
+    return {
+      status: "skipped" as const,
+      reason: "already_exists",
+      dateKey,
+      message: `Für ${dateKey} existiert bereits ein Daily.`,
+    };
+  }
+
+  const [questionSnapshot, userSnapshot] = await Promise.all([
+    db.collection("questions").where("active", "==", true).get(),
+    db.collection("users").where("isActive", "==", true).get(),
+  ]);
+
+  const users = userSnapshot.docs.map((snapshot) => ({
+    userId: snapshot.id,
+    ...(snapshot.data() as UserDoc),
+  }));
+
+  const eligibleQuestions = questionSnapshot.docs
+    .map((snapshot) => ({
+      questionId: snapshot.id,
+      ...(snapshot.data() as QuestionDoc),
+    }))
+    .filter(
+      (question) =>
+        (question.targetMode === "daily" || question.targetMode === "both") &&
+        question.dailyLocked !== true &&
+        canUseQuestionInDaily(question.type, users.length),
+    );
+
+  if (eligibleQuestions.length === 0) {
+    throw new Error("Keine freigegebenen Daily-Fragen gefunden.");
+  }
+
+  const includedCategories =
+    config.dailyIncludedCategories?.length
+      ? config.dailyIncludedCategories
+      : DEFAULT_DAILY_CATEGORIES;
+  const forcedCategories = (config.dailyForcedCategories ?? []).filter((category) =>
+    includedCategories.includes(category),
+  );
+
+  const payload = buildDailyRunPayload({
+    dateKey,
+    createdBy: SYSTEM_CREATED_BY,
+    questionCount: config.dailyQuestionCount,
+    revealPolicy: config.dailyRevealPolicy,
+    categoryPlan: {
+      includedCategories: includedCategories as Category[],
+      forcedCategories: forcedCategories as Category[],
+    },
+    questions: eligibleQuestions,
+    userIds: users.map((user) => user.userId),
+    updatedAt: FieldValue.serverTimestamp(),
+  });
+
+  await runRef.set(payload);
+
+  return {
+    status: "created" as const,
+    dateKey: dateKey as DateKey,
+    questionCount: payload.questionCount,
+    message: `Daily für ${dateKey} automatisch erzeugt.`,
+  };
+}

@@ -224,9 +224,11 @@ export const lobbyVariants: Record<string, LobbyViewState> = {
 const emptyProfileStats: ProfileStats = {
   daily: {
     answeredCount: 0,
+    completedCount: 0,
     streakCurrent: 0,
     streakBest: 0,
     firstAnswerCount: 0,
+    memeTrophyCount: 0,
   },
   live: { roundsPlayed: 0, roundsHosted: 0, answersSubmitted: 0 },
   duels: { wins: 0, losses: 0, winRatePercent: null },
@@ -238,9 +240,11 @@ const emptyProfileStats: ProfileStats = {
 const partialProfileStats: ProfileStats = {
   daily: {
     answeredCount: 3,
+    completedCount: 1,
     streakCurrent: 0,
     streakBest: 2,
     firstAnswerCount: 0,
+    memeTrophyCount: 1,
   },
   live: { roundsPlayed: 0, roundsHosted: 0, answersSubmitted: 0 },
   duels: { wins: 0, losses: 0, winRatePercent: null },

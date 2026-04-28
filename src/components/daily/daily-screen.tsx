@@ -5,7 +5,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { DailyCompletionCard } from "@/components/daily/daily-completion-card";
 import { DailyStepIndicator } from "@/components/daily/daily-step-indicator";
 import { QuestionCardShell } from "@/components/daily/question-card-shell";
-import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { ScreenHeader } from "@/components/ui/screen-header";
@@ -173,6 +172,7 @@ export function DailyScreen({
   };
 
   const handleSubmit = (questionId: string, draft: DailyAnswerDraft) => {
+    const previousIndex = currentIndex;
     const nextUnansweredIndex =
       state.status === "ready"
         ? state.cards.findIndex(
@@ -197,6 +197,10 @@ export function DailyScreen({
       draft,
     }));
 
+    if (!willFinish && nextUnansweredIndex >= 0) {
+      setCurrentIndex(nextUnansweredIndex);
+    }
+
     const currentCard =
       state.status === "ready"
         ? state.cards.find((c) => c.question.questionId === questionId)
@@ -205,26 +209,22 @@ export function DailyScreen({
     if (onSubmitAnswer && currentCard) {
       void onSubmitAnswer(draft, currentCard)
         .then(() => {
+          if (willFinish) {
+            setShowCompletion(true);
+          }
+
           updateCard(questionId, (card) => ({
             phase: "submitted_waiting_reveal",
             question: card.question,
             myAnswer: draft,
           }));
-
-          if (willFinish) {
-            setShowCompletion(true);
-            return;
-          }
-
-          if (nextUnansweredIndex >= 0) {
-            setCurrentIndex(nextUnansweredIndex);
-          }
         })
         .catch((error) => {
           const message =
             error instanceof Error
               ? error.message
               : "Antwort konnte nicht gespeichert werden.";
+          setCurrentIndex(previousIndex);
           updateCard(questionId, (card) => ({
             phase: "error",
             question: card.question,
@@ -237,6 +237,10 @@ export function DailyScreen({
 
     // Preview / mock: fake the reveal transition so the flow is fully navigable.
     window.setTimeout(() => {
+      if (willFinish) {
+        setShowCompletion(true);
+      }
+
       updateCard(questionId, (card) => {
         return {
           phase: "submitted_waiting_reveal",
@@ -244,31 +248,11 @@ export function DailyScreen({
           myAnswer: draft,
         };
       });
-
-      if (willFinish) {
-        setShowCompletion(true);
-        return;
-      }
-
-      if (nextUnansweredIndex >= 0) {
-        setCurrentIndex(nextUnansweredIndex);
-      }
     }, 400);
   };
 
   const totalCards = state.cards.length;
   const currentCard = state.cards[currentIndex];
-  const allAnswered = state.cards.every(
-    (card) =>
-      card.phase === "submitted_waiting_reveal" || card.phase === "revealed",
-  );
-  const isLast = currentIndex === totalCards - 1;
-  const isCurrentAnswered =
-    currentCard?.phase === "submitted_waiting_reveal" ||
-    currentCard?.phase === "revealed";
-  const canGoBack = currentIndex > 0 && !showCompletion;
-  const canGoNext = isCurrentAnswered && !isLast;
-  const canFinish = isCurrentAnswered && isLast;
 
   const goTo = (nextIndex: number) => {
     if (nextIndex < 0 || nextIndex >= totalCards) return;
@@ -331,66 +315,6 @@ export function DailyScreen({
               : undefined
           }
         />
-      )}
-
-      {!showCompletion ? (
-        <StepNav
-          canGoBack={canGoBack}
-          canGoNext={canGoNext}
-          canFinish={canFinish}
-          isCurrentAnswered={Boolean(isCurrentAnswered)}
-          onBack={() => goTo(currentIndex - 1)}
-          onNext={() => goTo(currentIndex + 1)}
-          onFinish={() => setShowCompletion(true)}
-        />
-      ) : null}
-    </div>
-  );
-}
-
-function StepNav({
-  canGoBack,
-  canGoNext,
-  canFinish,
-  isCurrentAnswered,
-  onBack,
-  onNext,
-  onFinish,
-}: {
-  canGoBack: boolean;
-  canGoNext: boolean;
-  canFinish: boolean;
-  isCurrentAnswered: boolean;
-  onBack: () => void;
-  onNext: () => void;
-  onFinish: () => void;
-}) {
-  return (
-    <div className="flex items-center gap-3">
-      <Button
-        variant="ghost"
-        size="sm"
-        disabled={!canGoBack}
-        onClick={onBack}
-        aria-label="Vorherige Frage"
-      >
-        ←
-      </Button>
-      {canFinish ? (
-        <Button className="flex-1" onClick={onFinish}>
-          Daily abschließen
-        </Button>
-      ) : (
-        <Button
-          className="flex-1"
-          disabled={!canGoNext}
-          onClick={onNext}
-          variant={isCurrentAnswered ? "primary" : "secondary"}
-        >
-          {isCurrentAnswered
-            ? "Nächste Frage"
-            : "Beantworte zuerst diese Frage"}
-        </Button>
       )}
     </div>
   );
