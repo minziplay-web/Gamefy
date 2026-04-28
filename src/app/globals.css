@@ -205,6 +205,15 @@ button {
   }
 }
 
+@keyframes home-activity-scroll {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
 .anim-winner-pop {
   animation: winner-pop 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
@@ -262,6 +271,14 @@ button {
   animation: winner-badge-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+.anim-home-activity-track {
+  animation: home-activity-scroll 28s linear infinite;
+}
+
+.anim-home-activity-track:hover {
+  animation-play-state: paused;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .anim-winner-pop,
   .anim-winner-badge,
@@ -270,7 +287,8 @@ button {
   .anim-rank-fade-up,
   .anim-voter-list,
   .anim-heart-glow,
-  .anim-crown-bob {
+  .anim-crown-bob,
+  .anim-home-activity-track {
     animation: none;
   }
 }

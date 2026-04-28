@@ -12,16 +12,23 @@ jobs:
       - name: Trigger daily rollover endpoint
         env:
           CRON_SECRET: ${{ secrets.CRON_SECRET }}
+          DAILY_CRON_URL: ${{ vars.DAILY_CRON_URL }}
         run: |
           if [ -z "$CRON_SECRET" ]; then
             echo "CRON_SECRET fehlt."
             exit 1
           fi
 
-          DAILY_CRON_URL="https://mijija.vercel.app/api/cron/daily-rollover"
+          if [ -z "$DAILY_CRON_URL" ]; then
+            DAILY_CRON_URL="https://mijija.vercel.app/api/cron/daily-rollover"
+          fi
+
           response_file="$(mktemp)"
           status_code="$(
             curl --silent --show-error \
+              --request POST \
+              --retry 2 \
+              --retry-delay 5 \
               --output "$response_file" \
               --write-out "%{http_code}" \
               -H "Authorization: Bearer ${CRON_SECRET}" \

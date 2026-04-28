@@ -13,6 +13,10 @@ import {
 
 import { getFirebaseServices } from "@/lib/firebase/client";
 import { userDoc } from "@/lib/firebase/collections";
+import {
+  DEFAULT_PROFILE_PHOTO_URL,
+  isDefaultProfilePhotoURL,
+} from "@/lib/constants/avatar";
 import type { AppUser } from "@/lib/types/frontend";
 
 export async function saveOnboardingProfile(params: {
@@ -29,7 +33,9 @@ export async function saveOnboardingProfile(params: {
     throw new Error("Firestore ist nicht verfügbar.");
   }
 
-  let photoURL: string | null = user.photoURL;
+  let photoURL: string | null = isDefaultProfilePhotoURL(user.photoURL)
+    ? DEFAULT_PROFILE_PHOTO_URL
+    : user.photoURL;
   const storageRef = storage
     ? ref(storage, `profiles/${user.userId}/avatar`)
     : null;
@@ -42,7 +48,7 @@ export async function saveOnboardingProfile(params: {
         // Ignore missing object / storage hiccups and still clear the doc field.
       }
     }
-    photoURL = null;
+    photoURL = DEFAULT_PROFILE_PHOTO_URL;
   }
 
   if (photoFile && storageRef) {

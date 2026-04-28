@@ -19,6 +19,7 @@ interface Props {
   onSubmit: (draft: DailyAnswerDraft) => void;
   onVoteMemeCaption?: (authorUserId: string, value: boolean) => Promise<void>;
   onRetry?: () => void;
+  onSkip?: () => void;
 }
 
 function draftIsComplete(draft: DailyAnswerDraft | undefined): draft is DailyAnswerDraft {
@@ -47,6 +48,7 @@ export function QuestionCardShell({
   onSubmit,
   onVoteMemeCaption,
   onRetry,
+  onSkip,
 }: Props) {
   const { question } = state;
   const isRevealed = state.phase === "revealed";
@@ -92,6 +94,7 @@ export function QuestionCardShell({
             onSubmit={onSubmit}
             onVoteMemeCaption={onVoteMemeCaption}
             onRetry={onRetry}
+            onSkip={onSkip}
           />
         </div>
       </div>
@@ -105,6 +108,7 @@ function CardBody({
   onSubmit,
   onVoteMemeCaption,
   onRetry,
+  onSkip,
 }: Props) {
   if (state.phase === "submitted_waiting_reveal") {
     return (
@@ -155,18 +159,31 @@ function CardBody({
           }
         />
       ) : null}
-      <Button
-        className="w-full"
-        variant="daily"
-        disabled={disabled}
-        onClick={() => {
-          if (currentDraft && draftIsComplete(currentDraft)) {
-            onSubmit(currentDraft);
-          }
-        }}
-      >
-        {loading ? "Wird gesendet..." : submitLabel}
-      </Button>
+      <div className="grid gap-2 min-[420px]:grid-cols-[1fr_auto]">
+        <Button
+          className="w-full"
+          variant="daily"
+          disabled={disabled}
+          onClick={() => {
+            if (currentDraft && draftIsComplete(currentDraft)) {
+              onSubmit(currentDraft);
+            }
+          }}
+        >
+          {loading ? "Wird gesendet..." : submitLabel}
+        </Button>
+        {onSkip ? (
+          <Button
+            className="w-full border border-daily-primary/25 bg-white px-5 text-daily-text hover:bg-daily-soft/70 min-[420px]:w-auto"
+            type="button"
+            variant="ghost"
+            disabled={loading}
+            onClick={onSkip}
+          >
+            Überspringen
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 }

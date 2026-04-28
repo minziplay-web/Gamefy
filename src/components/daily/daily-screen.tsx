@@ -95,7 +95,7 @@ export function DailyScreen({
   if (state.status === "loading") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Daily" title="Heutige Fragen" theme="daily" />
+        <ScreenHeader eyebrow="Heute" title="Fragen beantworten" theme="daily" />
         <SkeletonCard />
       </div>
     );
@@ -104,7 +104,7 @@ export function DailyScreen({
   if (state.status === "error") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Daily" title="Heutige Fragen" theme="daily" />
+        <ScreenHeader eyebrow="Heute" title="Fragen beantworten" theme="daily" />
         <ErrorBanner message={state.message} />
       </div>
     );
@@ -114,8 +114,8 @@ export function DailyScreen({
     return (
       <div className="space-y-4">
         <ScreenHeader
-          eyebrow="Daily"
-          title={formatBerlinDateLabel(state.dateKey)}
+          eyebrow={formatBerlinDateLabel(state.dateKey)}
+          title="Fragen beantworten"
           theme="daily"
         />
         <EmptyState
@@ -131,8 +131,8 @@ export function DailyScreen({
     return (
       <div className="space-y-4">
         <ScreenHeader
-          eyebrow="Daily"
-          title={formatBerlinDateLabel(state.dateKey)}
+          eyebrow={formatBerlinDateLabel(state.dateKey)}
+          title="Fragen beantworten"
           theme="daily"
         />
         <EmptyState
@@ -180,11 +180,7 @@ export function DailyScreen({
     const previousIndex = currentIndex;
     const nextUnansweredIndex =
       state.status === "ready"
-        ? state.cards.findIndex(
-            (card) =>
-              getCardKey(card) !== cardKey &&
-              (card.phase === "unanswered" || card.phase === "error"),
-          )
+        ? findNextOpenQuestionIndex(state.cards, previousIndex)
         : -1;
     const willFinish =
       state.status === "ready"
@@ -265,12 +261,18 @@ export function DailyScreen({
     setCurrentIndex(nextIndex);
   };
 
+  const nextOpenIndex = findNextOpenQuestionIndex(state.cards, currentIndex);
+  const canSkipCurrent =
+    currentCard &&
+    (currentCard.phase === "unanswered" || currentCard.phase === "error") &&
+    nextOpenIndex >= 0;
+
   return (
     <div className="flex flex-col gap-4">
       <div ref={scrollTargetRef} aria-hidden className="-mt-1" />
       <ScreenHeader
-        eyebrow="Daily"
-        title={formatBerlinDateLabel(state.dateKey)}
+        eyebrow={formatBerlinDateLabel(state.dateKey)}
+        title="Fragen beantworten"
         theme="daily"
         subtitle={
           state.runStatus === "closed"
@@ -317,6 +319,7 @@ export function DailyScreen({
           onSubmit={(draft) =>
             handleSubmit(getCardKey(currentCard), draft)
           }
+          onSkip={canSkipCurrent ? () => goTo(nextOpenIndex) : undefined}
           onVoteMemeCaption={
             onVoteMemeCaption
               ? (authorUserId, value) =>
@@ -331,6 +334,20 @@ export function DailyScreen({
 
 function getCardKey(card: DailyQuestionCardState) {
   return `${card.question.runId ?? "daily"}:${card.question.questionId}`;
+}
+
+function findNextOpenQuestionIndex(
+  cards: DailyQuestionCardState[],
+  currentIndex: number,
+) {
+  for (let offset = 1; offset < cards.length; offset += 1) {
+    const index = (currentIndex + offset) % cards.length;
+    const card = cards[index];
+    if (card.phase === "unanswered" || card.phase === "error") {
+      return index;
+    }
+  }
+  return -1;
 }
 
 function mockResultFor(

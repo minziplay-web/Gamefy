@@ -160,6 +160,14 @@ export interface HomePastDailyReview {
   items: DailyRecapItem[];
 }
 
+export interface HomeActivityItem {
+  id: string;
+  actorDisplayName: string;
+  action: "answered_question" | "created_meme";
+  timeLabel: string;
+  createdAtMs: number;
+}
+
 export type HomeViewState =
   | { status: "loading" }
   | {
@@ -170,6 +178,7 @@ export type HomeViewState =
       pastDailies?: HomePastDailyReview[];
       customQuestionStatus?: CustomDailyQuestionStatus;
       customQuestionNotice?: CustomDailyQuestionNotice | null;
+      recentActivity?: HomeActivityItem[];
       activeLiveSession: LiveSessionTeaser | null;
       canHostLive: boolean;
       showAdminEntry: boolean;

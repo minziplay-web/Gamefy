@@ -15,6 +15,29 @@ export const mockHome: HomeViewState = {
     status: "active",
     revealPolicy: "after_answer",
   },
+  recentActivity: [
+    {
+      id: "activity-1",
+      actorDisplayName: "Anna",
+      action: "answered_question",
+      timeLabel: "11:32",
+      createdAtMs: 1,
+    },
+    {
+      id: "activity-2",
+      actorDisplayName: "Marcel",
+      action: "created_meme",
+      timeLabel: "10:31",
+      createdAtMs: 2,
+    },
+    {
+      id: "activity-3",
+      actorDisplayName: "Johann",
+      action: "answered_question",
+      timeLabel: "09:48",
+      createdAtMs: 3,
+    },
+  ],
   dailyRecap: [
     {
       dateKey: "2026-04-23",

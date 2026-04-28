@@ -24,6 +24,7 @@ import { getDoc, serverTimestamp, setDoc } from "firebase/firestore";
 
 import { userDoc } from "@/lib/firebase/collections";
 import { getFirebaseServices } from "@/lib/firebase/client";
+import { DEFAULT_PROFILE_PHOTO_URL } from "@/lib/constants/avatar";
 import { hasFirebaseEnv } from "@/lib/firebase/config";
 import { saveOnboardingProfile } from "@/lib/firebase/onboarding";
 import { mapUserDocToAppUser } from "@/lib/mapping/users";
@@ -56,7 +57,7 @@ function mapFirebaseUser(user: User): AppUser {
     userId: user.uid,
     email: user.email ?? "",
     displayName: user.displayName ?? "Friend",
-    photoURL: user.photoURL,
+    photoURL: user.photoURL ?? DEFAULT_PROFILE_PHOTO_URL,
     role: "member",
     onboardingCompleted: Boolean(user.displayName),
   };
@@ -390,7 +391,7 @@ async function ensureUserProfile(
   const draft: UserDoc = {
     email: baseUser.email,
     displayName: baseUser.displayName,
-    photoURL: baseUser.photoURL,
+    photoURL: baseUser.photoURL ?? DEFAULT_PROFILE_PHOTO_URL,
     role: "member",
     onboardingCompleted: false,
     isActive: true,

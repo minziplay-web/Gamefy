@@ -1,4 +1,5 @@
 import type { MemberLite } from "@/lib/types/frontend";
+import { DEFAULT_PROFILE_PHOTO_URL } from "@/lib/constants/avatar";
 
 type Size = "xs" | "sm" | "md" | "lg" | "xl";
 
@@ -21,6 +22,7 @@ export function AvatarCircle({
   tone?: "dark" | "light";
   className?: string;
 }) {
+  const photoURL = member.photoURL || DEFAULT_PROFILE_PHOTO_URL;
   const palette =
     tone === "dark"
       ? "bg-sand-900 text-cream"
@@ -31,16 +33,12 @@ export function AvatarCircle({
       className={`flex items-center justify-center rounded-full font-semibold ${sizeClasses[size]} ${palette} ${className}`}
       aria-label={member.displayName || "Friend"}
     >
-      {member.photoURL ? (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={member.photoURL}
-          alt={member.displayName || "Friend"}
-          className="size-full rounded-full object-cover"
-        />
-      ) : (
-        <FallbackAvatarIcon />
-      )}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={photoURL}
+        alt={member.displayName || "Friend"}
+        className="size-full rounded-full object-cover"
+      />
     </div>
   );
 }
@@ -87,23 +85,5 @@ export function AvatarStack({
         </div>
       ) : null}
     </div>
-  );
-}
-
-function FallbackAvatarIcon() {
-  return (
-    <svg
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth="1.8"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      className="size-[62%]"
-      aria-hidden
-    >
-      <circle cx="12" cy="8.25" r="3.5" />
-      <path d="M5 19c1.1-3.1 3.9-5 7-5s5.9 1.9 7 5" />
-    </svg>
   );
 }

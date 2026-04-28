@@ -34,7 +34,12 @@ import {
   computeDailyStreakStats,
 } from "@/lib/mapping/stats";
 import { mockHome } from "@/lib/mocks";
-import type { HomePastDailyReview, HomeViewState, MemberLite } from "@/lib/types/frontend";
+import type {
+  HomeActivityItem,
+  HomePastDailyReview,
+  HomeViewState,
+  MemberLite,
+} from "@/lib/types/frontend";
 import type {
   DailyAnswerDoc,
   DailyMemeVoteDoc,
@@ -295,6 +300,11 @@ export function useHomeViewState(): HomeViewState {
           status: resolveDailyRunStatus(run),
           items: buildReviewItems(run, "past"),
         }));
+      const recentActivity = buildRecentActivityItems({
+        answers: Array.from(allPublicAnswers.values()).flat(),
+        dateKey,
+        users,
+      });
 
       setState({
         status: "ready",
@@ -353,6 +363,7 @@ export function useHomeViewState(): HomeViewState {
             : null,
         },
         customQuestionNotice: activeCustomQuestionNotice,
+        recentActivity,
         activeLiveSession: activeSession
           ? {
               sessionId: activeSession.id ?? "",
@@ -563,6 +574,76 @@ function getQuestionSource(
 
 function answerKey(runId: string, questionId: string) {
   return `${runId}:${questionId}`;
+}
+
+function buildRecentActivityItems({
+  answers,
+  dateKey,
+  users,
+}: {
+  answers: DailyAnswerDoc[];
+  dateKey: string;
+  users: Map<string, UserDoc>;
+}): HomeActivityItem[] {
+  return answers
+    .filter((answer) => answer.dateKey === dateKey)
+    .map((answer, index) => {
+      const createdAtMs = readTimestampMs(answer.createdAt);
+      if (!createdAtMs) {
+        return null;
+      }
+
+      return {
+        id: `${answer.runId ?? answer.dateKey}:${answer.questionId}:${answer.userId}:${createdAtMs}:${index}`,
+        actorDisplayName: users.get(answer.userId)?.displayName ?? "Jemand",
+        action:
+          answer.questionType === "meme_caption"
+            ? "created_meme"
+            : "answered_question",
+        timeLabel: formatTimeLabel(createdAtMs),
+        createdAtMs,
+      } satisfies HomeActivityItem;
+    })
+    .filter((item): item is HomeActivityItem => Boolean(item))
+    .sort((left, right) => right.createdAtMs - left.createdAtMs);
+}
+
+function readTimestampMs(value: unknown) {
+  if (!value) {
+    return null;
+  }
+
+  if (value instanceof Date) {
+    return value.getTime();
+  }
+
+  if (
+    typeof value === "object"
+    && value !== null
+    && "toDate" in value
+    && typeof (value as { toDate?: unknown }).toDate === "function"
+  ) {
+    return (value as { toDate: () => Date }).toDate().getTime();
+  }
+
+  if (
+    typeof value === "object"
+    && value !== null
+    && "seconds" in value
+    && typeof (value as { seconds?: unknown }).seconds === "number"
+  ) {
+    return (value as { seconds: number }).seconds * 1000;
+  }
+
+  return null;
+}
+
+function formatTimeLabel(ms: number) {
+  return new Intl.DateTimeFormat("de-DE", {
+    hour: "2-digit",
+    minute: "2-digit",
+    timeZone: "Europe/Berlin",
+  }).format(new Date(ms));
 }
 
 type DailyRunItemDocLike = NonNullable<DailyRunDoc["items"]>[number];

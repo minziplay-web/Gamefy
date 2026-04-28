@@ -1,5 +1,6 @@
 import type { DocumentSnapshot } from "firebase/firestore";
 
+import { DEFAULT_PROFILE_PHOTO_URL } from "@/lib/constants/avatar";
 import type { AppUser, MemberLite } from "@/lib/types/frontend";
 import type { UserDoc } from "@/lib/types/firestore";
 
@@ -12,7 +13,7 @@ export function mapUserDocToAppUser(
     userId,
     email: data?.email ?? fallback?.email ?? "",
     displayName: data?.displayName ?? fallback?.displayName ?? "Friend",
-    photoURL: data?.photoURL ?? fallback?.photoURL ?? null,
+    photoURL: data?.photoURL ?? fallback?.photoURL ?? DEFAULT_PROFILE_PHOTO_URL,
     role: data?.role ?? fallback?.role ?? "member",
     onboardingCompleted:
       data?.onboardingCompleted ?? fallback?.onboardingCompleted ?? false,
