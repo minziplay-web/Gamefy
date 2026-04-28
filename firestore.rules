@@ -355,12 +355,12 @@ service cloud.firestore {
         && (
           data.type == "either_or"
           ? ("options" in data && data.options.size() == 2)
-          : !("options" in data)
+          : (!("options" in data) || data.options == null)
         )
         && (
           data.type == "meme_caption"
           ? ("imagePath" in data && data.imagePath is string)
-          : !("imagePath" in data)
+          : (!("imagePath" in data) || data.imagePath == null)
         );
     }
 

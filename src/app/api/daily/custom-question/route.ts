@@ -71,9 +71,8 @@ export async function POST(request: Request) {
       );
     }
 
-    const [runSnapshot, runsSnapshot, answersSnapshot, votesSnapshot, questionsSnapshot] =
+    const [runsSnapshot, answersSnapshot, votesSnapshot, questionsSnapshot] =
       await Promise.all([
-        db.collection("dailyRuns").doc(berlinDateKey()).get(),
         db.collection("dailyRuns").orderBy("dateKey", "desc").get(),
         db.collection("dailyAnswers").get(),
         db.collection("dailyMemeVotes").get(),
@@ -81,10 +80,33 @@ export async function POST(request: Request) {
       ]);
 
     const todayDateKey = berlinDateKey();
+    const existingRuns = runsSnapshot.docs.map((doc) => {
+      const data = doc.data() as {
+        dateKey?: string;
+        runId?: string;
+        runNumber?: number;
+        questionCount?: number;
+      };
+      return {
+        id: doc.id,
+        dateKey: data.dateKey ?? doc.id,
+        runId: data.runId ?? doc.id,
+        runNumber: data.runNumber ?? (doc.id === data.dateKey ? 1 : 99),
+        questionCount: data.questionCount ?? 0,
+      };
+    });
+    const todayRuns = existingRuns.filter((run) => run.dateKey === todayDateKey);
     const targetDateKey = getCustomQuestionTargetDateKey({
       todayDateKey,
-      hasTodayRun: runSnapshot.exists,
+      hasTodayRun: todayRuns.length > 0,
     });
+    const targetRun = existingRuns
+      .filter(
+        (run) =>
+          run.dateKey === targetDateKey &&
+          run.questionCount < MAX_DAILY_RUN_QUESTIONS,
+      )
+      .sort((left, right) => right.runNumber - left.runNumber)[0] ?? null;
 
     const dailyRuns = runsSnapshot.docs.map((doc) => doc.data()) as Array<
       Parameters<typeof computeDailyMemeTrophyCount>[0]["dailyRuns"][number]
@@ -99,6 +121,34 @@ export async function POST(request: Request) {
       .map((doc) => ({ questionId: doc.id, ...(doc.data() as QuestionDoc) }))
       .filter((question) => question.source === "user_trophy" && question.ownerUserId === userId);
 
+    const pendingQuestionForTarget = ownedCustomQuestions.find(
+      (question) =>
+        question.targetDateKey === targetDateKey &&
+        question.consumedInDailyDateKey == null,
+    );
+    const consumedQuestionForTarget = ownedCustomQuestions.find(
+      (question) =>
+        question.consumedInDailyDateKey === targetDateKey ||
+        (question.targetDateKey === targetDateKey &&
+          question.consumedInDailyDateKey != null),
+    );
+    if (consumedQuestionForTarget) {
+      return NextResponse.json(
+        { ok: false, error: "already_created_for_target_daily" },
+        { status: 400 },
+      );
+    }
+
+    const pendingQuestion = ownedCustomQuestions.find((question) =>
+      isPendingUserTrophyQuestion(question, targetDateKey),
+    );
+    if (pendingQuestion && !pendingQuestionForTarget) {
+      return NextResponse.json(
+        { ok: false, error: "already_created_for_target_daily" },
+        { status: 400 },
+      );
+    }
+
     const earnedTrophies = computeDailyMemeTrophyCount({
       userId,
       dailyRuns,
@@ -112,31 +162,9 @@ export async function POST(request: Request) {
       bonusTrophies,
     });
 
-    if (availableTrophies < 1) {
+    if (!pendingQuestionForTarget && availableTrophies < 1) {
       return NextResponse.json(
         { ok: false, error: "no_trophies_left" },
-        { status: 400 },
-      );
-    }
-
-    const existingQuestionForToday = ownedCustomQuestions.find(
-      (question) =>
-        question.targetDateKey === targetDateKey
-        || question.consumedInDailyDateKey === targetDateKey,
-    );
-    if (existingQuestionForToday) {
-      return NextResponse.json(
-        { ok: false, error: "already_created_for_target_daily" },
-        { status: 400 },
-      );
-    }
-
-    const pendingQuestion = ownedCustomQuestions.find((question) =>
-      isPendingUserTrophyQuestion(question, targetDateKey),
-    );
-    if (pendingQuestion) {
-      return NextResponse.json(
-        { ok: false, error: "already_created_for_target_daily" },
         { status: 400 },
       );
     }
@@ -160,7 +188,7 @@ export async function POST(request: Request) {
       updatedAt: FieldValue.serverTimestamp(),
     };
     const questionRef = db.collection("questions").doc(questionId);
-    const runRef = db.collection("dailyRuns").doc(targetDateKey);
+    const runRef = targetRun ? db.collection("dailyRuns").doc(targetRun.runId) : null;
     const nextItem = buildDailyRunItem(
       {
         questionId,
@@ -172,16 +200,28 @@ export async function POST(request: Request) {
     await db.runTransaction(async (transaction) => {
       const [questionDoc, runDoc] = await Promise.all([
         transaction.get(questionRef),
-        transaction.get(runRef),
+        runRef ? transaction.get(runRef) : Promise.resolve(null),
       ]);
 
       if (questionDoc.exists) {
-        throw new Error("already_created_for_target_daily");
+        const existing = questionDoc.data() as QuestionDoc;
+        if (
+          existing.ownerUserId === userId &&
+          existing.targetDateKey === targetDateKey &&
+          existing.consumedInDailyDateKey == null
+        ) {
+          transaction.set(questionRef, payload, { merge: false });
+          if (!runRef || !runDoc?.exists) {
+            return;
+          }
+        } else {
+          throw new Error("already_created_for_target_daily");
+        }
+      } else {
+        transaction.create(questionRef, payload);
       }
 
-      transaction.create(questionRef, payload);
-
-      if (runDoc.exists) {
+      if (runRef && runDoc?.exists) {
         const runData = runDoc.data() as { questionCount?: number } | undefined;
         if ((runData?.questionCount ?? 0) >= MAX_DAILY_RUN_QUESTIONS) {
           throw new Error("daily_full");
@@ -212,7 +252,10 @@ export async function POST(request: Request) {
       ok: true,
       questionId,
       targetDateKey,
-      availableTrophiesAfterCreate: availableTrophies - 1,
+      availableTrophiesAfterCreate: Math.max(
+        0,
+        availableTrophies - (pendingQuestionForTarget ? 0 : 1),
+      ),
     });
   } catch (error) {
     if (error instanceof Error && error.message === "daily_full") {

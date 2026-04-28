@@ -43,7 +43,7 @@ export function computeDailyMemeTrophyCount(params: {
     if (answer.questionType !== "meme_caption" || !answer.textAnswer) {
       continue;
     }
-    const key = `${answer.dateKey}_${answer.questionId}`;
+    const key = `${answer.runId ?? answer.dateKey}_${answer.questionId}`;
     const list = answersByKey.get(key) ?? [];
     list.push(answer);
     answersByKey.set(key, list);
@@ -51,7 +51,7 @@ export function computeDailyMemeTrophyCount(params: {
 
   const votesByKey = new Map<string, DailyMemeVoteDoc[]>();
   for (const vote of dailyMemeVotes) {
-    const key = `${vote.dateKey}_${vote.questionId}`;
+    const key = `${vote.runId ?? vote.dateKey}_${vote.questionId}`;
     const list = votesByKey.get(key) ?? [];
     list.push(vote);
     votesByKey.set(key, list);
@@ -69,7 +69,7 @@ export function computeDailyMemeTrophyCount(params: {
         continue;
       }
 
-      const key = `${run.dateKey}_${item.questionId}`;
+      const key = `${run.runId ?? run.dateKey}_${item.questionId}`;
       const memeAnswers = answersByKey.get(key) ?? [];
       if (memeAnswers.length === 0) {
         continue;
