@@ -1,4 +1,4 @@
-# UI-Review & Polish — Gameapp
+# UI-Review & Polish — Mijija
 
 Stand: 2026-04-24
 Reviewer: Claude (Frontend)
@@ -290,10 +290,10 @@ echter `.env.local` durchklicken (Login, Onboarding-Write, Daily-Submit, Admin-C
 ## 8. Wenn etwas schief geht
 
 Der Dev-Server laeuft im Hintergrund auf `127.0.0.1:3100` mit einer PID in
-`$env:TEMP\gameapp-dev.pid`. Zum Stoppen:
+`$env:TEMP\mijija-live-dev.pid`. Zum Stoppen:
 
 ```powershell
-$pid = Get-Content "$env:TEMP\gameapp-dev.pid"
+$pid = Get-Content "$env:TEMP\mijija-live-dev.pid"
 Stop-Process -Id $pid -Force
 ```
 

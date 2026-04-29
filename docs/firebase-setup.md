@@ -33,7 +33,7 @@ Dieses Dokument bringt das Projekt vom Mock-Modus in den ersten echten End-to-En
 
 ## Schritt 3: `.env.local` anlegen
 
-1. `C:\\VSProjects\\Gameapp\\.env.example` nach `C:\\VSProjects\\Gameapp\\.env.local` kopieren
+1. `C:\\VSProjects\\Mijija\\.env.example` nach `C:\\VSProjects\\Mijija\\.env.local` kopieren
 2. Firebase-Werte eintragen
 
 Beispiel:

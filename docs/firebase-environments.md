@@ -19,7 +19,7 @@ Im Repo ist `live` bereits als Firebase-CLI-Alias hinterlegt:
 ```json
 {
   "projects": {
-    "live": "gameapp-61c29"
+    "live": "mijija-live"
   }
 }
 ```
@@ -31,7 +31,7 @@ Beispiel:
 ```json
 {
   "projects": {
-    "live": "gameapp-61c29",
+    "live": "mijija-live",
     "test": "mijija-test-12345"
   }
 }

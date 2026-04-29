@@ -1,9 +1,13 @@
 {
-  "projects": {
-    "live": "mijija-live",
-    "test": "mijija-test",
-    "nona": "gameapp-61c29"
-  },
-  "targets": {},
-  "etags": {}
+    "projects":  {
+                     "test":  "mijija-test",
+                     "live":  "mijija-live"
+                 },
+    "etags":  {
+
+              },
+    "targets":  {
+
+                }
 }
+

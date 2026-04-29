@@ -1,4 +1,4 @@
-# Gameapp
+# Mijija
 
 Private mobile-first Web-App fuer eine feste Freundesgruppe.
 

@@ -35,7 +35,7 @@ export function AdminMemberList({
       <div className="rounded-2xl border border-sand-200/80 bg-white p-4">
         <p className="text-sm font-medium text-sand-700">
           Hier kannst du Mitglieder aus der App entfernen. Der Account bleibt bei Firebase
-          bestehen, ist aber in Gamefy nicht mehr aktiv. Bonus-Trophäen kannst du hier
+          bestehen, ist aber in Mijija nicht mehr aktiv. Bonus-Trophäen kannst du hier
           direkt vergeben.
         </p>
       </div>

@@ -14,7 +14,7 @@ Die App so deployen, dass deine Freunde sie ueber eine normale URL nutzen koenne
 
 1. [Vercel](https://vercel.com/) oeffnen
 2. `Add New Project`
-3. GitHub-Repo `minziplay-web/Gamefy` importieren
+3. GitHub-Repo `minziplay-web/mijija-live` importieren
 4. Framework sollte automatisch als `Next.js` erkannt werden
 
 ## 2. Environment Variables setzen
@@ -40,7 +40,7 @@ Hinweis:
 
 Nach dem ersten Deploy erzeugt Vercel eine URL wie:
 
-- `https://gamefy.vercel.app`
+- `https://mijija.vercel.app`
 
 oder eine Preview-URL pro Commit.
 

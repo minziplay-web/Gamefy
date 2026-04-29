@@ -1,6 +1,6 @@
 # E2E- und Ops-Checklist
 
-Diese Liste ist die naechste produktnahe Testschicht fuer `Gameapp`.
+Diese Liste ist die naechste produktnahe Testschicht fuer `Mijija`.
 
 Ziel:
 - gleiche Kernfluesse immer wieder pruefbar machen
