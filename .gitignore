@@ -45,3 +45,5 @@ temp-app/
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+.vercel
