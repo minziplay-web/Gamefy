@@ -43,30 +43,7 @@ const HOME_TILES = [
   },
 ] as const;
 
-const HOME_ACTIVITY_PLACEHOLDER: HomeActivityItem[] = [
-  // Anna — 5x answered_question (latest 11:32)
-  { id: "mock-anna-answer-1", actorDisplayName: "Anna", action: "answered_question", timeLabel: "10:40", createdAtMs: 75 },
-  { id: "mock-anna-answer-2", actorDisplayName: "Anna", action: "answered_question", timeLabel: "10:55", createdAtMs: 80 },
-  { id: "mock-anna-answer-3", actorDisplayName: "Anna", action: "answered_question", timeLabel: "11:10", createdAtMs: 88 },
-  { id: "mock-anna-answer-4", actorDisplayName: "Anna", action: "answered_question", timeLabel: "11:25", createdAtMs: 95 },
-  { id: "mock-anna-answer-5", actorDisplayName: "Anna", action: "answered_question", timeLabel: "11:32", createdAtMs: 100 },
-  // Marcel — 1x created_meme
-  { id: "mock-marcel-meme-1", actorDisplayName: "Marcel", action: "created_meme", timeLabel: "10:31", createdAtMs: 70 },
-  // Lisa — 4x answered_question (latest 10:15)
-  { id: "mock-lisa-answer-1", actorDisplayName: "Lisa", action: "answered_question", timeLabel: "09:30", createdAtMs: 50 },
-  { id: "mock-lisa-answer-2", actorDisplayName: "Lisa", action: "answered_question", timeLabel: "09:45", createdAtMs: 55 },
-  { id: "mock-lisa-answer-3", actorDisplayName: "Lisa", action: "answered_question", timeLabel: "10:00", createdAtMs: 60 },
-  { id: "mock-lisa-answer-4", actorDisplayName: "Lisa", action: "answered_question", timeLabel: "10:15", createdAtMs: 65 },
-  // Tom — 2x created_meme (latest 09:58)
-  { id: "mock-tom-meme-1", actorDisplayName: "Tom", action: "created_meme", timeLabel: "09:40", createdAtMs: 53 },
-  { id: "mock-tom-meme-2", actorDisplayName: "Tom", action: "created_meme", timeLabel: "09:58", createdAtMs: 58 },
-  // Johann — 1x answered_question
-  { id: "mock-johann-answer-1", actorDisplayName: "Johann", action: "answered_question", timeLabel: "09:48", createdAtMs: 56 },
-  // Sara — 3x answered_question (latest 09:22)
-  { id: "mock-sara-answer-1", actorDisplayName: "Sara", action: "answered_question", timeLabel: "09:00", createdAtMs: 40 },
-  { id: "mock-sara-answer-2", actorDisplayName: "Sara", action: "answered_question", timeLabel: "09:11", createdAtMs: 45 },
-  { id: "mock-sara-answer-3", actorDisplayName: "Sara", action: "answered_question", timeLabel: "09:22", createdAtMs: 47 },
-];
+const HOME_ACTIVITY_PLACEHOLDER: HomeActivityItem[] = [];
 
 export function HomeScreen({ state }: { state: HomeViewState }) {
   const trophyNoticeKey =
