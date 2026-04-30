@@ -13,11 +13,6 @@ export function MemeImage({
   frame?: "standalone" | "stage";
 }) {
   const [open, setOpen] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   useEffect(() => {
     if (!open) return;
@@ -98,7 +93,9 @@ export function MemeImage({
       >
         <MemeFigure imagePath={imagePath} caption={caption} frame={frame} />
       </button>
-      {mounted && modal ? createPortal(modal, document.body) : null}
+      {typeof document !== "undefined" && modal
+        ? createPortal(modal, document.body)
+        : null}
     </>
   );
 }

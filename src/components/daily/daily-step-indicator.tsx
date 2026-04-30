@@ -1,12 +1,14 @@
+import { ThreeBodyLoader } from "@/components/ui/loader";
 import type { DailyQuestionCardState } from "@/lib/types/frontend";
 
-type StepStatus = "current" | "answered" | "pending" | "error";
+type StepStatus = "current" | "answered" | "pending" | "error" | "submitting";
 
 function statusFor(
   card: DailyQuestionCardState | undefined,
   isCurrent: boolean,
 ): StepStatus {
   if (!card) return "pending";
+  if (card.phase === "submitting") return "submitting";
   if (isCurrent) return "current";
   if (card.phase === "submitted_waiting_reveal" || card.phase === "revealed") {
     return "answered";
@@ -25,14 +27,21 @@ export function DailyStepIndicator({
   onJump?: (index: number) => void;
 }) {
   const total = cards.length;
+  const isSubmitting = cards.some((card) => card.phase === "submitting");
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between px-1">
+      <div className="flex items-center justify-between gap-3 px-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-sand-500">
           Frage <span className="text-sand-900">{currentIndex + 1}</span>
           <span className="text-sand-400"> / {total}</span>
         </p>
+        {isSubmitting ? (
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-[0.16em] text-daily-text">
+            <ThreeBodyLoader size={12} color="currentColor" label="Antwort wird gespeichert" />
+            Wird gespeichert
+          </span>
+        ) : null}
       </div>
       <div className="flex items-center gap-1.5">
         {cards.map((card, idx) => {
@@ -43,9 +52,11 @@ export function DailyStepIndicator({
               ? "h-2 flex-1 rounded-full bg-daily-primary"
               : status === "answered"
                 ? "h-2 flex-1 rounded-full bg-daily-text"
-                : status === "error"
-                  ? "h-2 flex-1 rounded-full bg-archive-mid/45"
-                  : "h-2 flex-1 rounded-full bg-daily-track";
+                : status === "submitting"
+                  ? "h-2 flex-1 rounded-full bg-daily-primary/55 animate-pulse"
+                  : status === "error"
+                    ? "h-2 flex-1 rounded-full bg-archive-mid/45"
+                    : "h-2 flex-1 rounded-full bg-daily-track";
           return (
             <button
               key={`${card.question.runId ?? "daily"}:${card.question.questionId}`}

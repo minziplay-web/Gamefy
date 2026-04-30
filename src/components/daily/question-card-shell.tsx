@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { ThreeBodyLoader } from "@/components/ui/loader";
 import { QuestionInput } from "@/components/daily/question-input";
 import { QuestionReveal } from "@/components/daily/question-reveal";
 import type {
@@ -58,7 +59,7 @@ export function QuestionCardShell({
       className={
         isRevealed
           ? "overflow-hidden rounded-[2rem] bg-transparent"
-          : "radius-card overflow-hidden border border-daily-primary/24 bg-white shadow-[0_18px_42px_-28px_rgba(23,32,49,0.24)]"
+          : "radius-card overflow-hidden border border-daily-primary/18 bg-white shadow-card-flat"
       }
     >
       {!isRevealed ? (
@@ -83,7 +84,7 @@ export function QuestionCardShell({
               {question.indexInRun + 1} / {question.totalInRun}
             </span>
           </div>
-          <h3 className="text-lg font-semibold leading-snug text-sand-900">
+          <h3 className="text-[1.05rem] font-semibold leading-snug text-sand-900 min-[380px]:text-lg">
             {question.text}
           </h3>
         </header>
@@ -140,7 +141,7 @@ function CardBody({
     state.question.type === "meme_caption" ? "Meme erstellen" : "Antwort abschicken";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <QuestionInput
         question={state.question}
         draft={currentDraft}
@@ -159,7 +160,7 @@ function CardBody({
           }
         />
       ) : null}
-      <div className="grid gap-2 min-[420px]:grid-cols-[1fr_auto]">
+      <div className="grid gap-2 pt-1 min-[420px]:grid-cols-[1fr_auto]">
         <Button
           className="w-full"
           variant="daily"
@@ -170,7 +171,14 @@ function CardBody({
             }
           }}
         >
-          {loading ? "Wird gesendet..." : submitLabel}
+          {loading ? (
+            <span className="inline-flex items-center gap-2">
+              <ThreeBodyLoader size={16} color="currentColor" label="Antwort wird gesendet" />
+              Wird gesendet
+            </span>
+          ) : (
+            submitLabel
+          )}
         </Button>
         {onSkip ? (
           <Button

@@ -205,12 +205,31 @@ button {
   }
 }
 
-@keyframes home-activity-scroll {
-  0% {
-    transform: translateX(0);
-  }
+@keyframes trophy-notice-pulse {
+  0%,
   100% {
-    transform: translateX(-50%);
+    box-shadow:
+      0 1px 2px rgba(21, 32, 52, 0.04),
+      0 4px 12px -8px rgba(21, 32, 52, 0.08),
+      0 0 0 0 rgba(74, 86, 153, 0.18);
+    transform: translateZ(0) scale(1);
+  }
+  50% {
+    box-shadow:
+      0 1px 2px rgba(21, 32, 52, 0.04),
+      0 8px 18px -12px rgba(21, 32, 52, 0.14),
+      0 0 0 7px rgba(74, 86, 153, 0);
+    transform: translateZ(0) scale(1.01);
+  }
+}
+
+@keyframes trophy-icon-pulse {
+  0%,
+  100% {
+    transform: scale(1) rotate(-2deg);
+  }
+  50% {
+    transform: scale(1.12) rotate(4deg);
   }
 }
 
@@ -262,6 +281,15 @@ button {
   transform-origin: 50% 80%;
 }
 
+.anim-trophy-notice {
+  animation: trophy-notice-pulse 2.6s ease-in-out infinite;
+}
+
+.anim-trophy-icon {
+  animation: trophy-icon-pulse 2.6s ease-in-out infinite;
+  transform-origin: 50% 70%;
+}
+
 .anim-sparkle {
   display: inline-block;
   animation: sparkle-pulse 1.8s ease-in-out infinite;
@@ -271,12 +299,141 @@ button {
   animation: winner-badge-in 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-.anim-home-activity-track {
-  animation: home-activity-scroll 28s linear infinite;
+@keyframes live-header-fade {
+  0% {
+    opacity: 0;
+    transform: translateY(-2px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
-.anim-home-activity-track:hover {
-  animation-play-state: paused;
+@keyframes live-row-in {
+  0% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.anim-live-header {
+  animation: live-header-fade 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+.anim-live-row {
+  animation: live-row-in 260ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Three-body loader — palette derived from /public/home-icons/*.svg
+   Default uses three SVG accent colors (indigo, pink-magenta, red-orange).
+   Pass --uib-color via inline style for monochrome use (e.g. inside buttons). */
+.three-body {
+  --uib-size: 35px;
+  --uib-speed: 0.8s;
+  --uib-color-1: #4a5699;
+  --uib-color-2: #c45fa0;
+  --uib-color-3: #e5594f;
+  position: relative;
+  display: inline-block;
+  height: var(--uib-size);
+  width: var(--uib-size);
+  animation: three-body-spin calc(var(--uib-speed) * 2.5) infinite linear;
+}
+
+.three-body__dot {
+  position: absolute;
+  height: 100%;
+  width: 30%;
+}
+
+.three-body__dot::after {
+  content: "";
+  position: absolute;
+  height: 0%;
+  width: 100%;
+  padding-bottom: 100%;
+  border-radius: 50%;
+}
+
+.three-body__dot:nth-child(1) {
+  bottom: 5%;
+  left: 0;
+  transform: rotate(60deg);
+  transform-origin: 50% 85%;
+}
+
+.three-body__dot:nth-child(1)::after {
+  bottom: 0;
+  left: 0;
+  background-color: var(--uib-color, var(--uib-color-1));
+  animation: three-body-wobble1 var(--uib-speed) infinite ease-in-out;
+  animation-delay: calc(var(--uib-speed) * -0.3);
+}
+
+.three-body__dot:nth-child(2) {
+  bottom: 5%;
+  right: 0;
+  transform: rotate(-60deg);
+  transform-origin: 50% 85%;
+}
+
+.three-body__dot:nth-child(2)::after {
+  bottom: 0;
+  left: 0;
+  background-color: var(--uib-color, var(--uib-color-2));
+  animation: three-body-wobble1 var(--uib-speed) infinite
+    calc(var(--uib-speed) * -0.15) ease-in-out;
+}
+
+.three-body__dot:nth-child(3) {
+  bottom: -5%;
+  left: 0;
+  transform: translateX(116.666%);
+}
+
+.three-body__dot:nth-child(3)::after {
+  top: 0;
+  left: 0;
+  background-color: var(--uib-color, var(--uib-color-3));
+  animation: three-body-wobble2 var(--uib-speed) infinite ease-in-out;
+}
+
+@keyframes three-body-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes three-body-wobble1 {
+  0%,
+  100% {
+    transform: translateY(0%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-66%) scale(0.65);
+    opacity: 0.8;
+  }
+}
+
+@keyframes three-body-wobble2 {
+  0%,
+  100% {
+    transform: translateY(0%) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(66%) scale(0.65);
+    opacity: 0.8;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -288,7 +445,14 @@ button {
   .anim-voter-list,
   .anim-heart-glow,
   .anim-crown-bob,
-  .anim-home-activity-track {
+  .anim-trophy-notice,
+  .anim-trophy-icon,
+  .anim-live-header,
+  .anim-live-row {
+    animation: none;
+  }
+  .three-body,
+  .three-body__dot::after {
     animation: none;
   }
 }

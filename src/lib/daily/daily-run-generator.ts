@@ -100,14 +100,14 @@ export function buildDailyRunPayload(params: {
   }
 
   if (questionsByCategory.size === 0 && customQuestions.length === 0) {
-    throw new Error("Für die gewählten Kategorien gibt es keine freigegebenen Fragen.");
+    throw new Error("Für die gewählten Kategorien gibt es keine aktiven Fragen.");
   }
 
   const missingForcedCategories = forcedCategories.filter((category) => !questionsByCategory.has(category));
 
   if (missingForcedCategories.length > 0) {
     throw new Error(
-      `Diese Pflicht-Kategorien haben gerade keine freigegebenen Fragen: ${missingForcedCategories.join(", ")}.`,
+      `Diese Pflicht-Kategorien haben gerade keine aktiven Fragen: ${missingForcedCategories.join(", ")}.`,
     );
   }
 
@@ -177,7 +177,7 @@ function selectPoolQuestions(params: {
   return chosenCategories.map((category) => {
     const categoryQuestions = questionsByCategory.get(category);
     if (!categoryQuestions || categoryQuestions.length === 0) {
-      throw new Error(`Für ${category} wurde keine freigegebene Frage gefunden.`);
+      throw new Error(`Für ${category} wurde keine aktive Frage gefunden.`);
     }
 
     return shuffle(categoryQuestions)[0];

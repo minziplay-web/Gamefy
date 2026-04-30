@@ -16,6 +16,7 @@ import {
   onAuthStateChanged,
   setPersistence,
   signInWithPopup,
+  signInWithRedirect,
   signInWithEmailAndPassword,
   signOut,
   type User,
@@ -145,8 +146,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setAuthState({ status: "verifying_link" });
 
         try {
-          const provider = new GoogleAuthProvider();
-          provider.setCustomParameters({ prompt: "select_account" });
+          const provider = createGoogleProvider();
           const credential = await signInWithPopup(auth, provider);
           const target = userDoc(credential.user.uid);
           const baseUser = mapFirebaseUser(credential.user);
@@ -164,6 +164,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         } catch (error) {
           const authError = error as AuthError | undefined;
           const code = authError?.code ?? "unknown";
+
+          if (shouldFallbackToRedirect(code)) {
+            await signInWithRedirect(auth, createGoogleProvider());
+            return;
+          }
+
           setAuthState({
             status: "error",
             message: `Google-Login fehlgeschlagen (${code}).`,
@@ -366,6 +372,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
+function createGoogleProvider() {
+  const provider = new GoogleAuthProvider();
+  provider.setCustomParameters({ prompt: "select_account" });
+  return provider;
+}
+
+function shouldFallbackToRedirect(code: string) {
+  return [
+    "auth/popup-blocked",
+    "auth/operation-not-supported-in-this-environment",
+    "auth/web-storage-unsupported",
+  ].includes(code);
 }
 
 export function useAuth() {

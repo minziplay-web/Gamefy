@@ -20,57 +20,57 @@ export default function DailyPage() {
   const showCustomQuestionCard =
     !dateKey &&
     homeState.status === "ready" &&
-    state.status === "ready" &&
-    state.progress.total > 0 &&
-    state.progress.answered >= state.progress.total &&
     Boolean(homeState.customQuestionStatus);
 
   return (
-    <DailyScreen
-      state={state}
-      completionContent={
-        showCustomQuestionCard && homeState.status === "ready" ? (
+    <div className="space-y-4">
+      <DailyScreen
+        state={state}
+        onSubmitAnswer={async (
+          draft: DailyAnswerDraft,
+          card: DailyQuestionCardState,
+        ) => {
+          if (authState.status !== "authenticated" || state.status !== "ready") {
+            throw new Error("Nicht eingeloggt.");
+          }
+
+          try {
+            await submitDailyAnswer({
+              dateKey: state.dateKey,
+              user: authState.user,
+              question: card.question,
+              draft,
+            });
+          } catch (error) {
+            const message =
+              error instanceof Error ? error.message : "Unbekannter Fehler beim Speichern.";
+            throw new Error(message);
+          }
+        }}
+        onVoteMemeCaption={async (card, authorUserId, value) => {
+          if (authState.status !== "authenticated" || state.status !== "ready") {
+            throw new Error("Nicht eingeloggt.");
+          }
+
+          await submitMemeCaptionVote({
+            dateKey: state.dateKey,
+            runId: card.question.runId,
+            questionId: card.question.questionId,
+            authorUserId,
+            voterUserId: authState.user.userId,
+            on: value,
+          });
+        }}
+      />
+
+      {showCustomQuestionCard && homeState.status === "ready" ? (
+        <section aria-label="Eigene Trophy-Frage">
           <CustomDailyQuestionCard
             status={homeState.customQuestionStatus!}
             onSubmit={submitCustomDailyQuestion}
           />
-        ) : null
-      }
-      onSubmitAnswer={async (
-        draft: DailyAnswerDraft,
-        card: DailyQuestionCardState,
-      ) => {
-        if (authState.status !== "authenticated" || state.status !== "ready") {
-          throw new Error("Nicht eingeloggt.");
-        }
-
-        try {
-          await submitDailyAnswer({
-            dateKey: state.dateKey,
-            user: authState.user,
-            question: card.question,
-            draft,
-          });
-        } catch (error) {
-          const message =
-            error instanceof Error ? error.message : "Unbekannter Fehler beim Speichern.";
-          throw new Error(message);
-        }
-      }}
-      onVoteMemeCaption={async (card, authorUserId, value) => {
-        if (authState.status !== "authenticated" || state.status !== "ready") {
-          throw new Error("Nicht eingeloggt.");
-        }
-
-        await submitMemeCaptionVote({
-          dateKey: state.dateKey,
-          runId: card.question.runId,
-          questionId: card.question.questionId,
-          authorUserId,
-          voterUserId: authState.user.userId,
-          on: value,
-        });
-      }}
-    />
+        </section>
+      ) : null}
+    </div>
   );
 }

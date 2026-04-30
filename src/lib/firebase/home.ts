@@ -20,6 +20,7 @@ import {
   questionsCollection,
   usersCollection,
 } from "@/lib/firebase/collections";
+import { isTestFirebaseProject } from "@/lib/firebase/config";
 import {
   mapDailyAnswerDraft,
   mapDailyQuestion,
@@ -113,12 +114,24 @@ export function useHomeViewState(): HomeViewState {
     let activeMemberIds = new Set<string>();
     let answeredDateKeys = new Set<string>();
     let allMyDailyAnswers: DailyPrivateAnswerDoc[] = [];
-    let myDailyAnswers = new Map<string, DailyPrivateAnswerDoc>();
     let allPublicAnswers = new Map<string, DailyAnswerDoc[]>();
     let allMemeVotes = new Map<string, DailyMemeVoteDoc[]>();
     let unsubscribeActiveParticipants: (() => void) | null = null;
+    const pendingInitialSnapshots = new Set([
+      "privateAnswers",
+      "runs",
+      "answers",
+      "memeVotes",
+      "questions",
+      "users",
+      "sessions",
+    ]);
 
     const emit = () => {
+      if (pendingInitialSnapshots.size > 0) {
+        return;
+      }
+
       const todayRunViews = runData.map((run) => {
         const validated = validateDailyRun({
           run,
@@ -172,6 +185,21 @@ export function useHomeViewState(): HomeViewState {
         spentCustomQuestions: spentTrophies,
         bonusTrophies,
       });
+      const lastClosedRun = recentRuns
+        .filter((run) => run.dateKey < dateKey && resolveDailyRunStatus(run) === "closed")
+        .sort((left, right) =>
+          right.dateKey === left.dateKey
+            ? right.runNumber - left.runNumber
+            : right.dateKey.localeCompare(left.dateKey),
+        )[0];
+      const lastDailyTrophyCount = lastClosedRun
+        ? computeDailyMemeTrophyCount({
+            userId: authState.user.userId,
+            dailyRuns: [lastClosedRun],
+            dailyAnswers: Array.from(allPublicAnswers.values()).flat(),
+            dailyMemeVotes: Array.from(allMemeVotes.values()).flat(),
+          })
+        : 0;
       const pendingCustomQuestion = myCustomQuestions.find((question) =>
         isPendingUserTrophyQuestion(question, targetCustomQuestionDateKey),
       );
@@ -353,15 +381,27 @@ export function useHomeViewState(): HomeViewState {
                 text: pendingCustomQuestion.text,
                 options:
                   pendingCustomQuestion.type === "either_or"
-                  && pendingCustomQuestion.options?.length === 2
-                    ? [
-                        pendingCustomQuestion.options[0],
-                        pendingCustomQuestion.options[1],
-                      ]
+                  && pendingCustomQuestion.options
+                  && pendingCustomQuestion.options.length >= 2
+                    ? pendingCustomQuestion.options
                     : undefined,
               }
             : null,
         },
+        trophyEarnedNotice:
+          isTestFirebaseProject() && authState.user.role === "admin"
+            ? {
+                dateKey: lastClosedRun?.dateKey ?? dateKey,
+                trophyCount: Math.max(1, lastDailyTrophyCount),
+                availableTrophies: Math.max(1, availableTrophies),
+              }
+            : lastClosedRun && lastDailyTrophyCount > 0
+            ? {
+                dateKey: lastClosedRun.dateKey,
+                trophyCount: lastDailyTrophyCount,
+                availableTrophies,
+              }
+            : null,
         customQuestionNotice: activeCustomQuestionNotice,
         recentActivity,
         activeLiveSession: activeSession
@@ -385,6 +425,11 @@ export function useHomeViewState(): HomeViewState {
       });
     };
 
+    const markSnapshotReady = (key: string) => {
+      pendingInitialSnapshots.delete(key);
+      emit();
+    };
+
     const handleError = (scope: string) => (error: unknown) => {
       setState({
         status: "error",
@@ -402,11 +447,6 @@ export function useHomeViewState(): HomeViewState {
           allMyDailyAnswers = snapshot.docs.map(
             (doc) => doc.data() as DailyPrivateAnswerDoc,
           );
-          myDailyAnswers = new Map(
-            allMyDailyAnswers
-              .filter((answer) => answer.dateKey === dateKey)
-              .map((answer) => [answerKey(answer.runId ?? answer.dateKey, answer.questionId), answer]),
-          );
           answeredDateKeys = new Set(
             allMyDailyAnswers.map((answer) => answer.dateKey),
           );
@@ -417,21 +457,23 @@ export function useHomeViewState(): HomeViewState {
               .map((answer) => answerKey(answer.runId ?? answer.dateKey, answer.questionId)),
           );
           streakCurrent = computeDailyStreakStats(answeredDateKeys).current;
-          emit();
+          markSnapshotReady("privateAnswers");
         },
         handleError("Home-Eigene Antworten"),
       ),
       onSnapshot(
         query(runsRef, orderBy("dateKey", "desc")),
         (snapshot) => {
-          recentRuns = snapshot.docs.map((doc) => {
-            const data = doc.data() as DailyRunDoc;
-            return {
-              ...data,
-              runId: data.runId ?? doc.id,
-              runNumber: data.runNumber ?? (doc.id === data.dateKey ? 1 : 99),
-            };
-          });
+          recentRuns = snapshot.docs
+            .map((doc) => {
+              const data = doc.data() as DailyRunDoc;
+              return {
+                ...data,
+                runId: data.runId ?? doc.id,
+                runNumber: data.runNumber ?? (doc.id === data.dateKey ? 1 : 99),
+              };
+            })
+            .filter(isCanonicalDailyRun);
           runData = recentRuns
             .filter((run) => run.dateKey === dateKey)
             .sort((left, right) =>
@@ -439,7 +481,7 @@ export function useHomeViewState(): HomeViewState {
                 ? left.runId.localeCompare(right.runId)
                 : left.runNumber - right.runNumber,
             );
-          emit();
+          markSnapshotReady("runs");
         },
         handleError("Home-Daily-Verlauf"),
       ),
@@ -455,7 +497,7 @@ export function useHomeViewState(): HomeViewState {
               acc.set(key, existing);
               return acc;
             }, new Map());
-          emit();
+          markSnapshotReady("answers");
         },
         handleError("Home-Daily-Ergebnisse"),
       ),
@@ -471,7 +513,7 @@ export function useHomeViewState(): HomeViewState {
               acc.set(key, existing);
               return acc;
             }, new Map());
-          emit();
+          markSnapshotReady("memeVotes");
         },
         handleError("Home-Meme-Votes"),
       ),
@@ -481,7 +523,7 @@ export function useHomeViewState(): HomeViewState {
           questions = new Map(
             snapshot.docs.map((doc) => [doc.id, doc.data() as QuestionDoc]),
           );
-          emit();
+          markSnapshotReady("questions");
         },
         handleError("Home-Fragen"),
       ),
@@ -497,7 +539,7 @@ export function useHomeViewState(): HomeViewState {
               return data.isActive ? doc.id : "";
             }).filter(Boolean),
           );
-          emit();
+          markSnapshotReady("users");
         },
         handleError("Home-Mitglieder"),
       ),
@@ -538,7 +580,7 @@ export function useHomeViewState(): HomeViewState {
             }
           }
 
-          emit();
+          markSnapshotReady("sessions");
         },
         handleError("Home-Live-Session"),
       ),
@@ -574,6 +616,10 @@ function getQuestionSource(
 
 function answerKey(runId: string, questionId: string) {
   return `${runId}:${questionId}`;
+}
+
+function isCanonicalDailyRun(run: DailyRunWithMeta) {
+  return run.runNumber <= 1 || run.runId === run.dateKey;
 }
 
 function buildRecentActivityItems({

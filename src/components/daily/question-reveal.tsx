@@ -1105,9 +1105,9 @@ function EitherOrReveal({
   tone: RevealTone;
 }) {
   const toneClasses = revealToneClasses[tone];
-  const [expandedIndex, setExpandedIndex] = useState<0 | 1 | null>(null);
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
   const votersByOption = useMemo(() => {
-    const grouped = new Map<0 | 1, MemberLite[]>();
+    const grouped = new Map<number, MemberLite[]>();
     for (const row of result.voterRows ?? []) {
       const voters = grouped.get(row.optionIndex) ?? [];
       voters.push(row.voter);
@@ -1119,11 +1119,10 @@ function EitherOrReveal({
   return (
     <div className="overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised">
       {result.options.map((opt, idx) => {
-        const optionIndex = idx as 0 | 1;
         const isMine = idx === result.myChoiceIndex;
-        const voters = votersByOption.get(optionIndex) ?? [];
+        const voters = votersByOption.get(idx) ?? [];
         const canToggle = voters.length > 0;
-        const expanded = expandedIndex === optionIndex;
+        const expanded = expandedIndex === idx;
 
         return (
           <button
@@ -1133,7 +1132,7 @@ function EitherOrReveal({
             aria-expanded={canToggle ? expanded : undefined}
             onClick={() =>
               setExpandedIndex((curr) =>
-                curr === optionIndex ? null : optionIndex,
+                curr === idx ? null : idx,
               )
             }
             className={`block w-full border-b border-slate-100 p-4 text-left transition last:border-b-0 ${
@@ -1276,6 +1275,7 @@ function VoteSummary({
 }) {
   const label = `${votes} ${votes === 1 ? "Stimme" : "Stimmen"}`;
   const center = align === "center";
+  const showPreview = !expanded && voters.length > 0;
 
   return (
     <div
@@ -1284,11 +1284,13 @@ function VoteSummary({
       }`}
     >
       <p className="shrink-0 text-xs font-semibold text-sand-700">{label}</p>
-      <AvatarStack voters={voters} limit={Math.min(previewLimit, 4)} />
-      {voters.length > 0 ? (
-        <span className="hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-sand-400 min-[390px]:inline">
-          gewählt von
-        </span>
+      {showPreview ? (
+        <>
+          <AvatarStack voters={voters} limit={Math.min(previewLimit, 4)} />
+          <span className="hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-sand-400 min-[390px]:inline">
+            gewählt von
+          </span>
+        </>
       ) : null}
       {voters.length > 0 ? (
         <span

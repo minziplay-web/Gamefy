@@ -2,6 +2,7 @@
 
 import {
   Timestamp,
+  deleteField,
   doc,
   getDoc,
   getDocs,
@@ -21,9 +22,11 @@ import {
   buildDailyRunItem,
   canUseQuestionInDaily,
   DEFAULT_DAILY_CATEGORIES,
+  MAX_DAILY_RUN_QUESTIONS,
   shuffle,
 } from "@/lib/daily/daily-run-generator";
 import { isUserTrophyQuestion } from "@/lib/daily/custom-daily-questions";
+import { DEFAULT_PROFILE_PHOTO_URL } from "@/lib/constants/avatar";
 import {
   appConfigDoc,
   dailyAnswersCollection,
@@ -47,7 +50,9 @@ import type {
   AdminConfigDraft,
   AdminDailyCategoryPlan,
   AdminDailyDeleteResult,
+  AdminDailyQuestionRemoveResult,
   AdminDailyQuestionRerollResult,
+  AdminQuestionEditInput,
   AdminQuestionImportResult,
   AdminRunActionResult,
   Category,
@@ -56,10 +61,6 @@ import type {
   TargetMode,
 } from "@/lib/types/frontend";
 import type {
-  DailyAnswerDoc,
-  DailyFirstAnswerDoc,
-  DailyMemeVoteDoc,
-  DailyPrivateAnswerDoc,
   DailyRunDoc,
   QuestionDoc,
   UserDoc,
@@ -80,6 +81,34 @@ interface ImportQuestionInput {
   options?: string[];
   imagePath?: string;
 }
+
+const KNOWN_CATEGORIES: Category[] = [
+  "custom",
+  "hot_takes",
+  "pure_fun",
+  "deep_talk",
+  "memories",
+  "career_life",
+  "relationships",
+  "hobbies_interests",
+  "dirty",
+  "group_knowledge",
+  "would_you_rather",
+  "conspiracy",
+  "meme_it",
+];
+
+const KNOWN_QUESTION_TYPES: QuestionType[] = [
+  "single_choice",
+  "multi_choice",
+  "open_text",
+  "duel_1v1",
+  "duel_2v2",
+  "either_or",
+  "meme_caption",
+];
+
+const KNOWN_TARGET_MODES: TargetMode[] = ["daily"];
 
 export async function saveAdminConfig(draft: AdminConfigDraft) {
   const target = appConfigDoc();
@@ -118,8 +147,229 @@ export async function toggleQuestionActive(questionId: string, active: boolean) 
 
   await updateDoc(doc(questionsRef, questionId), {
     active,
+    targetMode: "daily",
     updatedAt: serverTimestamp(),
   });
+}
+
+export async function updateQuestion(
+  questionId: string,
+  input: AdminQuestionEditInput,
+) {
+  const questionsRef = questionsCollection();
+
+  if (!questionsRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  const questionRef = doc(questionsRef, questionId);
+  const existingSnapshot = await getDoc(questionRef);
+
+  if (existingSnapshot.exists()) {
+    const existingQuestion = existingSnapshot.data() as QuestionDoc;
+
+    if (isQuestionUsedInDaily(existingQuestion)) {
+      const payload = normalizeQuestionCreateInput(input);
+      const nextQuestionRef = doc(questionsRef);
+
+      await setDoc(nextQuestionRef, {
+        ...payload,
+        active: true,
+        dailyLocked: false,
+        dailyLockedDateKey: null,
+        source: existingQuestion.source ?? "admin_pool",
+        ownerUserId: existingQuestion.ownerUserId ?? null,
+        targetDateKey: existingQuestion.targetDateKey ?? null,
+        consumedInDailyDateKey: null,
+        createdBy: existingQuestion.createdBy ?? null,
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+
+      return;
+    }
+  }
+
+  const payload = normalizeQuestionEditInput(input);
+
+  await updateDoc(questionRef, {
+    ...payload,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function createQuestion(
+  input: AdminQuestionEditInput,
+  createdBy: string,
+) {
+  const questionsRef = questionsCollection();
+
+  if (!questionsRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  const payload = normalizeQuestionCreateInput(input);
+  const questionRef = doc(questionsRef);
+
+  await setDoc(questionRef, {
+    ...payload,
+    active: true,
+    dailyLocked: false,
+    dailyLockedDateKey: null,
+    source: "admin_pool",
+    ownerUserId: null,
+    targetDateKey: null,
+    consumedInDailyDateKey: null,
+    createdBy,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  return questionRef.id;
+}
+
+function normalizeQuestionEditInput(input: AdminQuestionEditInput) {
+  const text = input.text.trim();
+
+  if (!text) {
+    throw new Error("Fragetext darf nicht leer sein.");
+  }
+
+  if (!KNOWN_CATEGORIES.includes(input.category)) {
+    throw new Error("Unbekannte Kategorie.");
+  }
+
+  if (!KNOWN_QUESTION_TYPES.includes(input.type)) {
+    throw new Error("Unbekannter Fragetyp.");
+  }
+
+  if (!KNOWN_TARGET_MODES.includes(input.targetMode)) {
+    throw new Error("Unbekannter Zielmodus.");
+  }
+
+  const payload = {
+    text,
+    category: input.category,
+    type: input.type,
+    targetMode: "daily" as const,
+    options: deleteField(),
+    imagePath: deleteField(),
+  };
+
+  if (input.type === "either_or") {
+    const options = (input.options ?? [])
+      .map((option) => option.trim())
+      .filter(Boolean);
+
+    if (options.length !== 2) {
+      throw new Error("Entweder/Oder braucht genau 2 Antwortmöglichkeiten.");
+    }
+
+    return {
+      ...payload,
+      options,
+    };
+  }
+
+  if (input.type === "meme_caption") {
+    const imagePath = input.imagePath?.trim();
+
+    if (!imagePath) {
+      throw new Error("Meme-Fragen brauchen einen Bildpfad.");
+    }
+
+    return {
+      ...payload,
+      imagePath,
+    };
+  }
+
+  return payload;
+}
+
+function normalizeQuestionCreateInput(input: AdminQuestionEditInput) {
+  const normalized = normalizeQuestionCoreInput(input);
+  return {
+    text: normalized.text,
+    category: normalized.category,
+    type: normalized.type,
+    targetMode: normalized.targetMode,
+    ...(normalized.options ? { options: normalized.options } : {}),
+    ...(normalized.imagePath ? { imagePath: normalized.imagePath } : {}),
+  };
+}
+
+function normalizeQuestionCoreInput(input: AdminQuestionEditInput) {
+  const text = input.text.trim();
+
+  if (!text) {
+    throw new Error("Fragetext darf nicht leer sein.");
+  }
+
+  if (!KNOWN_CATEGORIES.includes(input.category)) {
+    throw new Error("Unbekannte Kategorie.");
+  }
+
+  if (!KNOWN_QUESTION_TYPES.includes(input.type)) {
+    throw new Error("Unbekannter Fragetyp.");
+  }
+
+  if (!KNOWN_TARGET_MODES.includes(input.targetMode)) {
+    throw new Error("Unbekannter Zielmodus.");
+  }
+
+  if (input.type === "either_or") {
+    const options = (input.options ?? [])
+      .map((option) => option.trim())
+      .filter(Boolean);
+
+    if (options.length !== 2) {
+      throw new Error("Entweder/Oder braucht genau 2 Antwortmöglichkeiten.");
+    }
+
+    return {
+      text,
+      category: input.category,
+      type: input.type,
+      targetMode: "daily" as const,
+      options,
+      imagePath: undefined,
+    };
+  }
+
+  if (input.type === "meme_caption") {
+    const imagePath = input.imagePath?.trim();
+
+    if (!imagePath) {
+      throw new Error("Meme-Fragen brauchen einen Bildpfad.");
+    }
+
+    return {
+      text,
+      category: input.category,
+      type: input.type,
+      targetMode: "daily" as const,
+      options: undefined,
+      imagePath,
+    };
+  }
+
+  return {
+    text,
+    category: input.category,
+    type: input.type,
+    targetMode: "daily" as const,
+    options: undefined,
+    imagePath: undefined,
+  };
+}
+
+function isQuestionUsedInDaily(question: QuestionDoc) {
+  return (
+    question.dailyLocked === true ||
+    question.dailyLockedDateKey != null ||
+    question.consumedInDailyDateKey != null
+  );
 }
 
 export async function toggleQuestionDailyLock(questionId: string, dailyLocked: boolean) {
@@ -130,6 +380,7 @@ export async function toggleQuestionDailyLock(questionId: string, dailyLocked: b
   }
 
   await updateDoc(doc(questionsRef, questionId), {
+    targetMode: "daily",
     dailyLocked,
     dailyLockedDateKey: dailyLocked ? berlinDateKey() : null,
     updatedAt: serverTimestamp(),
@@ -151,6 +402,7 @@ export async function bulkSetQuestionsActive(questionIds: string[], active: bool
   for (const questionId of questionIds) {
     batch.update(doc(questionsRef, questionId), {
       active,
+      targetMode: "daily",
       updatedAt: serverTimestamp(),
     });
   }
@@ -174,6 +426,7 @@ export async function bulkSetQuestionsDailyLock(
   const batch = writeBatch(questionsRef.firestore);
   for (const questionId of questionIds) {
     batch.update(doc(questionsRef, questionId), {
+      targetMode: "daily",
       dailyLocked,
       dailyLockedDateKey: dailyLocked ? berlinDateKey() : null,
       updatedAt: serverTimestamp(),
@@ -261,6 +514,19 @@ export async function grantBonusTrophy(userId: string) {
   });
 }
 
+export async function resetUserProfilePhoto(userId: string) {
+  const targetRef = userDoc(userId);
+
+  if (!targetRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  await updateDoc(targetRef, {
+    photoURL: DEFAULT_PROFILE_PHOTO_URL,
+    updatedAt: serverTimestamp(),
+  });
+}
+
 export function parseQuestionImport(raw: string): ImportQuestionInput[] {
   const parsed = JSON.parse(raw) as unknown;
 
@@ -287,15 +553,11 @@ export function parseQuestionImport(raw: string): ImportQuestionInput[] {
       throw new Error(`Eintrag ${index + 1}: type fehlt.`);
     }
 
-    if (typeof candidate.targetMode !== "string") {
-      throw new Error(`Eintrag ${index + 1}: targetMode fehlt.`);
-    }
-
     const question: ImportQuestionInput = {
       text: candidate.text.trim(),
       category: candidate.category as Category,
       type: candidate.type as QuestionType,
-      targetMode: candidate.targetMode as TargetMode,
+      targetMode: "daily",
     };
 
     if (candidate.options !== undefined) {
@@ -365,6 +627,26 @@ export async function importQuestions(raw: string, createdBy: string) {
       seenIdentityTargets.get(identityKey) ?? existing?.id ?? null;
 
     if (targetQuestionId) {
+      if (existing?.data && isQuestionUsedInDaily(existing.data)) {
+        const docRef = doc(questionsRef);
+        batch.set(docRef, {
+          ...item,
+          active: true,
+          dailyLocked: false,
+          dailyLockedDateKey: null,
+          source: existing.data.source ?? "admin_pool",
+          ownerUserId: existing.data.ownerUserId ?? null,
+          targetDateKey: existing.data.targetDateKey ?? null,
+          consumedInDailyDateKey: null,
+          createdBy: existing.data.createdBy ?? createdBy,
+          createdAt: serverTimestamp(),
+          updatedAt: serverTimestamp(),
+        });
+        seenIdentityTargets.set(identityKey, docRef.id);
+        importedCount += 1;
+        continue;
+      }
+
       batch.set(
         doc(questionsRef, targetQuestionId),
         {
@@ -586,14 +868,13 @@ export async function rerollDailyRunQuestion(params: {
       : DEFAULT_DAILY_CATEGORIES;
 
   if (!includedCategories.includes(targetCategory)) {
-    throw new Error("Diese Kategorie ist aktuell nicht für Daily-Fragen freigegeben.");
+    throw new Error("Diese Kategorie ist aktuell nicht für Daily-Fragen aktiv.");
   }
 
   const eligibleQuestions = questionSnapshot.docs
     .map((snapshot) => ({ questionId: snapshot.id, ...(snapshot.data() as QuestionDoc) }))
     .filter(
       (question) =>
-        (question.targetMode === "daily" || question.targetMode === "both") &&
         question.dailyLocked !== true &&
         question.category === targetCategory &&
         question.questionId !== questionId &&
@@ -602,7 +883,7 @@ export async function rerollDailyRunQuestion(params: {
     );
 
   if (eligibleQuestions.length === 0) {
-    throw new Error("Für diese Kategorie gibt es gerade keine weitere freigegebene Ersatzfrage.");
+    throw new Error("Für diese Kategorie gibt es gerade keine weitere aktive Ersatzfrage.");
   }
 
   const replacementQuestion = shuffle(eligibleQuestions)[0];
@@ -621,6 +902,11 @@ export async function rerollDailyRunQuestion(params: {
   assertValidDailyRunPayload(nextPayload);
 
   await setDoc(runRef, nextPayload, { merge: false });
+  await markQuestionsConsumedByDate({
+    questionsRef,
+    dateKey,
+    questionIds: [replacementQuestion.questionId],
+  });
 
   const deletionResult = await collectDailyQuestionDeletionData({
     dateKey,
@@ -646,6 +932,120 @@ export async function rerollDailyRunQuestion(params: {
     replacementQuestionId: replacementQuestion.questionId,
     replacementQuestionText: replacementQuestion.text,
     replacementCategory: replacementQuestion.category,
+    deletedPublicAnswers: deletionResult.counts.deletedPublicAnswers,
+    deletedPrivateAnswers: deletionResult.counts.deletedPrivateAnswers,
+    deletedFirstAnswerLocks: deletionResult.counts.deletedFirstAnswerLocks,
+    deletedMemeVotes: deletionResult.counts.deletedMemeVotes,
+  };
+}
+
+export async function removeDailyRunQuestion(params: {
+  dateKey: DateKey;
+  runId?: string;
+  questionId: string;
+}): Promise<AdminDailyQuestionRemoveResult> {
+  const { dateKey, questionId } = params;
+  const runId = params.runId ?? dateKey;
+  const runRef = dailyRunDoc(runId);
+  const questionsRef = questionsCollection();
+  const answersRef = dailyAnswersCollection();
+  const privateAnswersRef = dailyPrivateAnswersCollection();
+  const firstAnswersRef = dailyFirstAnswersCollection();
+  const memeVotesRef = dailyMemeVotesCollection();
+
+  if (
+    !runRef ||
+    !questionsRef ||
+    !answersRef ||
+    !privateAnswersRef ||
+    !firstAnswersRef ||
+    !memeVotesRef
+  ) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  const [runSnapshot, questionSnapshot] = await Promise.all([
+    getDoc(runRef),
+    getDocs(query(questionsRef, where("active", "==", true))),
+  ]);
+
+  if (!runSnapshot.exists()) {
+    throw new Error("Der Daily-Run wurde nicht gefunden.");
+  }
+
+  const run = runSnapshot.data() as DailyRunDoc;
+  const questionsById = new Map(
+    questionSnapshot.docs.map((snapshot) => [
+      snapshot.id,
+      { questionId: snapshot.id, ...(snapshot.data() as QuestionDoc) },
+    ]),
+  );
+  const items: DailyRunDoc["items"] =
+    run.items ??
+    run.questionIds.map((existingQuestionId) => {
+      const question = questionsById.get(existingQuestionId);
+      return {
+        questionId: existingQuestionId,
+        type: question?.type ?? "open_text",
+        ...(question
+          ? {
+              questionSnapshot: {
+                text: question.text,
+                category: question.category,
+                ...(question.options ? { options: question.options } : {}),
+                ...(question.imagePath ? { imagePath: question.imagePath } : {}),
+              },
+            }
+          : {}),
+      };
+    });
+  const targetItem = items.find((item) => item.questionId === questionId);
+
+  if (!targetItem) {
+    throw new Error("Diese Frage gehört nicht zu diesem Daily.");
+  }
+
+  const nextItems = items.filter((item) => item.questionId !== questionId);
+  const nextPayload: DailyRunDoc = {
+    ...run,
+    runId,
+    runNumber: run.runNumber ?? 1,
+    questionIds: nextItems.map((item) => item.questionId),
+    items: nextItems,
+    questionCount: nextItems.length,
+    updatedAt: serverTimestamp(),
+  };
+
+  assertValidDailyRunPayload(nextPayload);
+  await setDoc(runRef, nextPayload, { merge: false });
+
+  const deletionResult = await collectDailyQuestionDeletionData({
+    dateKey,
+    runId,
+    questionId,
+    answersRef,
+    privateAnswersRef,
+    firstAnswersRef,
+    memeVotesRef,
+  });
+
+  for (const chunk of chunkDocs(deletionResult.docs, 450)) {
+    const batch = writeBatch(runRef.firestore);
+    for (const entry of chunk) {
+      batch.delete(entry.ref);
+    }
+    await batch.commit();
+  }
+
+  return {
+    dateKey,
+    runId,
+    removedQuestionId: questionId,
+    removedQuestionText:
+      targetItem.questionSnapshot?.text ??
+      questionsById.get(questionId)?.text ??
+      "Entfernte Frage",
+    questionCount: nextItems.length,
     deletedPublicAnswers: deletionResult.counts.deletedPublicAnswers,
     deletedPrivateAnswers: deletionResult.counts.deletedPrivateAnswers,
     deletedFirstAnswerLocks: deletionResult.counts.deletedFirstAnswerLocks,
@@ -774,7 +1174,8 @@ async function upsertDailyRun(params: {
   const { dateKey, createdBy, questionCount, revealPolicy } = params;
   const questionsRef = questionsCollection();
   const usersRef = usersCollection();
-  let runRef = dailyRunDoc(dateKey);
+  const runsRef = dailyRunsCollection();
+  const runRef = dailyRunDoc(dateKey);
   const answersRef = dailyAnswersCollection();
   const privateAnswersRef = dailyPrivateAnswersCollection();
   const firstAnswersRef = dailyFirstAnswersCollection();
@@ -783,6 +1184,7 @@ async function upsertDailyRun(params: {
   if (
     !questionsRef ||
     !usersRef ||
+    !runsRef ||
     !runRef ||
     !answersRef ||
     !privateAnswersRef ||
@@ -792,32 +1194,20 @@ async function upsertDailyRun(params: {
     throw new Error("Firestore ist nicht verfügbar.");
   }
 
-  let existingRun = await getDoc(runRef);
-  let targetRunId = dateKey;
-  let targetRunNumber = 1;
-  let resultMode: AdminRunActionResult["mode"] = params.mode;
-  let existingDailyQuestionIds = new Set<string>();
+  const existingRun = await getDoc(runRef);
+  const existingDailyQuestionIds = new Set<string>();
 
   if (existingRun.exists() && params.mode === "create") {
-    const runsSnapshot = await getDocs(query(dailyRunsCollection()!, where("dateKey", "==", dateKey)));
-    existingDailyQuestionIds = new Set(
-      runsSnapshot.docs.flatMap((entry) => {
-        const data = entry.data() as DailyRunDoc;
-        return data.questionIds ?? [];
-      }),
-    );
-    const existingNumbers = runsSnapshot.docs.map((entry) => {
-      const data = entry.data() as DailyRunDoc;
-      return data.runNumber ?? (entry.id === data.dateKey ? 1 : 1);
+    return extendExistingDailyRun({
+      dateKey,
+      runId: dateKey,
+      runRef,
+      run: existingRun.data() as DailyRunDoc,
+      runsRef,
+      questionsRef,
+      usersRef,
+      categoryPlan: params.categoryPlan,
     });
-    targetRunNumber = Math.max(1, ...existingNumbers) + 1;
-    targetRunId = `${dateKey}_${targetRunNumber}`;
-    runRef = dailyRunDoc(targetRunId);
-    if (!runRef) {
-      throw new Error("Firestore ist nicht verfügbar.");
-    }
-    existingRun = await getDoc(runRef);
-    resultMode = "add";
   }
 
   const [questionSnapshot, userSnapshot] = await Promise.all([
@@ -848,18 +1238,18 @@ async function upsertDailyRun(params: {
       (question) =>
         !isUserTrophyQuestion(question)
         && !existingDailyQuestionIds.has(question.questionId)
-        && (question.targetMode === "daily" || question.targetMode === "both")
+
         && question.dailyLocked !== true
         && canUseQuestionInDaily(question.type, users.length),
     );
 
   if (eligibleQuestions.length === 0 && customQuestions.length === 0) {
-    throw new Error("Keine freigegebenen Daily-Fragen gefunden.");
+    throw new Error("Keine aktiven Daily-Fragen gefunden.");
   }
 
   const runPayload = buildDailyRunPayload({
-    runId: targetRunId,
-    runNumber: targetRunNumber,
+    runId: dateKey,
+    runNumber: 1,
     dateKey,
     createdBy,
     questionCount,
@@ -879,7 +1269,7 @@ async function upsertDailyRun(params: {
   if (params.mode === "replace") {
     const replacementResult = await replaceDailyRunAtomically({
       dateKey,
-      runId: targetRunId,
+      runId: dateKey,
       runRef,
       runPayload,
       answersRef,
@@ -887,15 +1277,15 @@ async function upsertDailyRun(params: {
       firstAnswersRef,
       memeVotesRef,
     });
-    await markCustomQuestionsConsumedByDate({
+    await markQuestionsConsumedByDate({
       questionsRef,
       dateKey,
-      questionIds: customQuestions.map((question) => question.questionId),
+      questionIds: runPayload.questionIds,
     });
     return {
       mode: "replace",
-      runId: targetRunId,
-      runNumber: targetRunNumber,
+      runId: dateKey,
+      runNumber: 1,
       dateKey,
       questionCount: runPayload.questionCount,
       ...replacementResult,
@@ -903,17 +1293,146 @@ async function upsertDailyRun(params: {
   }
 
   await setDoc(runRef, runPayload, { merge: false });
-  await markCustomQuestionsConsumedByDate({
+  await markQuestionsConsumedByDate({
     questionsRef,
     dateKey,
-    questionIds: customQuestions.map((question) => question.questionId),
+    questionIds: runPayload.questionIds,
   });
   return {
-    mode: resultMode,
-    runId: targetRunId,
-    runNumber: targetRunNumber,
+    mode: "create",
+    runId: dateKey,
+    runNumber: 1,
     dateKey,
     questionCount: runPayload.questionCount,
+    deletedPublicAnswers: 0,
+    deletedPrivateAnswers: 0,
+    deletedFirstAnswerLocks: 0,
+  };
+}
+
+async function extendExistingDailyRun(params: {
+  dateKey: DateKey;
+  runId: string;
+  runRef: NonNullable<ReturnType<typeof dailyRunDoc>>;
+  run: DailyRunDoc;
+  runsRef: NonNullable<ReturnType<typeof dailyRunsCollection>>;
+  questionsRef: NonNullable<ReturnType<typeof questionsCollection>>;
+  usersRef: NonNullable<ReturnType<typeof usersCollection>>;
+  categoryPlan?: AdminDailyCategoryPlan;
+}): Promise<AdminRunActionResult> {
+  const {
+    dateKey,
+    runId,
+    runRef,
+    run,
+    runsRef,
+    questionsRef,
+    usersRef,
+    categoryPlan,
+  } = params;
+
+  const [questionSnapshot, userSnapshot, runsSnapshot] = await Promise.all([
+    getDocs(query(questionsRef, where("active", "==", true))),
+    getDocs(query(usersRef, where("isActive", "==", true))),
+    getDocs(query(runsRef, where("dateKey", "==", dateKey))),
+  ]);
+
+  const activeUserIds = userSnapshot.docs.map((snapshot) => snapshot.id);
+  const allQuestions = questionSnapshot.docs.map((snapshot) => ({
+    questionId: snapshot.id,
+    ...(snapshot.data() as QuestionDoc),
+  }));
+  const questionsById = new Map(
+    allQuestions.map((question) => [question.questionId, question]),
+  );
+  const currentItems: DailyRunDoc["items"] =
+    run.items ??
+    run.questionIds.map((questionId) => {
+      const question = questionsById.get(questionId);
+      return {
+        questionId,
+        type: question?.type ?? "open_text",
+        ...(question
+          ? {
+              questionSnapshot: {
+                text: question.text,
+                category: question.category,
+                ...(question.options ? { options: question.options } : {}),
+                ...(question.imagePath ? { imagePath: question.imagePath } : {}),
+              },
+            }
+          : {}),
+      };
+    });
+
+  if (currentItems.length >= MAX_DAILY_RUN_QUESTIONS) {
+    throw new Error(`Das heutige Daily hat bereits ${MAX_DAILY_RUN_QUESTIONS} Fragen.`);
+  }
+
+  const usedQuestionIds = new Set(
+    runsSnapshot.docs.flatMap((entry) => {
+      const data = entry.data() as DailyRunDoc;
+      return data.questionIds ?? [];
+    }),
+  );
+  const includedCategories =
+    categoryPlan?.includedCategories?.length
+      ? categoryPlan.includedCategories
+      : DEFAULT_DAILY_CATEGORIES;
+  const forcedCategories =
+    categoryPlan?.forcedCategories?.filter((category) =>
+      includedCategories.includes(category),
+    ) ?? [];
+  const categoryPool =
+    forcedCategories.length > 0 ? forcedCategories : includedCategories;
+
+  if (categoryPool.length === 0) {
+    throw new Error("Wähle mindestens eine Kategorie für die Zusatzfrage aus.");
+  }
+
+  const eligibleQuestions = allQuestions.filter(
+    (question) =>
+      !isUserTrophyQuestion(question) &&
+      !usedQuestionIds.has(question.questionId) &&
+      categoryPool.includes(question.category) &&
+      question.dailyLocked !== true &&
+      canUseQuestionInDaily(question.type, activeUserIds.length),
+  );
+
+  if (eligibleQuestions.length === 0) {
+    throw new Error("Für die gewählten Kategorien gibt es gerade keine weitere aktive Frage.");
+  }
+
+  const addedQuestion = shuffle(eligibleQuestions)[0];
+  const addedItem = buildDailyRunItem(addedQuestion, activeUserIds);
+  const nextItems = [...currentItems, addedItem];
+  const nextPayload: DailyRunDoc = {
+    ...run,
+    runId,
+    runNumber: run.runNumber ?? 1,
+    questionIds: nextItems.map((item) => item.questionId),
+    items: nextItems,
+    questionCount: nextItems.length,
+    updatedAt: serverTimestamp(),
+  };
+
+  assertValidDailyRunPayload(nextPayload);
+  await setDoc(runRef, nextPayload, { merge: false });
+  await markQuestionsConsumedByDate({
+    questionsRef,
+    dateKey,
+    questionIds: [addedQuestion.questionId],
+  });
+
+  return {
+    mode: "extend",
+    runId,
+    runNumber: nextPayload.runNumber,
+    dateKey,
+    questionCount: nextPayload.questionCount,
+    addedQuestionId: addedQuestion.questionId,
+    addedQuestionText: addedQuestion.text,
+    addedCategory: addedQuestion.category,
     deletedPublicAnswers: 0,
     deletedPrivateAnswers: 0,
     deletedFirstAnswerLocks: 0,
@@ -1183,7 +1702,7 @@ function chunkDocs<T>(items: T[], size: number) {
   return chunks;
 }
 
-async function markCustomQuestionsConsumedByDate(params: {
+async function markQuestionsConsumedByDate(params: {
   questionsRef: NonNullable<ReturnType<typeof questionsCollection>>;
   dateKey: DateKey;
   questionIds: string[];
@@ -1195,8 +1714,12 @@ async function markCustomQuestionsConsumedByDate(params: {
   }
 
   const batch = writeBatch(questionsRef.firestore);
-  for (const questionId of questionIds) {
+  for (const questionId of Array.from(new Set(questionIds))) {
     batch.update(doc(questionsRef, questionId), {
+      targetMode: "daily",
+      active: false,
+      dailyLocked: true,
+      dailyLockedDateKey: dateKey,
       consumedInDailyDateKey: dateKey,
       updatedAt: serverTimestamp(),
     });

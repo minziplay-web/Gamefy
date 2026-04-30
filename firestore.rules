@@ -259,7 +259,9 @@ service cloud.firestore {
 
     function hasValidEitherOrAnswer(data) {
       return "selectedOptionIndex" in data
-        && data.selectedOptionIndex in [0, 1]
+        && data.selectedOptionIndex is int
+        && data.selectedOptionIndex >= 0
+        && data.selectedOptionIndex < 6
         && !("selectedUserId" in data)
         && !("selectedUserIds" in data)
         && !("selectedSide" in data)
@@ -314,7 +316,7 @@ service cloud.firestore {
     }
 
     function isKnownTargetMode(targetMode) {
-      return targetMode in ["daily", "live", "both"];
+      return targetMode == "daily";
     }
 
     function isKnownRevealPolicy(revealPolicy) {

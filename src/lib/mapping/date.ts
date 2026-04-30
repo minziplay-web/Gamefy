@@ -39,12 +39,16 @@ export function formatBerlinDateLabel(
   const [year, month, day] = dateKey.split("-").map(Number);
   const utcDate = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
 
-  return new Intl.DateTimeFormat(locale, {
+  const formatted = new Intl.DateTimeFormat(locale, {
     timeZone: BERLIN_TZ,
     weekday: "long",
     day: "numeric",
     month: "long",
   }).format(utcDate);
+
+  // Keep "30. April" together with a non-breaking space so narrow columns wrap
+  // after the comma instead of breaking awkwardly between day number and month.
+  return formatted.replace(/(\d+\.)\s+/, "$1 ");
 }
 
 export function shiftDateKey(dateKey: DateKey, dayOffset: number): DateKey {

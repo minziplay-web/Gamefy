@@ -2,9 +2,10 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { CategoryBadge } from "@/components/ui/category-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { formatBerlinDateLabel } from "@/lib/mapping/date";
-import type { AdminDailyRunRow, DateKey } from "@/lib/types/frontend";
+import type { AdminDailyRunRow, DateKey, QuestionType } from "@/lib/types/frontend";
 
 type BadgeTone = "neutral" | "dark" | "accent" | "success" | "warning" | "danger";
 
@@ -17,6 +18,16 @@ const STATUS_TONE: Record<
   closed: { label: "Abgeschlossen", tone: "neutral" },
 };
 
+const TYPE_LABELS: Record<QuestionType, string> = {
+  single_choice: "Mitglied wählen",
+  multi_choice: "Mehrere Mitglieder",
+  open_text: "Freitext",
+  duel_1v1: "1v1 Voting",
+  duel_2v2: "2v2 Voting",
+  either_or: "2 Optionen",
+  meme_caption: "Meme",
+};
+
 export function AdminDailyList({
   runs,
   onCreate,
@@ -24,6 +35,7 @@ export function AdminDailyList({
   onDeleteRun,
   onResetToday,
   onRerollQuestion,
+  onRemoveQuestion,
   todayDateKey,
   runActionStatus = "idle",
   runActionMessage,
@@ -34,6 +46,7 @@ export function AdminDailyList({
   onDeleteRun?: (dateKey: DateKey) => void;
   onResetToday?: () => void;
   onRerollQuestion?: (dateKey: DateKey, runId: string, questionId: string, text: string) => void;
+  onRemoveQuestion?: (dateKey: DateKey, runId: string, questionId: string, text: string) => void;
   todayDateKey?: DateKey;
   runActionStatus?: "idle" | "running" | "success" | "error";
   runActionMessage?: string;
@@ -41,30 +54,37 @@ export function AdminDailyList({
   const todayRuns = todayDateKey
     ? runs.filter((r) => r.dateKey === todayDateKey)
     : [];
-  const todayRun = todayRuns[0];
+  const todayRun =
+    todayRuns.find((run) => run.runNumber === 1 || run.runId === todayDateKey) ??
+    todayRuns[0];
+  const visibleRuns = runs.filter(
+    (run) => !(run.dateKey === todayDateKey && run.runNumber > 1),
+  );
 
   return (
     <div className="space-y-3">
       {todayRun ? (
-        <div className="space-y-3 rounded-2xl border border-daily-primary/35 bg-white p-4">
-          <div className="space-y-1">
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-[#9A4C13]">
+        <div className="space-y-3 rounded-2xl border border-daily-primary/30 bg-white p-3 shadow-card-flat">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9A4C13]">
               Heute
             </p>
-            <p className="text-sm font-medium text-sand-900">
-              Für heute {todayRuns.length === 1 ? "existiert ein Run" : `existieren ${todayRuns.length} Runs`}.
+              <p className="truncate text-sm font-bold text-sand-900">
+                {todayRun.questionCount} Fragen
             </p>
+            </div>
+            <Badge tone="warning" size="sm">Heute</Badge>
           </div>
           {todayRun.items && todayRun.items.length > 0 ? (
-            <div className="space-y-2 rounded-2xl border border-daily-primary/25 bg-white p-3">
-              <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sand-500">
+            <div className="space-y-2">
+              <p className="px-1 text-xs font-bold uppercase tracking-[0.14em] text-sand-500">
                 Heutige Fragen
               </p>
               <ul className="space-y-2">
-                {todayRuns.flatMap((run) =>
-                  (run.items ?? []).map((item, index) => (
+                {(todayRun.items ?? []).map((item, index) => (
                   <li
-                    key={`${run.runId}_${item.questionId}`}
+                    key={`${todayRun.runId}_${item.questionId}`}
                     className="flex flex-col gap-3 rounded-2xl border border-sand-200 bg-sand-50/70 px-3 py-3 sm:flex-row sm:items-start sm:justify-between"
                   >
                     {item.type === "meme_caption" && item.imagePath ? (
@@ -76,52 +96,82 @@ export function AdminDailyList({
                       />
                     ) : null}
                     <div className="min-w-0 flex-1 space-y-1">
-                      <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sand-500">
-                        {run.runLabel} · Frage {index + 1}
-                      </p>
+                      <div className="flex flex-wrap items-center gap-2">
+                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sand-500">
+                          Frage {index + 1}
+                        </p>
+                        <CategoryBadge category={item.category} size="sm" />
+                        <Badge tone="neutral" size="sm">
+                          {TYPE_LABELS[item.type]}
+                        </Badge>
+                      </div>
                       <p className="text-sm font-medium leading-6 text-sand-900">
                         {item.text}
                       </p>
                     </div>
-                    <Button
-                      variant="ghost"
-                      className="w-full shrink-0 px-3 text-brand-primary sm:w-auto"
-                      onClick={() =>
-                        onRerollQuestion?.(run.dateKey, run.runId, item.questionId, item.text)
-                      }
-                      disabled={runActionStatus === "running" || !onRerollQuestion}
-                    >
-                      Neu würfeln
-                    </Button>
+                    <div className="grid w-full shrink-0 grid-cols-2 gap-2 sm:w-auto sm:grid-cols-1">
+                      <Button
+                        variant="ghost"
+                        className="rounded-xl px-3 text-[12px] text-brand-primary"
+                        onClick={() =>
+                          onRerollQuestion?.(
+                            todayRun.dateKey,
+                            todayRun.runId,
+                            item.questionId,
+                            item.text,
+                          )
+                        }
+                        disabled={runActionStatus === "running" || !onRerollQuestion}
+                      >
+                        Neu würfeln
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="rounded-xl px-3 text-[12px] text-danger-text"
+                        onClick={() =>
+                          onRemoveQuestion?.(
+                            todayRun.dateKey,
+                            todayRun.runId,
+                            item.questionId,
+                            item.text,
+                          )
+                        }
+                        disabled={runActionStatus === "running" || !onRemoveQuestion}
+                      >
+                        Entfernen
+                      </Button>
+                    </div>
                   </li>
-                )))}
+                ))}
               </ul>
             </div>
           ) : null}
-          <Button
-            className="w-full"
-            variant="secondary"
-            onClick={onCreate}
-            disabled={runActionStatus === "running"}
-          >
-            {runActionStatus === "running" ? "Erzeugt..." : "Weiteres Daily erzeugen"}
-          </Button>
-          <Button
-            className="w-full"
-            variant="ghost"
-            onClick={onReplaceToday}
-            disabled={runActionStatus === "running" || !onReplaceToday}
-          >
-            {runActionStatus === "running" ? "Rerollt..." : "Heutiges Daily rerollen"}
-          </Button>
-          <Button
-            className="w-full"
-            variant="ghost"
-            onClick={onResetToday}
-            disabled={runActionStatus === "running" || !onResetToday}
-          >
-            {runActionStatus === "running" ? "Setzt zurück..." : "Heutiges Daily zurücksetzen"}
-          </Button>
+          <div className="grid grid-cols-1 gap-2 min-[430px]:grid-cols-3">
+            <Button
+              className="w-full rounded-xl text-[12px]"
+              variant="secondary"
+              onClick={onCreate}
+              disabled={runActionStatus === "running"}
+            >
+              {runActionStatus === "running" ? "Fügt hinzu..." : "Frage hinzufügen"}
+            </Button>
+            <Button
+              className="w-full rounded-xl text-[12px]"
+              variant="ghost"
+              onClick={onReplaceToday}
+              disabled={runActionStatus === "running" || !onReplaceToday}
+            >
+              {runActionStatus === "running" ? "Rerollt..." : "Daily rerollen"}
+            </Button>
+            <Button
+              className="w-full rounded-xl text-[12px]"
+              variant="ghost"
+              onClick={onResetToday}
+              disabled={runActionStatus === "running" || !onResetToday}
+            >
+              {runActionStatus === "running" ? "Setzt zurück..." : "Antworten resetten"}
+            </Button>
+          </div>
         </div>
       ) : (
         <Button className="w-full" onClick={onCreate} disabled={runActionStatus === "running"}>
@@ -143,14 +193,14 @@ export function AdminDailyList({
         </p>
       ) : null}
 
-      {runs.length === 0 ? (
+      {visibleRuns.length === 0 ? (
         <EmptyState
           title="Noch keine Runs"
           description="Erzeuge einen Run für heute oder morgen."
         />
       ) : (
         <ul className="space-y-2">
-          {runs.map((run) => {
+          {visibleRuns.map((run) => {
             const tone = STATUS_TONE[run.status];
             const isToday = run.dateKey === todayDateKey;
             return (

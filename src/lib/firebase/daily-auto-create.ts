@@ -94,15 +94,13 @@ export async function maybeAutoCreateDailyRun(
   const eligibleQuestions = allQuestions
     .filter(
       (question) =>
-        !isUserTrophyQuestion(question)
-        &&
-        (question.targetMode === "daily" || question.targetMode === "both") &&
+        !isUserTrophyQuestion(question) &&
         question.dailyLocked !== true &&
         canUseQuestionInDaily(question.type, users.length),
     );
 
   if (eligibleQuestions.length === 0 && customQuestions.length === 0) {
-    throw new Error("Keine freigegebenen Daily-Fragen gefunden.");
+    throw new Error("Keine aktiven Daily-Fragen gefunden.");
   }
 
   const includedCategories =
@@ -129,14 +127,23 @@ export async function maybeAutoCreateDailyRun(
   });
 
   await runRef.set(payload);
-  for (const question of customQuestions) {
-    await db.collection("questions").doc(question.questionId).set(
-      {
-        consumedInDailyDateKey: dateKey,
-        updatedAt: FieldValue.serverTimestamp(),
-      },
-      { merge: true },
-    );
+  const consumedQuestionIds = Array.from(new Set(payload.questionIds));
+  for (let i = 0; i < consumedQuestionIds.length; i += 450) {
+    const batch = db.batch();
+    for (const questionId of consumedQuestionIds.slice(i, i + 450)) {
+      batch.set(
+        db.collection("questions").doc(questionId),
+        {
+          active: false,
+          dailyLocked: true,
+          dailyLockedDateKey: dateKey,
+          consumedInDailyDateKey: dateKey,
+          updatedAt: FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
+    await batch.commit();
   }
 
   return {

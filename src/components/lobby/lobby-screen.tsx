@@ -13,7 +13,7 @@ import { LobbyWaitingRoom } from "@/components/lobby/lobby-waiting-room";
 import { Button } from "@/components/ui/button";
 import { ErrorBanner } from "@/components/ui/error-banner";
 import { ScreenHeader } from "@/components/ui/screen-header";
-import { SkeletonCard } from "@/components/ui/skeleton";
+import { ThreeBodyLoader } from "@/components/ui/loader";
 import { mergeLobbyState } from "@/lib/mapping/state-merge";
 import type {
   DailyAnswerDraft,
@@ -66,8 +66,9 @@ export function LobbyScreen({
     return (
       <div className="space-y-4">
         <ScreenHeader eyebrow="Live" title="Lobby" />
-        <SkeletonCard />
-        <SkeletonCard />
+        <div className="flex justify-center py-12">
+          <ThreeBodyLoader size={48} label="Lobby wird geladen" />
+        </div>
       </div>
     );
   }

@@ -20,6 +20,10 @@ export default async function PreviewScreenPage({
 }: {
   params: Promise<{ screen: string; variant: string }>;
 }) {
+  if (process.env.NODE_ENV === "production" && process.env.ENABLE_PREVIEW_ROUTES !== "true") {
+    notFound();
+  }
+
   const { screen, variant } = await params;
 
   switch (screen) {

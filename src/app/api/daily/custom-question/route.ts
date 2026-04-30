@@ -50,8 +50,12 @@ export async function POST(request: Request) {
     const rawBody = (await request.json()) as Record<string, unknown>;
     const type = rawBody.type;
     const text = typeof rawBody.text === "string" ? rawBody.text.trim() : "";
-    const optionA = typeof rawBody.optionA === "string" ? rawBody.optionA.trim() : "";
-    const optionB = typeof rawBody.optionB === "string" ? rawBody.optionB.trim() : "";
+    const options = Array.isArray(rawBody.options)
+      ? rawBody.options
+          .filter((option): option is string => typeof option === "string")
+          .map((option) => option.trim())
+          .filter(Boolean)
+      : [];
 
     if (!isCustomDailyQuestionType(type)) {
       return NextResponse.json({ ok: false, error: "invalid_type" }, { status: 400 });
@@ -64,9 +68,16 @@ export async function POST(request: Request) {
       );
     }
 
-    if (type === "either_or" && (!optionA || !optionB)) {
+    if (type === "either_or" && options.length < 2) {
       return NextResponse.json(
         { ok: false, error: "missing_options" },
+        { status: 400 },
+      );
+    }
+
+    if (type === "either_or" && options.length > 6) {
+      return NextResponse.json(
+        { ok: false, error: "too_many_options" },
         { status: 400 },
       );
     }
@@ -178,7 +189,7 @@ export async function POST(request: Request) {
       active: true,
       dailyLocked: false,
       dailyLockedDateKey: null,
-      ...(type === "either_or" ? { options: [optionA, optionB] } : {}),
+      ...(type === "either_or" ? { options } : {}),
       source: "user_trophy",
       ownerUserId: userId,
       targetDateKey,

@@ -104,7 +104,7 @@ function SingleChoiceInput({
   const selected = draft?.selectedUserId;
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+    <div className="grid gap-2">
       {question.candidates.map((candidate) => {
         const active = candidate.userId === selected;
         return (
@@ -119,16 +119,17 @@ function SingleChoiceInput({
                 selectedUserId: candidate.userId,
               })
             }
-            className={`flex min-h-28 flex-col items-center justify-center gap-2.5 rounded-2xl border-2 p-3 text-sm font-medium text-center transition ${
+            className={`flex min-h-16 items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition ${
               active
-                ? "border-daily-primary bg-daily-soft/70 text-sand-900"
-                : "border-slate-200 bg-white text-sand-700 hover:border-daily-primary/50"
+                ? "border-daily-primary bg-daily-soft/80 text-sand-950 shadow-card-flat"
+                : "border-slate-200 bg-white text-sand-800 hover:border-daily-primary/45"
             } disabled:opacity-60`}
           >
             <AvatarCircle member={candidate} size="md" />
-            <span className="line-clamp-2 text-xs font-semibold leading-snug text-sand-800">
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold leading-snug">
               {candidate.displayName}
             </span>
+            <ChoiceMark active={active} />
           </button>
         );
       })}
@@ -165,13 +166,13 @@ function MultiChoiceInput({
 
   return (
     <div className="space-y-3">
-      <div className="flex items-center justify-between text-xs text-sand-500">
-        <span>Mehrfachauswahl möglich</span>
-        <span className="font-semibold tabular-nums text-sand-700">
+      <div className="flex items-center justify-between rounded-2xl bg-sand-50 px-3 py-2 text-xs text-sand-500 ring-1 ring-sand-200">
+        <span className="font-medium">Mehrfachauswahl möglich</span>
+        <span className="font-semibold tabular-nums text-sand-800">
           {selected.size} gewählt
         </span>
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+      <div className="grid gap-2">
         {question.candidates.map((candidate) => {
           const active = selected.has(candidate.userId);
           return (
@@ -181,24 +182,17 @@ function MultiChoiceInput({
               disabled={disabled}
               aria-pressed={active}
               onClick={() => toggle(candidate.userId)}
-              className={`relative flex min-h-28 flex-col items-center justify-center gap-2.5 rounded-2xl border-2 p-3 text-sm font-medium text-center transition ${
+              className={`flex min-h-16 items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition ${
                 active
-                  ? "border-daily-primary bg-daily-soft/70 text-sand-900"
-                  : "border-slate-200 bg-white text-sand-700 hover:border-daily-primary/50"
+                  ? "border-daily-primary bg-daily-soft/80 text-sand-950 shadow-card-flat"
+                  : "border-slate-200 bg-white text-sand-800 hover:border-daily-primary/45"
               } disabled:opacity-60`}
             >
-              {active ? (
-                <span
-                  aria-hidden
-                  className="absolute right-1.5 top-1.5 inline-flex size-5 items-center justify-center rounded-full bg-daily-text text-[11px] font-bold text-white"
-                >
-                  ✓
-                </span>
-              ) : null}
               <AvatarCircle member={candidate} size="md" />
-              <span className="line-clamp-2 text-xs font-semibold leading-snug text-sand-800">
+              <span className="min-w-0 flex-1 truncate text-sm font-semibold leading-snug">
                 {candidate.displayName}
               </span>
+              <ChoiceMark active={active} />
             </button>
           );
         })}
@@ -256,7 +250,7 @@ function Duel1v1Input({
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid gap-2">
       {sides.map(({ side, member }) => {
         const active = draft?.selectedSide === side;
         return (
@@ -271,16 +265,17 @@ function Duel1v1Input({
                 selectedSide: side,
               })
             }
-            className={`flex min-h-40 flex-col items-center justify-center gap-3 rounded-3xl border-2 p-4 transition ${
+            className={`flex min-h-20 items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition ${
               active
-                ? "border-daily-primary bg-daily-soft/70"
-                : "border-slate-200 bg-white hover:border-daily-primary/50"
+                ? "border-daily-primary bg-daily-soft/80 shadow-card-flat"
+                : "border-slate-200 bg-white hover:border-daily-primary/45"
             } disabled:opacity-60`}
           >
-            <AvatarCircle member={member} size="lg" />
-            <span className="text-base font-semibold text-sand-900">
+            <AvatarCircle member={member} size="md" />
+            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-sand-900">
               {member.displayName}
             </span>
+            <ChoiceMark active={active} />
           </button>
         );
       })}
@@ -309,7 +304,7 @@ function Duel2v2Input({
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-3">
+    <div className="grid gap-2">
       {teams.map((team) => {
         const active = draft?.selectedTeam === team.key;
         return (
@@ -324,23 +319,26 @@ function Duel2v2Input({
                 selectedTeam: team.key,
               })
             }
-            className={`flex min-h-44 flex-col items-center justify-center gap-3 rounded-3xl border-2 p-4 transition ${
+            className={`flex min-h-24 items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition ${
               active
-                ? "border-daily-primary bg-daily-soft/70"
-                : "border-slate-200 bg-white hover:border-daily-primary/50"
+                ? "border-daily-primary bg-daily-soft/80 shadow-card-flat"
+                : "border-slate-200 bg-white hover:border-daily-primary/45"
             } disabled:opacity-60`}
           >
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-1.5">
               {team.members.map((m) => (
-                <AvatarCircle key={m.userId} member={m} size="md" />
+                <AvatarCircle key={m.userId} member={m} size="sm" />
               ))}
             </div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-sand-500">
-              {team.label}
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs font-semibold uppercase tracking-wider text-sand-500">
+                {team.label}
+              </span>
+              <span className="mt-0.5 block truncate text-sm font-semibold text-sand-900">
+                {team.members.map((m) => m.displayName).join(" & ")}
+              </span>
             </span>
-            <span className="text-sm font-semibold text-sand-900">
-              {team.members.map((m) => m.displayName).join(" & ")}
-            </span>
+            <ChoiceMark active={active} />
           </button>
         );
       })}
@@ -397,30 +395,50 @@ function EitherOrInput({
   return (
     <div className="space-y-2">
       {question.options.map((label, idx) => {
-        const index = idx as 0 | 1;
-        const active = draft?.selectedOptionIndex === index;
+        const active = draft?.selectedOptionIndex === idx;
         return (
           <button
-            key={label}
+            key={`${idx}:${label}`}
             type="button"
             disabled={disabled}
             onClick={() =>
               onDraftChange({
                 type: "either_or",
                 questionId: question.questionId,
-                selectedOptionIndex: index,
+                selectedOptionIndex: idx,
               })
             }
-            className={`flex min-h-16 w-full items-center justify-center rounded-3xl border-2 px-4 text-center text-base font-semibold transition ${
+            className={`flex min-h-14 w-full items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition ${
               active
-                ? "border-daily-primary bg-daily-soft/70 text-sand-900"
-                : "border-slate-200 bg-white text-sand-700 hover:border-daily-primary/50"
+                ? "border-daily-primary bg-daily-soft/80 text-sand-950 shadow-card-flat"
+                : "border-slate-200 bg-white text-sand-800 hover:border-daily-primary/45"
             } disabled:opacity-60`}
           >
-            {label}
+            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-sand-100 text-xs font-bold text-sand-600">
+              {String.fromCharCode(65 + idx)}
+            </span>
+            <span className="min-w-0 flex-1 text-sm font-semibold leading-snug">
+              {label}
+            </span>
+            <ChoiceMark active={active} />
           </button>
         );
       })}
     </div>
+  );
+}
+
+function ChoiceMark({ active }: { active: boolean }) {
+  return (
+    <span
+      aria-hidden
+      className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold transition ${
+        active
+          ? "border-daily-text bg-daily-text text-white"
+          : "border-slate-200 bg-white text-transparent"
+      }`}
+    >
+      ✓
+    </span>
   );
 }

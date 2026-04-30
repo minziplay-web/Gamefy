@@ -2,11 +2,11 @@
 
 import type { AdminTab } from "@/lib/types/frontend";
 
-const TABS: Array<{ value: AdminTab; label: string; emoji: string }> = [
-  { value: "questions", label: "Fragen", emoji: "📝" },
-  { value: "daily", label: "Daily", emoji: "📅" },
-  { value: "members", label: "Mitglieder", emoji: "👥" },
-  { value: "config", label: "Config", emoji: "⚙️" },
+const TABS: Array<{ value: AdminTab; label: string }> = [
+  { value: "questions", label: "Fragen" },
+  { value: "daily", label: "Daily" },
+  { value: "members", label: "Mitglieder" },
+  { value: "config", label: "Config" },
 ];
 
 export function AdminTabs({
@@ -20,7 +20,7 @@ export function AdminTabs({
     <div
       role="tablist"
       aria-label="Admin-Bereich"
-      className="grid grid-cols-2 gap-2 rounded-[28px] border border-slate-200 bg-white p-2 shadow-card-flat sm:grid-cols-4"
+      className="grid grid-cols-4 gap-1 rounded-2xl border border-slate-200 bg-white p-1.5 shadow-card-flat"
     >
       {TABS.map((tab) => {
         const active = tab.value === value;
@@ -31,13 +31,12 @@ export function AdminTabs({
             role="tab"
             aria-selected={active}
             onClick={() => onChange(tab.value)}
-            className={`flex min-h-12 items-center justify-center gap-2 rounded-2xl border text-sm font-semibold transition ${
+            className={`flex min-h-10 items-center justify-center rounded-xl px-1.5 text-[11px] font-bold transition min-[380px]:text-xs ${
               active
-                ? "border-brand-primary bg-brand-primary text-white shadow-card-flat"
-                : "border-transparent bg-slate-50 text-sand-700 hover:border-slate-200 hover:bg-white"
+                ? "bg-brand-primary text-white shadow-card-flat"
+                : "bg-transparent text-sand-600 hover:bg-slate-50 hover:text-sand-900"
             }`}
           >
-            <span aria-hidden>{tab.emoji}</span>
             {tab.label}
           </button>
         );

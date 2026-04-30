@@ -2,7 +2,6 @@
 
 import { useRef, useState } from "react";
 
-import { Card } from "@/components/ui/card";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { EmptyState } from "@/components/ui/empty-state";
 import { QuestionReveal } from "@/components/daily/question-reveal";
@@ -86,32 +85,32 @@ export function DailyRecap({
             }}
             className="scroll-mt-5"
           >
-            <Card
-              tone="raised"
-              className="space-y-3 border-transparent bg-transparent p-0 shadow-none"
-            >
-              <div className="px-1">
-                <div className="mb-2 flex items-center justify-between gap-3">
-                  <CategoryBadge category={item.category} size="sm" />
-                  <span className="shrink-0 text-[11px] font-semibold tabular-nums text-sand-400">
-                    #{index + 1}
-                  </span>
-                </div>
-                <h3 className="text-base font-semibold leading-snug text-sand-900">
-                  {item.questionText}
-                </h3>
+            <article className="radius-card overflow-hidden border border-[#8E6FBD]/25 bg-white shadow-card-flat">
+              <div className="h-1 bg-[#8E6FBD]" />
+              <div className="space-y-4 p-4 min-[380px]:p-5">
+                <header className="space-y-3">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CategoryBadge category={item.category} size="sm" />
+                    <span className="ml-auto text-[11px] font-semibold tabular-nums text-sand-500">
+                      #{index + 1}
+                    </span>
+                  </div>
+                  <h3 className="text-[1.05rem] font-semibold leading-snug text-sand-900 min-[380px]:text-lg">
+                    {item.questionText}
+                  </h3>
+                </header>
+                <QuestionReveal
+                  result={item.result}
+                  tone="recap"
+                  onVoteMemeCaption={
+                    onVoteMemeCaption
+                      ? (authorUserId, value) =>
+                          onVoteMemeCaption(item, authorUserId, value)
+                      : undefined
+                  }
+                />
               </div>
-              <QuestionReveal
-                result={item.result}
-                tone="recap"
-                onVoteMemeCaption={
-                  onVoteMemeCaption
-                    ? (authorUserId, value) =>
-                        onVoteMemeCaption(item, authorUserId, value)
-                    : undefined
-                }
-              />
-            </Card>
+            </article>
           </li>
           );
         })}

@@ -28,7 +28,7 @@ export type QuestionType =
   | "meme_caption";
 
 export type UserRole = "admin" | "member";
-export type TargetMode = "daily" | "live" | "both";
+export type TargetMode = "daily";
 export type RevealPolicy = "after_answer" | "after_day_end";
 
 export interface MemberLite {
@@ -110,8 +110,7 @@ export interface HomeGreeting {
 export interface CustomDailyQuestionDraft {
   type: "open_text" | "single_choice" | "multi_choice" | "either_or";
   text: string;
-  optionA: string;
-  optionB: string;
+  options: string[];
 }
 
 export interface CustomDailyQuestionSummary {
@@ -119,7 +118,7 @@ export interface CustomDailyQuestionSummary {
   targetDateKey: DateKey;
   type: "open_text" | "single_choice" | "multi_choice" | "either_or";
   text: string;
-  options?: [string, string];
+  options?: string[];
 }
 
 export interface CustomDailyQuestionStatus {
@@ -136,6 +135,12 @@ export interface CustomDailyQuestionNotice {
   authorDisplayName: string;
   questionText: string;
   isMine: boolean;
+}
+
+export interface TrophyEarnedNotice {
+  dateKey: DateKey;
+  trophyCount: number;
+  availableTrophies: number;
 }
 
 export interface DailyRecapItem {
@@ -178,6 +183,7 @@ export type HomeViewState =
       pastDailies?: HomePastDailyReview[];
       customQuestionStatus?: CustomDailyQuestionStatus;
       customQuestionNotice?: CustomDailyQuestionNotice | null;
+      trophyEarnedNotice?: TrophyEarnedNotice | null;
       recentActivity?: HomeActivityItem[];
       activeLiveSession: LiveSessionTeaser | null;
       canHostLive: boolean;
@@ -229,7 +235,7 @@ export interface Duel2v2Question extends DailyQuestionBase {
 
 export interface EitherOrQuestion extends DailyQuestionBase {
   type: "either_or";
-  options: [string, string];
+  options: string[];
 }
 
 export interface MemeCaptionQuestion extends DailyQuestionBase {
@@ -253,7 +259,7 @@ export type DailyAnswerDraft =
   | { type: "open_text"; questionId: QuestionId; textAnswer: string }
   | { type: "duel_1v1"; questionId: QuestionId; selectedSide?: "left" | "right" }
   | { type: "duel_2v2"; questionId: QuestionId; selectedTeam?: "teamA" | "teamB" }
-  | { type: "either_or"; questionId: QuestionId; selectedOptionIndex?: 0 | 1 }
+  | { type: "either_or"; questionId: QuestionId; selectedOptionIndex?: number }
   | { type: "meme_caption"; questionId: QuestionId; textAnswer: string };
 
 export interface SingleChoiceResult {
@@ -318,14 +324,11 @@ export interface Duel2v2Result {
 
 export interface EitherOrResult {
   questionType: "either_or";
-  options: [
-    { label: string; votes: number; percent: number },
-    { label: string; votes: number; percent: number },
-  ];
-  myChoiceIndex?: 0 | 1;
+  options: Array<{ label: string; votes: number; percent: number }>;
+  myChoiceIndex?: number;
   voterRows?: Array<{
     voter: MemberLite;
-    optionIndex: 0 | 1;
+    optionIndex: number;
   }>;
 }
 
@@ -563,6 +566,7 @@ export interface AdminQuestionRow {
   text: string;
   category: Category;
   type: QuestionType;
+  options?: string[];
   imagePath?: string;
   targetMode: TargetMode;
   active: boolean;
@@ -570,6 +574,15 @@ export interface AdminQuestionRow {
   dailyLockedDateKey: DateKey | null;
   createdAtIso: string;
   createdByDisplayName: string;
+}
+
+export interface AdminQuestionEditInput {
+  text: string;
+  category: Category;
+  type: QuestionType;
+  targetMode: TargetMode;
+  options?: string[];
+  imagePath?: string;
 }
 
 export interface AdminQuestionFilter {
@@ -633,11 +646,14 @@ export interface AdminDailyDiagnostics {
 }
 
 export interface AdminRunActionResult {
-  mode: "create" | "add" | "replace";
+  mode: "create" | "extend" | "replace";
   runId?: string;
   runNumber?: number;
   dateKey: DateKey;
   questionCount: number;
+  addedQuestionId?: QuestionId;
+  addedQuestionText?: string;
+  addedCategory?: Category;
   deletedPublicAnswers: number;
   deletedPrivateAnswers: number;
   deletedFirstAnswerLocks: number;
@@ -656,6 +672,18 @@ export interface AdminDailyQuestionRerollResult {
   replacementQuestionId: QuestionId;
   replacementQuestionText: string;
   replacementCategory: Category;
+  deletedPublicAnswers: number;
+  deletedPrivateAnswers: number;
+  deletedFirstAnswerLocks: number;
+  deletedMemeVotes: number;
+}
+
+export interface AdminDailyQuestionRemoveResult {
+  dateKey: DateKey;
+  runId: string;
+  removedQuestionId: QuestionId;
+  removedQuestionText: string;
+  questionCount: number;
   deletedPublicAnswers: number;
   deletedPrivateAnswers: number;
   deletedFirstAnswerLocks: number;

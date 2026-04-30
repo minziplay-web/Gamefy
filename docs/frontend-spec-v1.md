@@ -1,5 +1,10 @@
 # Frontend Spec V1
 
+> Status: Historische Referenz. Nicht mehr als aktuelle Produktvorgabe verwenden.
+> Aktuelle Entscheidung vom 2026-04-29: Mijija unterstuetzt keine anonymen Fragen/Votes.
+> UI-Types mit `anonymous`, Anonym-Labels und Anonymous-Aggregate-Logik in dieser Spec
+> sind Alt-Spec-Konzepte und sollen nicht neu implementiert werden.
+
 Referenz: `docs/backend-spec-v1.md`, `docs/claude-handoff.md`.
 
 Diese Datei definiert UI-Types, Screen-Verhalten, Komponentenbaum und Mock-Daten fuer das V1-Frontend. Die Types sind View-Models fuer das Frontend, nicht die Firestore-Dokumente selbst. Ein Mapping-Layer im Frontend baut die View-Models aus den Firestore-Dokumenten (z. B. ersetzt `pairing.memberIds` durch `MemberLite`-Objekte aus der `users`-Collection).

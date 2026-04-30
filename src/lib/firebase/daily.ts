@@ -265,6 +265,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
                 runNumber: data.runNumber ?? (doc.id === data.dateKey ? 1 : 99),
               };
             })
+            .filter(isCanonicalDailyRun)
             .sort((left, right) =>
               left.runNumber === right.runNumber
                 ? left.runId.localeCompare(right.runId)
@@ -416,10 +417,10 @@ export function mapDailyQuestion(params: {
       return {
         ...base,
         type: "either_or",
-        options: [
-          question.options?.[0] ?? "Option A",
-          question.options?.[1] ?? "Option B",
-        ],
+        options:
+          question.options && question.options.length >= 2
+            ? question.options
+            : ["Option A", "Option B"],
       };
     case "meme_caption":
       return {
@@ -494,7 +495,7 @@ export function mapDailyAnswerDraft(answer: DailyAnswerDoc): DailyAnswerDraft {
         type: "either_or",
         questionId: answer.questionId,
         selectedOptionIndex:
-          answer.selectedOptionIndex === 0 || answer.selectedOptionIndex === 1
+          typeof answer.selectedOptionIndex === "number"
             ? answer.selectedOptionIndex
             : undefined,
       };
@@ -662,28 +663,31 @@ export function mapQuestionResult(params: {
       };
     }
     case "either_or": {
-      const option0Votes = publicAnswers.filter((answer) => answer.selectedOptionIndex === 0).length;
-      const option1Votes = publicAnswers.filter((answer) => answer.selectedOptionIndex === 1).length;
-      const totalVotes = option0Votes + option1Votes;
+      const totalVotes = publicAnswers.filter(
+        (answer) =>
+          typeof answer.selectedOptionIndex === "number" &&
+          answer.selectedOptionIndex >= 0 &&
+          answer.selectedOptionIndex < question.options.length,
+      ).length;
       return {
         questionType: "either_or",
-        options: [
-          {
-            label: question.options[0],
-            votes: option0Votes,
-            percent: totalVotes > 0 ? Math.round((option0Votes / totalVotes) * 100) : 0,
-          },
-          {
-            label: question.options[1],
-            votes: option1Votes,
-            percent: totalVotes > 0 ? Math.round((option1Votes / totalVotes) * 100) : 0,
-          },
-        ],
+        options: question.options.map((label, index) => {
+          const votes = publicAnswers.filter(
+            (answer) => answer.selectedOptionIndex === index,
+          ).length;
+          return {
+            label,
+            votes,
+            percent: totalVotes > 0 ? Math.round((votes / totalVotes) * 100) : 0,
+          };
+        }),
         voterRows: publicAnswers
           .map((answer) => {
             const voter = members?.get(answer.userId);
             const optionIndex =
-              answer.selectedOptionIndex === 0 || answer.selectedOptionIndex === 1
+              typeof answer.selectedOptionIndex === "number" &&
+              answer.selectedOptionIndex >= 0 &&
+              answer.selectedOptionIndex < question.options.length
                 ? answer.selectedOptionIndex
                 : undefined;
 
@@ -694,7 +698,7 @@ export function mapQuestionResult(params: {
             return { voter, optionIndex };
           })
           .filter(
-            (row): row is { voter: MemberLite; optionIndex: 0 | 1 } => row !== null,
+            (row): row is { voter: MemberLite; optionIndex: number } => row !== null,
           ),
         myChoiceIndex:
           myAnswer?.type === "either_or" ? myAnswer.selectedOptionIndex : undefined,
@@ -724,6 +728,10 @@ export function mapQuestionResult(params: {
 
 function answerKey(runId: string, questionId: string) {
   return `${runId}:${questionId}`;
+}
+
+function isCanonicalDailyRun(run: DailyRunWithMeta) {
+  return run.runNumber <= 1 || run.runId === run.dateKey;
 }
 
 function getQuestionSource(

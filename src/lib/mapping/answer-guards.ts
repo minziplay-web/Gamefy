@@ -102,8 +102,11 @@ export function assertValidDraftForQuestion(
         "Either-Or-Antwort hat den falschen Typ.",
       );
       assert(
-        draft.selectedOptionIndex === 0 || draft.selectedOptionIndex === 1,
-        "Bei dieser Frage muss Option 0 oder 1 gewählt werden.",
+        typeof draft.selectedOptionIndex === "number" &&
+          Number.isInteger(draft.selectedOptionIndex) &&
+          draft.selectedOptionIndex >= 0 &&
+          draft.selectedOptionIndex < question.options.length,
+        "Bei dieser Frage muss eine gültige Option gewählt werden.",
       );
       return;
 

@@ -1,5 +1,11 @@
 # Backend Spec V1
 
+> Status: Historische Referenz. Nicht mehr als aktuelle Produktvorgabe verwenden.
+> Aktuelle Entscheidung vom 2026-04-29: Mijija unterstuetzt keine anonymen Fragen/Votes.
+> Alle Antworten duerfen im Produktkonzept nutzerbezogen sein. `dailyAnonymousAggregates`,
+> `liveAnonymousAggregates` und `anonymous: true` sind Alt-Spec-Konzepte und sollen nicht
+> neu implementiert werden.
+
 ## Ziel
 
 Private mobile-first Web-App fuer eine feste Freundesgruppe. Keine Multi-Tenant-Logik, keine Gruppen-Entitaet, keine temporaeren Identitaeten.

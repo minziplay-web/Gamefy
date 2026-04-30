@@ -77,7 +77,6 @@ export async function createLiveSession(params: {
     }))
     .filter(
       (question) =>
-        (question.targetMode === "live" || question.targetMode === "both") &&
         draft.categories.includes(question.category) &&
         canUseQuestionInLive(question.type, users.length),
     );

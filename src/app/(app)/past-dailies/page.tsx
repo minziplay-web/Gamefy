@@ -2,8 +2,8 @@
 
 import { PastDailies } from "@/components/home/past-dailies";
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { ThreeBodyLoader } from "@/components/ui/loader";
 import { ScreenHeader } from "@/components/ui/screen-header";
-import { SkeletonCard } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth/auth-context";
 import { submitMemeCaptionVote } from "@/lib/firebase/daily-actions";
 import { useHomeViewState } from "@/lib/firebase/home";
@@ -16,8 +16,9 @@ export default function PastDailiesPage() {
     return (
       <div className="space-y-4">
         <ScreenHeader eyebrow="Vergangenes" title="Archiv" theme="archive" />
-        <SkeletonCard />
-        <SkeletonCard />
+        <div className="flex justify-center py-12">
+          <ThreeBodyLoader size={48} label="Archiv wird geladen" />
+        </div>
       </div>
     );
   }

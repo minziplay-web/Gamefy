@@ -10,7 +10,7 @@ const EXAMPLE = `[
     "text": "Wer würde am ehesten spontan einen Flug buchen?",
     "category": "pure_fun",
     "type": "single_choice",
-    "targetMode": "both"
+  "targetMode": "daily"
   }
 ]`;
 

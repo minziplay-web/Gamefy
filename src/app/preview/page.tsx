@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { notFound } from "next/navigation";
 
 const SCREENS: Array<{ key: string; label: string; variants: string[] }> = [
   {
@@ -67,6 +68,10 @@ const SCREENS: Array<{ key: string; label: string; variants: string[] }> = [
 ];
 
 export default function PreviewIndex() {
+  if (process.env.NODE_ENV === "production" && process.env.ENABLE_PREVIEW_ROUTES !== "true") {
+    notFound();
+  }
+
   return (
     <div className="space-y-4">
       <header className="space-y-2 px-1 pb-2 pt-3">

@@ -33,7 +33,7 @@ const QUESTION_TYPE_OPTIONS: Array<{
   },
   {
     type: "either_or",
-    label: "Zwei Optionen",
+    label: "Mehrere Optionen",
     icon: "A/B",
   },
 ];
@@ -41,8 +41,7 @@ const QUESTION_TYPE_OPTIONS: Array<{
 const INITIAL_DRAFT: CustomDailyQuestionDraft = {
   type: "open_text",
   text: "",
-  optionA: "",
-  optionB: "",
+  options: ["", ""],
 };
 
 export function CustomDailyQuestionCard({
@@ -67,8 +66,9 @@ export function CustomDailyQuestionCard({
     }
 
     if (draft.type === "either_or") {
-      if (!draft.optionA.trim() || !draft.optionB.trim()) {
-        return "Bitte gib beide Antwortmöglichkeiten an.";
+      const options = draft.options.map((option) => option.trim()).filter(Boolean);
+      if (options.length < 2) {
+        return "Bitte gib mindestens zwei Antwortmöglichkeiten an.";
       }
     }
 
@@ -76,40 +76,34 @@ export function CustomDailyQuestionCard({
   }, [canRedeem, draft]);
 
   return (
-    <Card className="overflow-hidden border-award-primary/35 bg-white !p-0 shadow-[0_18px_42px_-28px_rgba(23,32,49,0.24)]">
-      <div className="bg-linear-to-r from-award-primary via-award-soft to-white px-5 py-4">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-award-text">
-              Eigene Frage
-            </p>
-            <h2 className="mt-1 text-xl font-semibold leading-tight text-sand-900">
-              Für {formatBerlinDateLabel(status.targetDateKey)}
-            </h2>
-          </div>
-          <div className="flex size-12 shrink-0 items-center justify-center rounded-full bg-white/85 text-2xl text-award-text shadow-card-flat ring-1 ring-award-primary/30">
-            <span aria-hidden>🏆</span>
-          </div>
+    <Card className="space-y-4 border-award-primary/25 bg-white shadow-card-flat">
+      <div className="flex items-start justify-between gap-4">
+        <div className="min-w-0">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-award-text">
+            Eigene Frage
+          </p>
+          <h2 className="mt-1 text-lg font-semibold leading-tight text-sand-900">
+            Für {formatBerlinDateLabel(status.targetDateKey)}
+          </h2>
         </div>
-      </div>
-      <div className="space-y-4 p-5">
-        <div className="grid grid-cols-[1fr_auto] items-center gap-3 rounded-2xl border border-award-primary/25 bg-white px-4 py-3 shadow-card-flat">
-          <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-award-text">
-              Verfügbar
-            </p>
-            <p className="mt-0.5 text-xs text-sand-500">
-              {status.earnedTrophies} verdient · {status.spentTrophies} eingesetzt
-            </p>
-          </div>
-          <div className="flex items-center gap-1.5 rounded-full bg-award-soft px-3 py-1.5 text-xl font-semibold tabular-nums text-award-text ring-1 ring-award-primary/30">
+        <div className="grid min-w-[5.25rem] justify-items-end gap-1">
+          <div className="inline-flex h-9 items-center gap-1.5 rounded-full bg-award-soft px-3 text-sm font-bold tabular-nums text-award-text ring-1 ring-award-primary/25">
             <span aria-hidden>🏆</span>
             {status.availableTrophies}
           </div>
+          <p className="text-[10px] font-medium text-sand-500">verfügbar</p>
         </div>
+      </div>
 
+      <div className="grid grid-cols-3 gap-2 rounded-2xl border border-sand-200 bg-sand-50 p-2">
+        <TrophyStat label="Verdient" value={status.earnedTrophies} />
+        <TrophyStat label="Bonus" value={status.bonusTrophies} />
+        <TrophyStat label="Eingesetzt" value={status.spentTrophies} />
+      </div>
+
+      <div className="space-y-4">
         {status.pendingQuestion ? (
-          <div className="space-y-3 rounded-2xl border border-award-primary/45 bg-award-soft p-4">
+          <div className="space-y-3 rounded-2xl border border-award-primary/35 bg-award-soft/70 p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm font-semibold text-award-text">
                 Frage gespeichert
@@ -139,7 +133,7 @@ export function CustomDailyQuestionCard({
         ) : null}
 
         {!status.pendingQuestion && status.availableTrophies <= 0 ? (
-          <div className="rounded-2xl border border-dashed border-award-primary/35 bg-white px-4 py-3 text-center text-sm text-sand-600">
+          <div className="rounded-2xl border border-dashed border-award-primary/35 bg-sand-50 px-4 py-3 text-center text-sm text-sand-600">
             Sammle Trophäen, indem du das beste Meme erstellst!
           </div>
         ) : null}
@@ -160,8 +154,7 @@ export function CustomDailyQuestionCard({
                 await onSubmit({
                   ...draft,
                   text: draft.text.trim(),
-                  optionA: draft.optionA.trim(),
-                  optionB: draft.optionB.trim(),
+                  options: draft.options.map((option) => option.trim()).filter(Boolean),
                 });
                 setDraft(INITIAL_DRAFT);
               } catch (submitError) {
@@ -182,13 +175,14 @@ export function CustomDailyQuestionCard({
                   <button
                     key={option.type}
                     type="button"
+                    aria-pressed={active}
                     onClick={() =>
                       setDraft((current) => ({ ...current, type: option.type }))
                     }
-                    className={`flex items-center gap-2 rounded-2xl border px-3 py-2.5 text-left transition ${
+                    className={`flex min-h-14 items-center gap-2 rounded-2xl border px-3 py-2 text-left transition ${
                       active
-                        ? "border-award-primary bg-award-soft"
-                        : "border-slate-200 bg-white hover:border-award-primary/45"
+                        ? "border-award-primary bg-award-soft text-sand-950"
+                        : "border-slate-200 bg-white text-sand-800 hover:border-award-primary/45"
                     }`}
                   >
                     <span
@@ -200,7 +194,7 @@ export function CustomDailyQuestionCard({
                     >
                       {option.icon}
                     </span>
-                    <span className="text-sm font-semibold leading-tight text-sand-900">
+                    <span className="text-sm font-semibold leading-tight">
                       {option.label}
                     </span>
                   </button>
@@ -219,32 +213,7 @@ export function CustomDailyQuestionCard({
             />
 
             {draft.type === "either_or" ? (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <TextField
-                  label="Option A"
-                  placeholder="Erste Antwort"
-                  value={draft.optionA}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      optionA: event.target.value,
-                    }))
-                  }
-                  maxLength={60}
-                />
-                <TextField
-                  label="Option B"
-                  placeholder="Zweite Antwort"
-                  value={draft.optionB}
-                  onChange={(event) =>
-                    setDraft((current) => ({
-                      ...current,
-                      optionB: event.target.value,
-                    }))
-                  }
-                  maxLength={60}
-                />
-              </div>
+              <OptionEditor draft={draft} setDraft={setDraft} />
             ) : null}
 
             {error ? (
@@ -265,6 +234,86 @@ export function CustomDailyQuestionCard({
         ) : null}
       </div>
     </Card>
+  );
+}
+
+function TrophyStat({ label, value }: { label: string; value: number }) {
+  return (
+    <div className="rounded-xl bg-white px-2 py-2 text-center ring-1 ring-sand-200">
+      <p className="text-sm font-bold tabular-nums text-sand-900">{value}</p>
+      <p className="mt-0.5 truncate text-[10px] font-medium text-sand-500">{label}</p>
+    </div>
+  );
+}
+
+function OptionEditor({
+  draft,
+  setDraft,
+}: {
+  draft: CustomDailyQuestionDraft;
+  setDraft: React.Dispatch<React.SetStateAction<CustomDailyQuestionDraft>>;
+}) {
+  return (
+    <div className="space-y-3 rounded-2xl border border-sand-200 bg-sand-50 p-3">
+      <div className="flex items-center justify-between gap-3">
+        <p className="text-sm font-semibold text-sand-900">Antwortoptionen</p>
+        <span className="rounded-full bg-white px-2.5 py-1 text-[10px] font-semibold tabular-nums text-sand-500 ring-1 ring-sand-200">
+          {draft.options.length}/6
+        </span>
+      </div>
+      <div className="grid gap-2">
+        {draft.options.map((option, index) => (
+          <div key={index} className="grid grid-cols-[2rem_1fr_2.5rem] items-center gap-2">
+            <span className="inline-flex size-8 items-center justify-center rounded-full bg-white text-xs font-bold text-award-text ring-1 ring-award-primary/25">
+              {String.fromCharCode(65 + index)}
+            </span>
+            <TextField
+              label=""
+              placeholder={index === 0 ? "Erste Antwort" : index === 1 ? "Zweite Antwort" : "Weitere Antwort"}
+              value={option}
+              onChange={(event) =>
+                setDraft((current) => ({
+                  ...current,
+                  options: current.options.map((currentOption, optionIndex) =>
+                    optionIndex === index ? event.target.value : currentOption,
+                  ),
+                }))
+              }
+              maxLength={60}
+            />
+            <button
+              type="button"
+              aria-label={`Option ${String.fromCharCode(65 + index)} entfernen`}
+              disabled={index < 2}
+              onClick={() =>
+                setDraft((current) => ({
+                  ...current,
+                  options: current.options.filter((_, optionIndex) => optionIndex !== index),
+                }))
+              }
+              className="inline-flex size-10 items-center justify-center rounded-full border border-slate-200 bg-white text-sm font-bold text-sand-600 transition hover:border-danger-text/40 hover:text-danger-text disabled:invisible"
+            >
+              ×
+            </button>
+          </div>
+        ))}
+      </div>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="w-full border border-dashed border-award-primary/35 bg-white text-award-text hover:bg-award-soft"
+        disabled={draft.options.length >= 6}
+        onClick={() =>
+          setDraft((current) => ({
+            ...current,
+            options: [...current.options, ""],
+          }))
+        }
+      >
+        Option hinzufügen
+      </Button>
+    </div>
   );
 }
 

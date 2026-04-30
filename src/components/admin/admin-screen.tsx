@@ -21,8 +21,10 @@ import { berlinDateKey } from "@/lib/mapping/date";
 import type {
   AdminDailyDeleteResult,
   AdminDailyCategoryPlan,
+  AdminDailyQuestionRemoveResult,
   AdminDailyQuestionRerollResult,
   AdminQuestionFilter,
+  AdminQuestionEditInput,
   AdminQuestionImportResult,
   AdminMemberRow,
   AdminQuestionRow,
@@ -35,25 +37,30 @@ export function AdminScreen({
   state: initial,
   currentUserId,
   onToggleActive,
-  onToggleDailyLock,
+  onCreateQuestion,
+  onUpdateQuestion,
   onBulkSetActive,
-  onBulkSetDailyLock,
   onBulkDelete,
   onImportQuestions,
   onCreateRun,
   onDeleteRun,
   onResetToday,
   onRerollQuestion,
+  onRemoveQuestion,
   onDeactivateUser,
   onGrantTrophy,
+  onResetProfilePhoto,
   onSaveConfig,
 }: {
   state: AdminViewState;
   currentUserId?: string;
   onToggleActive?: (questionId: string, active: boolean) => Promise<void>;
-  onToggleDailyLock?: (questionId: string, dailyLocked: boolean) => Promise<void>;
+  onCreateQuestion?: (input: AdminQuestionEditInput) => Promise<string>;
+  onUpdateQuestion?: (
+    questionId: string,
+    input: AdminQuestionEditInput,
+  ) => Promise<void>;
   onBulkSetActive?: (questionIds: string[], active: boolean) => Promise<void>;
-  onBulkSetDailyLock?: (questionIds: string[], dailyLocked: boolean) => Promise<void>;
   onBulkDelete?: (questionIds: string[]) => Promise<void>;
   onImportQuestions?: (raw: string) => Promise<AdminQuestionImportResult>;
   onCreateRun?: (
@@ -67,8 +74,14 @@ export function AdminScreen({
     runId: string,
     questionId: string,
   ) => Promise<AdminDailyQuestionRerollResult>;
+  onRemoveQuestion?: (
+    dateKey: string,
+    runId: string,
+    questionId: string,
+  ) => Promise<AdminDailyQuestionRemoveResult>;
   onDeactivateUser?: (userId: string) => Promise<void>;
   onGrantTrophy?: (userId: string) => Promise<void>;
+  onResetProfilePhoto?: (userId: string) => Promise<void>;
   onSaveConfig?: (
     draft: Extract<AdminViewState, { status: "ready" }>["config"]["draft"],
   ) => Promise<void>;
@@ -85,6 +98,12 @@ export function AdminScreen({
     questionId: string;
     text: string;
   } | null>(null);
+  const [removeQuestionConfirm, setRemoveQuestionConfirm] = useState<{
+    dateKey: string;
+    runId: string;
+    questionId: string;
+    text: string;
+  } | null>(null);
   const [memberToRemove, setMemberToRemove] = useState<AdminMemberRow | null>(null);
   const [runActionState, setRunActionState] = useState<{
     status: "idle" | "running" | "success" | "error";
@@ -92,6 +111,7 @@ export function AdminScreen({
     result?: AdminRunActionResult;
     deletedRun?: AdminDailyDeleteResult;
     rerollResult?: AdminDailyQuestionRerollResult;
+    removeQuestionResult?: AdminDailyQuestionRemoveResult;
   }>({
     status: "idle",
   });
@@ -161,23 +181,6 @@ export function AdminScreen({
               ...prev.questions,
               rows: prev.questions.rows.map((r) =>
                 r.questionId === questionId ? { ...r, active: next } : r,
-              ),
-            },
-          }
-        : prev,
-    );
-
-  const toggleDailyLock = (questionId: string, next: boolean) =>
-    setState((prev) =>
-      prev.status === "ready"
-        ? {
-            ...prev,
-            questions: {
-              ...prev.questions,
-              rows: prev.questions.rows.map((r) =>
-                r.questionId === questionId
-                  ? { ...r, dailyLocked: next, dailyLockedDateKey: next ? berlinDateKey() : null }
-                  : r,
               ),
             },
           }
@@ -275,7 +278,7 @@ export function AdminScreen({
             error,
             mode === "replace"
               ? "Das heutige Daily konnte nicht gererollt werden."
-              : "Der Run konnte nicht erzeugt werden.",
+              : "Die Frage konnte nicht hinzugefügt oder der Run nicht erzeugt werden.",
           ),
           result: prev.result,
           deletedRun: prev.deletedRun,
@@ -289,16 +292,26 @@ export function AdminScreen({
     setState((prev) => {
       if (prev.status !== "ready") return prev;
       const today = berlinDateKey();
-      const nextRunNumber =
-        Math.max(0, ...prev.dailyRuns.filter((r) => r.dateKey === today).map((r) => r.runNumber)) + 1;
+      const todayRun = prev.dailyRuns.find((run) => run.dateKey === today);
+      if (mode === "create" && todayRun) {
+        return {
+          ...prev,
+          dailyRuns: prev.dailyRuns.map((run) =>
+            run.runId === todayRun.runId
+              ? { ...run, questionCount: run.questionCount + 1 }
+              : run,
+          ),
+        };
+      }
+
       return {
         ...prev,
         dailyRuns: [
           {
-            runId: nextRunNumber === 1 ? today : `${today}_${nextRunNumber}`,
+            runId: today,
             dateKey: today,
-            runNumber: nextRunNumber,
-            runLabel: nextRunNumber === 1 ? "Daily" : `Daily Nr. ${nextRunNumber}`,
+            runNumber: 1,
+            runLabel: "Daily",
             status: "scheduled",
             questionCount: prev.config.draft.dailyQuestionCount,
             createdByDisplayName: "Admin",
@@ -312,9 +325,14 @@ export function AdminScreen({
       message:
         mode === "replace"
           ? "Das heutige Daily wurde lokal gererollt."
-          : "Ein neuer Run wurde lokal angelegt.",
+          : "Eine Frage wurde lokal zum heutigen Daily hinzugefügt.",
       result: {
-        mode,
+        mode:
+          mode === "create" &&
+          state.status === "ready" &&
+          state.dailyRuns.some((run) => run.dateKey === berlinDateKey())
+            ? "extend"
+            : mode,
         dateKey: berlinDateKey(),
         questionCount: state.status === "ready" ? state.config.draft.dailyQuestionCount : 0,
         deletedPublicAnswers: 0,
@@ -419,6 +437,59 @@ export function AdminScreen({
         result: prev.result,
         deletedRun: prev.deletedRun,
         rerollResult: prev.rerollResult,
+      }));
+    }
+  };
+
+  const confirmRemoveQuestion = async () => {
+    const target = removeQuestionConfirm;
+    if (!target || !onRemoveQuestion) {
+      return;
+    }
+
+    setRunActionState((prev) => ({
+      status: "running",
+      message: undefined,
+      result: prev.result,
+      deletedRun: prev.deletedRun,
+      rerollResult: prev.rerollResult,
+      removeQuestionResult: prev.removeQuestionResult,
+    }));
+
+    try {
+      const result = await onRemoveQuestion(target.dateKey, target.runId, target.questionId);
+      setRemoveQuestionConfirm(null);
+      setState((prev) =>
+        prev.status === "ready"
+          ? {
+              ...prev,
+              dailyRuns: prev.dailyRuns.map((run) =>
+                run.runId === result.runId
+                  ? {
+                      ...run,
+                      questionCount: result.questionCount,
+                      items: run.items?.filter(
+                        (item) => item.questionId !== result.removedQuestionId,
+                      ),
+                    }
+                  : run,
+              ),
+            }
+          : prev,
+      );
+      setRunActionState({
+        status: "success",
+        message: buildRemoveQuestionMessage(result),
+        removeQuestionResult: result,
+      });
+    } catch (error) {
+      setRunActionState((prev) => ({
+        status: "error",
+        message: getErrorMessage(error, "Die Frage konnte nicht entfernt werden."),
+        result: prev.result,
+        deletedRun: prev.deletedRun,
+        rerollResult: prev.rerollResult,
+        removeQuestionResult: prev.removeQuestionResult,
       }));
     }
   };
@@ -533,25 +604,20 @@ export function AdminScreen({
             filter={state.questions.filter}
             onChange={updateQuestionFilter}
           />
-          <AdminJsonImport
-            status={state.questions.importStatus}
-            error={state.questions.importError}
-            message={state.questions.importMessage}
-            onImport={importQuestions}
-          />
+          <div className="hidden sm:block">
+            <AdminJsonImport
+              status={state.questions.importStatus}
+              error={state.questions.importError}
+              message={state.questions.importMessage}
+              onImport={importQuestions}
+            />
+          </div>
           <AdminQuestionList
             rows={filteredRows}
+            onCreateQuestion={onCreateQuestion}
+            onUpdateQuestion={onUpdateQuestion}
             onBulkSetActive={onBulkSetActive}
-            onBulkSetDailyLock={onBulkSetDailyLock}
             onBulkDelete={onBulkDelete}
-            onToggleDailyLock={async (questionId, next) => {
-              toggleDailyLock(questionId, next);
-              if (onToggleDailyLock) {
-                await onToggleDailyLock(questionId, next).catch(() => {
-                  toggleDailyLock(questionId, !next);
-                });
-              }
-            }}
             onToggleActive={(questionId, next) => {
               toggleActive(questionId, next);
               if (onToggleActive) {
@@ -590,6 +656,9 @@ export function AdminScreen({
             onReplaceToday={() => setReplaceConfirm(berlinDateKey())}
             onRerollQuestion={(dateKey, runId, questionId, text) =>
               setRerollConfirm({ dateKey, runId, questionId, text })
+            }
+            onRemoveQuestion={(dateKey, runId, questionId, text) =>
+              setRemoveQuestionConfirm({ dateKey, runId, questionId, text })
             }
             onDeleteRun={(dateKey) =>
               setDeleteRunConfirm({
@@ -633,6 +702,26 @@ export function AdminScreen({
                 message: getErrorMessage(
                   error,
                   "Die Trophy konnte nicht vergeben werden.",
+                ),
+              });
+            }
+          }}
+          onResetProfilePhoto={async (member) => {
+            setMemberActionState({ status: "running", message: undefined });
+            try {
+              if (onResetProfilePhoto) {
+                await onResetProfilePhoto(member.userId);
+              }
+              setMemberActionState({
+                status: "success",
+                message: `${member.displayName}s Profilbild wurde zurückgesetzt.`,
+              });
+            } catch (error) {
+              setMemberActionState({
+                status: "error",
+                message: getErrorMessage(
+                  error,
+                  "Das Profilbild konnte nicht zurückgesetzt werden.",
                 ),
               });
             }
@@ -713,6 +802,21 @@ export function AdminScreen({
         onConfirm={() => void confirmRerollQuestion()}
         loading={runActionState.status === "running"}
       />
+      <ConfirmDialog
+        open={removeQuestionConfirm !== null}
+        title="Frage entfernen?"
+        description={
+          removeQuestionConfirm
+            ? `„${removeQuestionConfirm.text}“ wird aus dem heutigen Daily entfernt. Alle Antworten, First-Answer-Locks und Meme-Herzen zu dieser Frage werden gelöscht, als hätte es diese Frage heute nie gegeben.`
+            : ""
+        }
+        confirmLabel="Entfernen"
+        cancelLabel="Abbrechen"
+        tone="destructive"
+        onCancel={() => setRemoveQuestionConfirm(null)}
+        onConfirm={() => void confirmRemoveQuestion()}
+        loading={runActionState.status === "running"}
+      />
     </div>
   );
 }
@@ -737,8 +841,10 @@ function buildRunActionMessage(result: AdminRunActionResult) {
     return `Run für ${result.dateKey} mit ${result.questionCount} Fragen erzeugt.`;
   }
 
-  if (result.mode === "add") {
-    return `${result.runNumber && result.runNumber > 1 ? `Daily Nr. ${result.runNumber}` : "Weiteres Daily"} für ${result.dateKey} mit ${result.questionCount} Fragen erzeugt.`;
+  if (result.mode === "extend") {
+    return result.addedQuestionText
+      ? `Frage hinzugefügt: „${result.addedQuestionText}“. Jetzt ${result.questionCount} Fragen im Daily.`
+      : `Frage zum Daily hinzugefügt. Jetzt ${result.questionCount} Fragen.`;
   }
 
   const clearedTotal =
@@ -790,6 +896,27 @@ function buildDeleteRunMessage(
 function buildRerollQuestionMessage(result: AdminDailyQuestionRerollResult) {
   const parts = [
     `Frage neu gewürfelt. Neu drin: ${result.replacementQuestionText}.`,
+  ];
+
+  if (result.deletedPublicAnswers > 0) {
+    parts.push(`${result.deletedPublicAnswers} öffentliche Antworten entfernt`);
+  }
+  if (result.deletedPrivateAnswers > 0) {
+    parts.push(`${result.deletedPrivateAnswers} private Antworten entfernt`);
+  }
+  if (result.deletedFirstAnswerLocks > 0) {
+    parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);
+  }
+  if (result.deletedMemeVotes > 0) {
+    parts.push(`${result.deletedMemeVotes} Herzen entfernt`);
+  }
+
+  return parts.join(" · ");
+}
+
+function buildRemoveQuestionMessage(result: AdminDailyQuestionRemoveResult) {
+  const parts = [
+    `Frage entfernt: ${result.removedQuestionText}. Jetzt ${result.questionCount} Fragen im Daily.`,
   ];
 
   if (result.deletedPublicAnswers > 0) {

@@ -2,14 +2,12 @@ import Link from "next/link";
 
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import type { DailyQuestionCardState, RevealPolicy } from "@/lib/types/frontend";
+import type { DailyQuestionCardState } from "@/lib/types/frontend";
 
 export function DailyCompletionCard({
   cards,
-  revealPolicy,
 }: {
   cards: DailyQuestionCardState[];
-  revealPolicy: RevealPolicy;
 }) {
   const total = cards.length;
   const answered = cards.filter(

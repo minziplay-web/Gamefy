@@ -8,15 +8,14 @@ import { DailyStepIndicator } from "@/components/daily/daily-step-indicator";
 import { QuestionCardShell } from "@/components/daily/question-card-shell";
 import { EmptyState } from "@/components/ui/empty-state";
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { ThreeBodyLoader } from "@/components/ui/loader";
 import { ScreenHeader } from "@/components/ui/screen-header";
-import { SkeletonCard } from "@/components/ui/skeleton";
 import { formatBerlinDateLabel } from "@/lib/mapping/date";
 import { mergeDailyState } from "@/lib/mapping/state-merge";
 import type {
   DailyAnswerDraft,
   DailyQuestionCardState,
   DailyViewState,
-  QuestionResult,
 } from "@/lib/types/frontend";
 
 export function DailyScreen({
@@ -54,7 +53,6 @@ export function DailyScreen({
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [showCompletion, setShowCompletion] = useState(false);
-  const scrollTargetRef = useRef<HTMLDivElement | null>(null);
   const didInitRef = useRef(false);
 
   // Seed currentIndex once the first card array arrives (or resets once the run changes).
@@ -68,15 +66,6 @@ export function DailyScreen({
     setCurrentIndex(initialIndex);
   }, [cards, initialIndex]);
 
-  // Smoothly scroll the step header into view on index change.
-  useEffect(() => {
-    if (!scrollTargetRef.current) return;
-    scrollTargetRef.current.scrollIntoView({
-      behavior: "auto",
-      block: "start",
-    });
-  }, [currentIndex, showCompletion]);
-
   useEffect(() => {
     if (state.status !== "ready") {
       return;
@@ -88,7 +77,7 @@ export function DailyScreen({
     );
 
     if (allAnswered) {
-      setShowCompletion(true);
+      queueMicrotask(() => setShowCompletion(true));
     }
   }, [state]);
 
@@ -96,7 +85,9 @@ export function DailyScreen({
     return (
       <div className="space-y-4">
         <ScreenHeader eyebrow="Heute" title="Fragen beantworten" theme="daily" />
-        <SkeletonCard />
+        <div className="flex justify-center py-12">
+          <ThreeBodyLoader size={48} label="Daily wird geladen" />
+        </div>
       </div>
     );
   }
@@ -269,7 +260,6 @@ export function DailyScreen({
 
   return (
     <div className="flex flex-col gap-4">
-      <div ref={scrollTargetRef} aria-hidden className="-mt-1" />
       <ScreenHeader
         eyebrow={formatBerlinDateLabel(state.dateKey)}
         title="Fragen beantworten"
@@ -303,10 +293,7 @@ export function DailyScreen({
 
       {showCompletion || !currentCard ? (
         <div className="space-y-4">
-          <DailyCompletionCard
-            cards={state.cards}
-            revealPolicy={state.revealPolicy}
-          />
+          <DailyCompletionCard cards={state.cards} />
           {showCompletion ? completionContent : null}
         </div>
       ) : (
@@ -348,129 +335,4 @@ function findNextOpenQuestionIndex(
     }
   }
   return -1;
-}
-
-function mockResultFor(
-  card: DailyQuestionCardState,
-  draft: DailyAnswerDraft,
-): QuestionResult {
-  const q = card.question;
-  if ((q as { type: string }).type === "multi_choice") {
-    const multiChoiceQuestion = q as {
-      candidates: Array<{ userId: string; displayName: string; photoURL: string | null }>;
-    };
-    const multiChoiceDraft =
-      "selectedUserIds" in draft && Array.isArray(draft.selectedUserIds)
-        ? draft.selectedUserIds
-        : [];
-    const myIdSet = new Set(multiChoiceDraft);
-    const counts = multiChoiceQuestion.candidates.map((candidate, i) => ({
-      candidate,
-      votes: myIdSet.has(candidate.userId) ? 3 : i < 2 ? 1 : 0,
-      percent: myIdSet.has(candidate.userId) ? 75 : i < 2 ? 25 : 0,
-    }));
-    return {
-      questionType: "multi_choice",
-      totalVoters: 4,
-      myChoiceUserIds: multiChoiceDraft,
-      counts,
-    };
-  }
-
-  switch (q.type) {
-    case "single_choice": {
-      const myId =
-        draft.type === "single_choice" ? draft.selectedUserId : undefined;
-      const counts = q.candidates.map((c, i) => ({
-        candidate: c,
-        votes: c.userId === myId ? 3 : i === 0 ? 1 : 0,
-        percent: c.userId === myId ? 75 : i === 0 ? 25 : 0,
-      }));
-      return {
-        questionType: "single_choice",
-        totalVotes: 4,
-        myChoiceUserId: myId,
-        counts,
-      };
-    }
-    case "open_text":
-      return {
-        questionType: "open_text",
-        entries: [
-          {
-            text:
-              draft.type === "open_text" ? draft.textAnswer : "Meine Antwort.",
-          },
-        ],
-      };
-    case "duel_1v1": {
-      const mine = draft.type === "duel_1v1" ? draft.selectedSide : undefined;
-      return {
-        questionType: "duel_1v1",
-        myChoice: mine,
-        left: {
-          member: q.left,
-          votes: mine === "left" ? 3 : 1,
-          percent: mine === "left" ? 75 : 25,
-        },
-        right: {
-          member: q.right,
-          votes: mine === "right" ? 3 : 1,
-          percent: mine === "right" ? 75 : 25,
-        },
-      };
-    }
-    case "duel_2v2": {
-      const mine = draft.type === "duel_2v2" ? draft.selectedTeam : undefined;
-      return {
-        questionType: "duel_2v2",
-        myChoice: mine,
-        teamA: {
-          members: q.teamA,
-          votes: mine === "teamA" ? 3 : 1,
-          percent: mine === "teamA" ? 75 : 25,
-        },
-        teamB: {
-          members: q.teamB,
-          votes: mine === "teamB" ? 3 : 1,
-          percent: mine === "teamB" ? 75 : 25,
-        },
-      };
-    }
-    case "either_or": {
-      const mine =
-        draft.type === "either_or" ? draft.selectedOptionIndex : undefined;
-      return {
-        questionType: "either_or",
-        myChoiceIndex: mine,
-        options: [
-          {
-            label: q.options[0],
-            votes: mine === 0 ? 3 : 1,
-            percent: mine === 0 ? 75 : 25,
-          },
-          {
-            label: q.options[1],
-            votes: mine === 1 ? 3 : 1,
-            percent: mine === 1 ? 75 : 25,
-          },
-        ],
-      };
-    }
-    case "meme_caption":
-      return {
-        questionType: "meme_caption",
-        imagePath: q.imagePath,
-        entries: [
-          {
-            text:
-              draft.type === "meme_caption"
-                ? draft.textAnswer
-                : "Meine Bildunterschrift.",
-          },
-        ],
-      };
-  }
-
-  throw new Error("Unbekannter Fragetyp im Daily-Mock.");
 }

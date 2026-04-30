@@ -21,8 +21,8 @@ export function AdminConfigForm({
   onSave: () => void;
 }) {
   return (
-    <section className="space-y-5 radius-card border border-sand-200/80 bg-white p-5 shadow-card-flat">
-      <div className="space-y-4">
+    <section className="space-y-4 rounded-2xl border border-sand-200/80 bg-white p-3 shadow-card-flat">
+      <div className="space-y-3">
         <Stepper
           label="Dailys pro Tag"
           value={draft.dailyQuestionCount}
@@ -43,9 +43,9 @@ export function AdminConfigForm({
             ]}
           />
         </div>
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-sand-50 px-4 py-3">
+        <div className="flex items-center justify-between gap-3 rounded-xl bg-sand-50 px-3 py-2.5">
           <div className="space-y-0.5">
-            <p className="text-sm font-medium text-sand-800">
+            <p className="text-sm font-bold text-sand-800">
               Onboarding erzwingen
             </p>
             <p className="text-[11px] text-sand-500">
@@ -58,13 +58,13 @@ export function AdminConfigForm({
             onChange={(onboardingEnabled) => onChange({ ...draft, onboardingEnabled })}
           />
         </div>
-        <div className="flex items-center justify-between gap-3 rounded-2xl bg-sand-50 px-4 py-3">
+        <div className="flex items-center justify-between gap-3 rounded-xl bg-sand-50 px-3 py-2.5">
           <div className="space-y-0.5">
-            <p className="text-sm font-medium text-sand-800">
-              Daily nachts automatisch erzeugen
+            <p className="text-sm font-bold text-sand-800">
+              Auto-Daily
             </p>
             <p className="text-[11px] text-sand-500">
-              Erstellt um 00:00 Uhr automatisch ein neues Daily, wenn für den Tag noch keins existiert.
+              Erzeugt nachts automatisch, wenn noch keins existiert.
             </p>
           </div>
           <ToggleSwitch
@@ -116,15 +116,15 @@ function Stepper({
   const inc = () => onChange(Math.min(max, value + step));
 
   return (
-    <div className="flex items-center justify-between gap-3">
-      <span className="text-sm font-medium text-sand-800">{label}</span>
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-sand-50 px-3 py-2.5">
+      <span className="text-sm font-bold text-sand-800">{label}</span>
       <div className="flex items-center gap-1">
         <button
           type="button"
           onClick={dec}
           disabled={value <= min}
           aria-label={`${label} verringern`}
-          className="flex size-12 items-center justify-center rounded-full bg-sand-100 text-xl font-semibold text-sand-800 transition hover:bg-sand-200 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex size-10 items-center justify-center rounded-full bg-white text-xl font-semibold text-sand-800 shadow-card-flat transition hover:bg-sand-100 disabled:cursor-not-allowed disabled:opacity-40"
         >
           −
         </button>
@@ -136,7 +136,7 @@ function Stepper({
           onClick={inc}
           disabled={value >= max}
           aria-label={`${label} erhöhen`}
-          className="flex size-12 items-center justify-center rounded-full bg-sand-100 text-xl font-semibold text-sand-800 transition hover:bg-sand-200 disabled:cursor-not-allowed disabled:opacity-40"
+          className="flex size-10 items-center justify-center rounded-full bg-white text-xl font-semibold text-sand-800 shadow-card-flat transition hover:bg-sand-100 disabled:cursor-not-allowed disabled:opacity-40"
         >
           +
         </button>

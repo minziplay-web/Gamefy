@@ -47,7 +47,9 @@ function mapCustomQuestionError(code?: string) {
     case "question_too_short":
       return "Deine Frage ist noch zu kurz.";
     case "missing_options":
-      return "Bitte fülle beide Antwortmöglichkeiten aus.";
+      return "Bitte fülle mindestens zwei Antwortmöglichkeiten aus.";
+    case "too_many_options":
+      return "Bitte nutze maximal sechs Antwortmöglichkeiten.";
     case "no_trophies_left":
       return "Du hast gerade keine freie Trophy für eine eigene Frage.";
     case "already_created_for_target_daily":

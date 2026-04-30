@@ -2,6 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 
 import { ScreenHeader } from "@/components/ui/screen-header";
 import { SkeletonCard } from "@/components/ui/skeleton";
@@ -43,30 +44,43 @@ const HOME_TILES = [
 ] as const;
 
 const HOME_ACTIVITY_PLACEHOLDER: HomeActivityItem[] = [
-  {
-    id: "mock-activity-anna-answer",
-    actorDisplayName: "Anna",
-    action: "answered_question",
-    timeLabel: "11:32",
-    createdAtMs: 3,
-  },
-  {
-    id: "mock-activity-marcel-meme",
-    actorDisplayName: "Marcel",
-    action: "created_meme",
-    timeLabel: "10:31",
-    createdAtMs: 2,
-  },
-  {
-    id: "mock-activity-johann-answer",
-    actorDisplayName: "Johann",
-    action: "answered_question",
-    timeLabel: "09:48",
-    createdAtMs: 1,
-  },
+  // Anna — 5x answered_question (latest 11:32)
+  { id: "mock-anna-answer-1", actorDisplayName: "Anna", action: "answered_question", timeLabel: "10:40", createdAtMs: 75 },
+  { id: "mock-anna-answer-2", actorDisplayName: "Anna", action: "answered_question", timeLabel: "10:55", createdAtMs: 80 },
+  { id: "mock-anna-answer-3", actorDisplayName: "Anna", action: "answered_question", timeLabel: "11:10", createdAtMs: 88 },
+  { id: "mock-anna-answer-4", actorDisplayName: "Anna", action: "answered_question", timeLabel: "11:25", createdAtMs: 95 },
+  { id: "mock-anna-answer-5", actorDisplayName: "Anna", action: "answered_question", timeLabel: "11:32", createdAtMs: 100 },
+  // Marcel — 1x created_meme
+  { id: "mock-marcel-meme-1", actorDisplayName: "Marcel", action: "created_meme", timeLabel: "10:31", createdAtMs: 70 },
+  // Lisa — 4x answered_question (latest 10:15)
+  { id: "mock-lisa-answer-1", actorDisplayName: "Lisa", action: "answered_question", timeLabel: "09:30", createdAtMs: 50 },
+  { id: "mock-lisa-answer-2", actorDisplayName: "Lisa", action: "answered_question", timeLabel: "09:45", createdAtMs: 55 },
+  { id: "mock-lisa-answer-3", actorDisplayName: "Lisa", action: "answered_question", timeLabel: "10:00", createdAtMs: 60 },
+  { id: "mock-lisa-answer-4", actorDisplayName: "Lisa", action: "answered_question", timeLabel: "10:15", createdAtMs: 65 },
+  // Tom — 2x created_meme (latest 09:58)
+  { id: "mock-tom-meme-1", actorDisplayName: "Tom", action: "created_meme", timeLabel: "09:40", createdAtMs: 53 },
+  { id: "mock-tom-meme-2", actorDisplayName: "Tom", action: "created_meme", timeLabel: "09:58", createdAtMs: 58 },
+  // Johann — 1x answered_question
+  { id: "mock-johann-answer-1", actorDisplayName: "Johann", action: "answered_question", timeLabel: "09:48", createdAtMs: 56 },
+  // Sara — 3x answered_question (latest 09:22)
+  { id: "mock-sara-answer-1", actorDisplayName: "Sara", action: "answered_question", timeLabel: "09:00", createdAtMs: 40 },
+  { id: "mock-sara-answer-2", actorDisplayName: "Sara", action: "answered_question", timeLabel: "09:11", createdAtMs: 45 },
+  { id: "mock-sara-answer-3", actorDisplayName: "Sara", action: "answered_question", timeLabel: "09:22", createdAtMs: 47 },
 ];
 
 export function HomeScreen({ state }: { state: HomeViewState }) {
+  const trophyNoticeKey =
+    state.status === "ready" && state.trophyEarnedNotice
+      ? `${state.trophyEarnedNotice.dateKey}:${state.trophyEarnedNotice.trophyCount}:${state.trophyEarnedNotice.availableTrophies}`
+      : null;
+  const [dismissedTrophyNoticeKey, setDismissedTrophyNoticeKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (trophyNoticeKey && dismissedTrophyNoticeKey && trophyNoticeKey !== dismissedTrophyNoticeKey) {
+      queueMicrotask(() => setDismissedTrophyNoticeKey(null));
+    }
+  }, [dismissedTrophyNoticeKey, trophyNoticeKey]);
+
   if (state.status === "loading") {
     return (
       <div className="space-y-4">
@@ -100,6 +114,7 @@ export function HomeScreen({ state }: { state: HomeViewState }) {
     : "Kein Run";
   const resolvedCount = state.dailyRecap?.length ?? 0;
   const pastCount = state.pastDailies?.length ?? 0;
+  const trophyNotice = state.trophyEarnedNotice;
 
   return (
     <div className="space-y-3">
@@ -114,6 +129,29 @@ export function HomeScreen({ state }: { state: HomeViewState }) {
           <StreakPill value={state.greeting.streakCurrent} />
         </div>
       </header>
+
+      {trophyNotice && trophyNoticeKey !== dismissedTrophyNoticeKey ? (
+        <div className="anim-trophy-notice rounded-2xl border border-profile-primary/18 bg-profile-soft px-3 py-2 shadow-card-flat">
+          <div className="flex items-center gap-2.5">
+            <Link href="/daily" className="flex min-w-0 flex-1 items-center gap-2.5">
+              <span className="anim-trophy-icon inline-flex size-7 shrink-0 items-center justify-center rounded-xl bg-white text-sm text-profile-text shadow-card-flat ring-1 ring-profile-primary/14">
+                🏆
+              </span>
+              <span className="min-w-0 flex-1 truncate whitespace-nowrap text-xs font-bold leading-tight text-profile-text">
+                Trophy erhalten · eigene Frage erstellen
+              </span>
+            </Link>
+            <button
+              type="button"
+              aria-label="Trophy-Hinweis ausblenden"
+              onClick={() => setDismissedTrophyNoticeKey(trophyNoticeKey)}
+              className="inline-flex size-7 shrink-0 items-center justify-center rounded-full bg-white text-xs font-bold text-profile-text shadow-card-flat ring-1 ring-profile-primary/14 transition hover:bg-profile-wash"
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      ) : null}
 
       <HomeActivityTicker items={state.recentActivity ?? []} />
 
@@ -174,57 +212,144 @@ export function HomeScreen({ state }: { state: HomeViewState }) {
   );
 }
 
-function HomeActivityTicker({ items }: { items: HomeActivityItem[] }) {
-  const displayItems = items.length > 0 ? items : HOME_ACTIVITY_PLACEHOLDER;
-  const sortedItems = [...displayItems].sort(
-    (left, right) => right.createdAtMs - left.createdAtMs,
-  );
-  const railItems = [...sortedItems, ...sortedItems];
-  const animationDuration = `${Math.max(20, sortedItems.length * 6.25)}s`;
+type ActivityGroup = {
+  actorDisplayName: string;
+  action: HomeActivityItem["action"];
+  count: number;
+  latestTimeLabel: string;
+  latestCreatedAtMs: number;
+};
 
-  return (
-    <div className="overflow-hidden rounded-full bg-linear-to-r from-brand-wash via-white to-recap-soft/70 py-1.5 ring-1 ring-brand-primary/10">
-      <div className="relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-y-0 left-0 z-10 w-7 bg-linear-to-r from-[#f7f9ff] to-transparent" />
-        <div className="pointer-events-none absolute inset-y-0 right-0 z-10 w-7 bg-linear-to-l from-[#fbf0fa] to-transparent" />
-        <div className="anim-home-activity-track flex min-w-max gap-2 px-2" style={{ animationDuration }}>
-          {railItems.map((item, index) => (
-            <ActivityPill key={`${item.id}:${index}`} item={item} />
-          ))}
-        </div>
-      </div>
-    </div>
+function groupActivity(items: HomeActivityItem[]): ActivityGroup[] {
+  const grouped = new Map<string, ActivityGroup>();
+  for (const item of items) {
+    const key = `${item.actorDisplayName}|${item.action}`;
+    const existing = grouped.get(key);
+    if (existing) {
+      existing.count += 1;
+      if (item.createdAtMs > existing.latestCreatedAtMs) {
+        existing.latestCreatedAtMs = item.createdAtMs;
+        existing.latestTimeLabel = item.timeLabel;
+      }
+    } else {
+      grouped.set(key, {
+        actorDisplayName: item.actorDisplayName,
+        action: item.action,
+        count: 1,
+        latestTimeLabel: item.timeLabel,
+        latestCreatedAtMs: item.createdAtMs,
+      });
+    }
+  }
+  return [...grouped.values()].sort(
+    (left, right) => right.latestCreatedAtMs - left.latestCreatedAtMs,
   );
 }
 
-function ActivityPill({
-  item,
-  dimmed,
-}: {
-  item: HomeActivityItem;
-  dimmed?: boolean;
-}) {
-  const actionText =
-    item.action === "created_meme"
-      ? "hat ein Meme erstellt"
-      : "hat eine Frage beantwortet";
+function formatActivityAction(
+  action: HomeActivityItem["action"],
+  count: number,
+) {
+  if (action === "created_meme") {
+    return count === 1 ? "1 Meme erstellt" : `${count} Memes erstellt`;
+  }
+  return count === 1 ? "1 Frage beantwortet" : `${count} Fragen beantwortet`;
+}
+
+function HomeActivityTicker({ items }: { items: HomeActivityItem[] }) {
+  const displayItems = items.length > 0 ? items : HOME_ACTIVITY_PLACEHOLDER;
+  const groups = useMemo(() => groupActivity(displayItems), [displayItems]);
+  const [expanded, setExpanded] = useState(false);
+
+  if (groups.length === 0) return null;
+  const latest = groups[0];
+  const headerKey = expanded ? "header-live" : "header-latest";
 
   return (
-    <div
-      className={`flex h-9 w-max shrink-0 items-center gap-2 rounded-full px-3.5 text-sand-900 ${
-        dimmed
-          ? "bg-white text-sand-500"
-          : "bg-white ring-1 ring-brand-primary/10"
-      }`}
-    >
-      <span className="size-2.5 shrink-0 rounded-full bg-linear-to-br from-[#4A5699] via-[#C45FA0] to-[#E5594F]" />
-      <p className="whitespace-nowrap text-[12px] font-semibold leading-none">
-        <span className="font-bold text-sand-950">{item.actorDisplayName}</span>{" "}
-        {actionText}
-        <span className="ml-1 font-bold text-brand-primary">
-          {item.timeLabel}
+    <section className="rounded-[22px] border border-brand-primary/12 bg-white px-3 py-2.5 shadow-card-flat">
+      <button
+        type="button"
+        onClick={() => setExpanded((value) => !value)}
+        aria-expanded={expanded}
+        aria-label={expanded ? "Live-Feed einklappen" : "Live-Feed aufklappen"}
+        className="flex w-full items-center gap-2"
+      >
+        <span aria-hidden className="size-2.5 shrink-0 rounded-full bg-brand-primary" />
+        <div
+          key={headerKey}
+          className="anim-live-header flex min-w-0 flex-1 items-center gap-2"
+        >
+          {expanded ? (
+            <p className="flex-1 text-left text-[11px] font-bold uppercase tracking-[0.16em] text-brand-primary">
+              Live
+            </p>
+          ) : (
+            <>
+              <p className="min-w-0 flex-1 truncate text-left text-[12px] font-semibold leading-tight text-sand-800">
+                <span className="font-bold text-sand-950">{latest.actorDisplayName}</span>
+                <span className="text-sand-600"> · {formatActivityAction(latest.action, latest.count)}</span>
+              </p>
+              <time className="shrink-0 text-[11px] font-bold tabular-nums text-brand-primary">
+                {latest.latestTimeLabel}
+              </time>
+            </>
+          )}
+        </div>
+        <span
+          aria-hidden
+          className={`shrink-0 text-[10px] font-semibold text-brand-primary transition-transform duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+            expanded ? "rotate-180" : ""
+          }`}
+        >
+          ▾
         </span>
+      </button>
+      <div
+        aria-hidden={!expanded}
+        className={`grid transition-all duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+          expanded ? "mt-2 grid-rows-[1fr] opacity-100" : "mt-0 grid-rows-[0fr] opacity-0"
+        }`}
+      >
+        <div className="overflow-hidden">
+          <div className="max-h-[120px] overflow-y-auto pr-1">
+            <div className="space-y-1.5">
+              {groups.map((group, index) => (
+                <div
+                  key={`${group.actorDisplayName}:${group.action}`}
+                  className={expanded ? "anim-live-row" : ""}
+                  style={
+                    expanded
+                      ? { animationDelay: `${index * 35}ms` }
+                      : undefined
+                  }
+                >
+                  <ActivityRow group={group} />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ActivityRow({ group }: { group: ActivityGroup }) {
+  const actionText = formatActivityAction(group.action, group.count);
+  const icon = group.action === "created_meme" ? "M" : "F";
+
+  return (
+    <div className="flex min-h-9 items-center gap-2 rounded-2xl bg-brand-wash/55 px-2.5 py-1.5 ring-1 ring-brand-primary/8">
+      <span className="inline-flex size-6 shrink-0 items-center justify-center rounded-full bg-white text-[10px] font-black text-brand-primary shadow-card-flat ring-1 ring-brand-primary/12">
+        {icon}
+      </span>
+      <p className="min-w-0 flex-1 truncate text-[12px] font-semibold leading-tight text-sand-800">
+        <span className="font-bold text-sand-950">{group.actorDisplayName}</span>
+        <span className="text-sand-600"> · {actionText}</span>
       </p>
+      <time className="shrink-0 text-[11px] font-bold tabular-nums text-brand-primary">
+        {group.latestTimeLabel}
+      </time>
     </div>
   );
 }

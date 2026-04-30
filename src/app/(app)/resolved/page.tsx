@@ -3,8 +3,8 @@
 import { DailyCallout } from "@/components/home/daily-callout";
 import { DailyRecap } from "@/components/home/daily-recap";
 import { ErrorBanner } from "@/components/ui/error-banner";
+import { ThreeBodyLoader } from "@/components/ui/loader";
 import { ScreenHeader } from "@/components/ui/screen-header";
-import { SkeletonCard } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth/auth-context";
 import { submitMemeCaptionVote } from "@/lib/firebase/daily-actions";
 import { useHomeViewState } from "@/lib/firebase/home";
@@ -17,8 +17,9 @@ export default function ResolvedPage() {
     return (
       <div className="space-y-4">
         <ScreenHeader eyebrow="Aufgelöst" title="Recap" theme="recap" />
-        <SkeletonCard />
-        <SkeletonCard />
+        <div className="flex justify-center py-12">
+          <ThreeBodyLoader size={48} label="Recap wird geladen" />
+        </div>
       </div>
     );
   }
