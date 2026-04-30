@@ -4,12 +4,7 @@ type HeaderTheme = "default" | "daily" | "recap" | "profile" | "archive";
 
 const themeClasses: Record<
   HeaderTheme,
-  {
-    shell: string;
-    eyebrow: string;
-    title: string;
-    subtitle: string;
-  }
+  { shell: string; eyebrow: string; title: string; subtitle: string }
 > = {
   default: {
     shell: "",
@@ -19,28 +14,28 @@ const themeClasses: Record<
   },
   daily: {
     shell:
-      "rounded-[30px] border border-white/55 bg-linear-to-br from-daily-primary to-daily-text px-5 py-5 shadow-[0_18px_44px_rgba(107,67,26,0.18)]",
+      "rounded-[30px] border border-white/55 bg-linear-to-br from-daily-primary to-daily-text px-5 py-5 shadow-[0_18px_44px_rgba(107,67,26,0.18)] text-center",
     eyebrow: "text-white/82",
     title: "text-white",
     subtitle: "text-white/82",
   },
   recap: {
     shell:
-      "rounded-[30px] border border-white/50 bg-linear-to-br from-recap-primary via-[#8E6FBD] to-recap-strong px-5 py-5 shadow-[0_20px_50px_rgba(196,95,160,0.24)]",
+      "rounded-[30px] border border-white/50 bg-linear-to-br from-recap-primary to-recap-strong px-5 py-5 shadow-[0_20px_50px_rgba(126,91,174,0.26)] text-center",
     eyebrow: "text-white/82",
     title: "text-white",
     subtitle: "text-white/82",
   },
   profile: {
     shell:
-      "rounded-[30px] border border-white/55 bg-linear-to-br from-brand-light via-profile-primary to-profile-strong px-5 py-5 shadow-[0_20px_50px_rgba(74,86,153,0.26)]",
+      "rounded-[30px] border border-white/55 bg-linear-to-br from-brand-light via-profile-primary to-profile-strong px-5 py-5 shadow-[0_20px_50px_rgba(74,86,153,0.26)] text-center",
     eyebrow: "text-white/82",
     title: "text-white",
     subtitle: "text-white/82",
   },
   archive: {
     shell:
-      "rounded-[30px] border border-white/55 bg-linear-to-br from-archive-mid via-archive-primary to-archive-strong px-5 py-5 shadow-[0_20px_50px_rgba(143,47,74,0.23)]",
+      "rounded-[30px] border border-white/55 bg-linear-to-br from-archive-mid via-archive-primary to-archive-strong px-5 py-5 shadow-[0_20px_50px_rgba(110,26,40,0.25)] text-center",
     eyebrow: "text-white/82",
     title: "text-white",
     subtitle: "text-white/82",

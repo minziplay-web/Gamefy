@@ -15,7 +15,7 @@ export default function PastDailiesPage() {
   if (state.status === "loading") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Vergangenes" title="Archiv" theme="archive" />
+        <ScreenHeader eyebrow="Alte Fragen" title="Archiv" theme="archive" />
         <div className="flex justify-center py-12">
           <ThreeBodyLoader size={48} label="Archiv wird geladen" />
         </div>
@@ -26,7 +26,7 @@ export default function PastDailiesPage() {
   if (state.status === "error") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Vergangenes" title="Archiv" theme="archive" />
+        <ScreenHeader eyebrow="Alte Fragen" title="Archiv" theme="archive" />
         <ErrorBanner message={state.message} />
       </div>
     );
@@ -34,12 +34,7 @@ export default function PastDailiesPage() {
 
   return (
     <div className="space-y-4">
-      <ScreenHeader
-        eyebrow="Vergangenes"
-        title="Archiv"
-        theme="archive"
-        subtitle="Klapp ältere Tage auf und schau dir die Auflösungen an."
-      />
+      <ScreenHeader eyebrow="Alte Fragen" title="Archiv" theme="archive" />
       <PastDailies
         entries={state.pastDailies ?? []}
         onVoteMemeCaption={async (item, authorUserId, value) => {

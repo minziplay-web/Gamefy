@@ -42,6 +42,7 @@ import {
   liveSessionsCollection,
   questionsCollection,
   userDoc,
+  userStatsDoc,
   usersCollection,
 } from "@/lib/firebase/collections";
 import { berlinDateKey, shiftDateKey } from "@/lib/mapping/date";
@@ -61,6 +62,8 @@ import type {
   TargetMode,
 } from "@/lib/types/frontend";
 import type {
+  DailyAnswerDoc,
+  DailyFirstAnswerDoc,
   DailyRunDoc,
   QuestionDoc,
   UserDoc,
@@ -742,6 +745,112 @@ export async function deleteDailyRun(dateKey: string): Promise<AdminDailyDeleteR
   return {
     dateKey,
     ...deletionResult,
+  };
+}
+
+export async function deleteDailyRunComplete(
+  dateKey: string,
+): Promise<AdminDailyDeleteResult & { unlockedQuestions: number }> {
+  const runRef = dailyRunDoc(dateKey);
+  const questionsRef = questionsCollection();
+  const answersRef = dailyAnswersCollection();
+  const privateAnswersRef = dailyPrivateAnswersCollection();
+  const firstAnswersRef = dailyFirstAnswersCollection();
+  const memeVotesRef = dailyMemeVotesCollection();
+
+  if (!runRef || !questionsRef || !answersRef || !privateAnswersRef || !firstAnswersRef || !memeVotesRef) {
+    throw new Error("Firestore ist nicht verfügbar.");
+  }
+
+  // Read run doc to get question IDs
+  const runSnapshot = await getDoc(runRef);
+  if (!runSnapshot.exists()) {
+    throw new Error("Der Daily-Run wurde nicht gefunden.");
+  }
+  const runData = runSnapshot.data() as DailyRunDoc;
+  const questionIds: string[] = runData.questionIds ?? [];
+  const runId = (runData as { runId?: string }).runId ?? dateKey;
+
+  // Query answers separately to build per-user stat deltas
+  const [publicAnswersSnap, privateAnswersSnap, firstAnswersSnap, memeVotesSnap] =
+    await Promise.all([
+      getDocs(query(answersRef, where("dateKey", "==", dateKey))),
+      getDocs(query(privateAnswersRef, where("dateKey", "==", dateKey))),
+      getDocs(query(firstAnswersRef, where("dateKey", "==", dateKey))),
+      getDocs(query(memeVotesRef, where("dateKey", "==", dateKey))),
+    ]);
+
+  const publicDocs = filterDocsByRun(publicAnswersSnap.docs, runId);
+  const privateDocs = filterDocsByRun(privateAnswersSnap.docs, runId);
+  const firstDocs = filterDocsByRun(firstAnswersSnap.docs, runId);
+  const memeDocs = filterDocsByRun(memeVotesSnap.docs, runId);
+
+  // Build per-user stat decrements
+  const perUserAnswered = new Map<string, number>();
+  const perUserFirst = new Map<string, number>();
+
+  for (const d of publicDocs) {
+    const { userId } = d.data() as DailyAnswerDoc;
+    if (userId) perUserAnswered.set(userId, (perUserAnswered.get(userId) ?? 0) + 1);
+  }
+  for (const d of firstDocs) {
+    const { userId } = d.data() as DailyFirstAnswerDoc;
+    if (userId) perUserFirst.set(userId, (perUserFirst.get(userId) ?? 0) + 1);
+  }
+
+  // Delete answers + run in batches
+  const allDocs = [...publicDocs, ...privateDocs, ...firstDocs, ...memeDocs];
+  for (const chunk of chunkDocs(allDocs, 450)) {
+    const batch = writeBatch(runRef.firestore);
+    for (const d of chunk) batch.delete(d.ref);
+    await batch.commit();
+  }
+  await deleteDocInOwnBatch(runRef);
+
+  // Unlock questions in batches
+  if (questionIds.length > 0) {
+    for (const chunk of chunkDocs(questionIds, 450)) {
+      const batch = writeBatch(runRef.firestore);
+      for (const qId of chunk) {
+        const qRef = doc(questionsRef!, qId);
+        batch.set(qRef, {
+          active: true,
+          dailyLocked: false,
+          dailyLockedDateKey: null,
+          consumedInDailyDateKey: null,
+        }, { merge: true });
+      }
+      await batch.commit();
+    }
+  }
+
+  // Decrement userStats per user
+  const allUserIds = [...new Set([...perUserAnswered.keys(), ...perUserFirst.keys()])];
+  if (allUserIds.length > 0) {
+    for (const chunk of chunkDocs(allUserIds, 450)) {
+      const batch = writeBatch(runRef.firestore);
+      for (const userId of chunk) {
+        const statsRef = userStatsDoc(userId);
+        if (!statsRef) continue;
+        const answeredDelta = perUserAnswered.get(userId) ?? 0;
+        const firstDelta = perUserFirst.get(userId) ?? 0;
+        if (answeredDelta > 0 || firstDelta > 0) {
+          const dailyDelta: Record<string, ReturnType<typeof increment>> = {};
+          if (answeredDelta > 0) dailyDelta.answeredCount = increment(-answeredDelta);
+          if (firstDelta > 0) dailyDelta.firstAnswerCount = increment(-firstDelta);
+          batch.set(statsRef, { daily: dailyDelta }, { merge: true });
+        }
+      }
+      await batch.commit();
+    }
+  }
+
+  return {
+    dateKey,
+    deletedPublicAnswers: publicDocs.length,
+    deletedPrivateAnswers: privateDocs.length,
+    deletedFirstAnswerLocks: firstDocs.length,
+    unlockedQuestions: questionIds.length,
   };
 }
 

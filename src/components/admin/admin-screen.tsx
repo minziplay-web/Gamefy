@@ -44,6 +44,7 @@ export function AdminScreen({
   onImportQuestions,
   onCreateRun,
   onDeleteRun,
+  onDeleteRunComplete,
   onResetToday,
   onRerollQuestion,
   onRemoveQuestion,
@@ -68,6 +69,7 @@ export function AdminScreen({
     plan: AdminDailyCategoryPlan,
   ) => Promise<AdminRunActionResult>;
   onDeleteRun?: (dateKey: string) => Promise<AdminDailyDeleteResult>;
+  onDeleteRunComplete?: (dateKey: string) => Promise<AdminDailyDeleteResult & { unlockedQuestions: number }>;
   onResetToday?: (dateKey: string) => Promise<AdminDailyDeleteResult>;
   onRerollQuestion?: (
     dateKey: string,
@@ -90,7 +92,7 @@ export function AdminScreen({
   const [replaceConfirm, setReplaceConfirm] = useState<string | null>(null);
   const [deleteRunConfirm, setDeleteRunConfirm] = useState<{
     dateKey: string;
-    mode: "delete" | "reset";
+    mode: "delete" | "reset" | "complete_delete";
   } | null>(null);
   const [rerollConfirm, setRerollConfirm] = useState<{
     dateKey: string;
@@ -371,20 +373,14 @@ export function AdminScreen({
         target.mode === "reset"
           ? onResetToday
             ? await onResetToday(target.dateKey)
-            : {
-                dateKey: target.dateKey,
-                deletedPublicAnswers: 0,
-                deletedPrivateAnswers: 0,
-                deletedFirstAnswerLocks: 0,
-              }
-          : onDeleteRun
-            ? await onDeleteRun(target.dateKey)
-            : {
-                dateKey: target.dateKey,
-                deletedPublicAnswers: 0,
-                deletedPrivateAnswers: 0,
-                deletedFirstAnswerLocks: 0,
-              };
+            : { dateKey: target.dateKey, deletedPublicAnswers: 0, deletedPrivateAnswers: 0, deletedFirstAnswerLocks: 0 }
+          : target.mode === "complete_delete"
+            ? onDeleteRunComplete
+              ? await onDeleteRunComplete(target.dateKey)
+              : { dateKey: target.dateKey, deletedPublicAnswers: 0, deletedPrivateAnswers: 0, deletedFirstAnswerLocks: 0, unlockedQuestions: 0 }
+            : onDeleteRun
+              ? await onDeleteRun(target.dateKey)
+              : { dateKey: target.dateKey, deletedPublicAnswers: 0, deletedPrivateAnswers: 0, deletedFirstAnswerLocks: 0 };
       setDeleteRunConfirm(null);
       setRunActionState({
         status: "success",
@@ -399,7 +395,9 @@ export function AdminScreen({
           error,
           target.mode === "reset"
             ? "Das heutige Daily konnte nicht zurückgesetzt werden."
-            : "Das Daily konnte nicht gelöscht werden.",
+            : target.mode === "complete_delete"
+              ? "Das Daily konnte nicht vollständig gelöscht werden."
+              : "Das Daily konnte nicht gelöscht werden.",
         ),
         result: prev.result,
         deletedRun: prev.deletedRun,
@@ -666,6 +664,9 @@ export function AdminScreen({
                 mode: dateKey === berlinDateKey() ? "reset" : "delete",
               })
             }
+            onDeleteRunComplete={(dateKey) =>
+              setDeleteRunConfirm({ dateKey, mode: "complete_delete" })
+            }
             onResetToday={() =>
               setDeleteRunConfirm({
                 dateKey: berlinDateKey(),
@@ -871,13 +872,15 @@ function buildRunActionMessage(result: AdminRunActionResult) {
 }
 
 function buildDeleteRunMessage(
-  mode: "delete" | "reset",
-  result: AdminDailyDeleteResult,
+  mode: "delete" | "reset" | "complete_delete",
+  result: AdminDailyDeleteResult & { unlockedQuestions?: number },
 ) {
   const parts = [
     mode === "reset"
       ? `Daily für ${result.dateKey} auf frisch erzeugt zurückgesetzt.`
-      : `Daily für ${result.dateKey} gelöscht.`,
+      : mode === "complete_delete"
+        ? `Daily für ${result.dateKey} vollständig gelöscht.`
+        : `Daily für ${result.dateKey} gelöscht.`,
   ];
 
   if (result.deletedPublicAnswers > 0) {
@@ -888,6 +891,9 @@ function buildDeleteRunMessage(
   }
   if (result.deletedFirstAnswerLocks > 0) {
     parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);
+  }
+  if (result.unlockedQuestions && result.unlockedQuestions > 0) {
+    parts.push(`${result.unlockedQuestions} Fragen freigegeben`);
   }
 
   return parts.join(" · ");

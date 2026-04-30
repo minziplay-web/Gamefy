@@ -43,34 +43,36 @@ export function MemeImage({
         className="relative flex h-dvh w-screen items-center justify-center"
         onClick={(event) => event.stopPropagation()}
       >
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imagePath}
-          alt="Meme-Vorlage"
-          className="block h-auto max-h-dvh w-screen select-none object-contain"
-          draggable={false}
-        />
-        {caption ? (
-          <div className="pointer-events-none absolute inset-x-0 bottom-0 px-3 pb-3">
-            <p
-              className="text-center uppercase"
-              style={{
-                fontFamily:
-                  '"Arial Black", "Helvetica Black", "Helvetica Neue", system-ui, sans-serif',
-                fontSize: "clamp(20px, 4.5vw, 44px)",
-                fontWeight: 900,
-                lineHeight: 1.1,
-                letterSpacing: "0.01em",
-                color: "white",
-                WebkitTextStroke: "0.16em black",
-                paintOrder: "stroke fill",
-                wordBreak: "break-word",
-              }}
-            >
-              {caption}
-            </p>
-          </div>
-        ) : null}
+        <div className="relative inline-block max-h-dvh max-w-[100vw]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={imagePath}
+            alt="Meme-Vorlage"
+            className="block max-h-dvh max-w-[100vw] select-none object-contain"
+            draggable={false}
+          />
+          {caption ? (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 px-3 pb-3">
+              <p
+                className="text-center uppercase"
+                style={{
+                  fontFamily:
+                    '"Arial Black", "Helvetica Black", "Helvetica Neue", system-ui, sans-serif',
+                  fontSize: "clamp(20px, 4.5vw, 44px)",
+                  fontWeight: 900,
+                  lineHeight: 1.1,
+                  letterSpacing: "0.01em",
+                  color: "white",
+                  WebkitTextStroke: "0.16em black",
+                  paintOrder: "stroke fill",
+                  wordBreak: "break-word",
+                }}
+              >
+                {caption}
+              </p>
+            </div>
+          ) : null}
+        </div>
         <button
           type="button"
           onClick={() => setOpen(false)}
@@ -112,7 +114,7 @@ function MemeFigure({
   return (
     <div
       className={`relative overflow-hidden bg-slate-950 ${
-        frame === "stage" ? "" : "rounded-[1.35rem] shadow-card-flat"
+        frame === "stage" ? "" : "rounded-xl shadow-card-flat"
       }`}
     >
       {/* eslint-disable-next-line @next/next/no-img-element */}

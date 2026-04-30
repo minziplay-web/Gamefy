@@ -8,6 +8,7 @@ import {
   createQuestion,
   createDailyRun,
   deleteDailyRun,
+  deleteDailyRunComplete,
   deactivateUser,
   grantBonusTrophy,
   importQuestions,
@@ -74,6 +75,13 @@ export default function AdminPage() {
         }
 
         return deleteDailyRun(dateKey);
+      }}
+      onDeleteRunComplete={async (dateKey) => {
+        if (authState.status !== "authenticated" || state.status !== "ready") {
+          throw new Error("Nicht bereit.");
+        }
+
+        return deleteDailyRunComplete(dateKey);
       }}
       onResetToday={async (dateKey) => {
         if (authState.status !== "authenticated" || state.status !== "ready") {

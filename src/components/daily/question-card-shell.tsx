@@ -52,52 +52,31 @@ export function QuestionCardShell({
   onSkip,
 }: Props) {
   const { question } = state;
-  const isRevealed = state.phase === "revealed";
 
   return (
-    <section
-      className={
-        isRevealed
-          ? "overflow-hidden rounded-[2rem] bg-transparent"
-          : "radius-card overflow-hidden border border-daily-primary/18 bg-white shadow-card-flat"
-      }
-    >
-      {!isRevealed ? (
-        <div className="h-1 bg-daily-primary/70" />
-      ) : null}
-      <div className={isRevealed ? "space-y-3" : "p-4 min-[380px]:p-5"}>
-        <header
-          className={
-            isRevealed
-              ? "space-y-2 px-1"
-              : "space-y-3"
-          }
-        >
-          <div className="flex flex-wrap items-center gap-2">
+    <section className="overflow-hidden rounded-3xl bg-white shadow-card-flat ring-1 ring-slate-200/80">
+      <div className="space-y-4 p-5 min-[380px]:p-6">
+        <header className="space-y-3">
+          <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-sand-500">
+            <span>{question.indexInRun + 1} / {question.totalInRun}</span>
+            <span aria-hidden className="size-1 rounded-full bg-sand-300" />
             <CategoryBadge category={question.category} size="sm" />
             {question.runLabel ? (
-              <Badge tone="warning" size="sm">
-                {question.runLabel}
-              </Badge>
+              <Badge tone="warning" size="sm">{question.runLabel}</Badge>
             ) : null}
-            <span className="ml-auto text-[11px] font-semibold tabular-nums text-sand-500">
-              {question.indexInRun + 1} / {question.totalInRun}
-            </span>
           </div>
-          <h3 className="text-[1.05rem] font-semibold leading-snug text-sand-900 min-[380px]:text-lg">
+          <h3 className="text-base font-semibold leading-snug text-sand-900 min-[380px]:text-lg">
             {question.text}
           </h3>
         </header>
-        <div className={isRevealed ? "" : "mt-4"}>
-          <CardBody
-            state={state}
-            onDraftChange={onDraftChange}
-            onSubmit={onSubmit}
-            onVoteMemeCaption={onVoteMemeCaption}
-            onRetry={onRetry}
-            onSkip={onSkip}
-          />
-        </div>
+        <CardBody
+          state={state}
+          onDraftChange={onDraftChange}
+          onSubmit={onSubmit}
+          onVoteMemeCaption={onVoteMemeCaption}
+          onRetry={onRetry}
+          onSkip={onSkip}
+        />
       </div>
     </section>
   );
@@ -119,13 +98,12 @@ function CardBody({
 
   if (state.phase === "revealed") {
     return (
-      <div className="space-y-3">
-        <QuestionReveal
-          result={state.result}
-          tone="daily"
-          onVoteMemeCaption={onVoteMemeCaption}
-        />
-      </div>
+      <QuestionReveal
+        result={state.result}
+        tone="daily"
+        embedded
+        onVoteMemeCaption={onVoteMemeCaption}
+      />
     );
   }
 
@@ -160,7 +138,7 @@ function CardBody({
           }
         />
       ) : null}
-      <div className="grid gap-2 pt-1 min-[420px]:grid-cols-[1fr_auto]">
+      <div className="space-y-2 pt-1">
         <Button
           className="w-full"
           variant="daily"
@@ -181,15 +159,14 @@ function CardBody({
           )}
         </Button>
         {onSkip ? (
-          <Button
-            className="w-full border border-daily-primary/25 bg-white px-5 text-daily-text hover:bg-daily-soft/70 min-[420px]:w-auto"
+          <button
             type="button"
-            variant="ghost"
             disabled={loading}
             onClick={onSkip}
+            className="w-full text-center text-[12px] font-semibold text-sand-400 transition hover:text-sand-600 disabled:opacity-40"
           >
             Überspringen
-          </Button>
+          </button>
         ) : null}
       </div>
     </div>
@@ -303,7 +280,7 @@ function AnswerReviewCard({
   multiline?: boolean;
 }) {
   return (
-    <div className="rounded-2xl border border-daily-primary/24 bg-white px-4 py-3">
+    <div className="rounded-2xl bg-sand-50 px-4 py-3">
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sand-500">
         {label}
       </p>
@@ -328,7 +305,7 @@ function MemberAnswerReviewCard({
   fallback: string;
 }) {
   return (
-    <div className="rounded-2xl border border-daily-primary/24 bg-white px-4 py-3">
+    <div className="rounded-2xl bg-sand-50 px-4 py-3">
       <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-sand-500">
         {label}
       </p>

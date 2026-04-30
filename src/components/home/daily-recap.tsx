@@ -74,7 +74,7 @@ export function DailyRecap({
         </h2>
       </header>
 
-      <ul className="space-y-3">
+      <ul className="space-y-5">
         {items.map((item, index) => {
           const itemKey = `${item.dateKey}:${item.runId ?? "daily"}:${item.questionId}`;
           return (
@@ -85,23 +85,22 @@ export function DailyRecap({
             }}
             className="scroll-mt-5"
           >
-            <article className="radius-card overflow-hidden border border-[#8E6FBD]/25 bg-white shadow-card-flat">
-              <div className="h-1 bg-[#8E6FBD]" />
-              <div className="space-y-4 p-4 min-[380px]:p-5">
+            <article className="overflow-hidden rounded-3xl bg-white shadow-card-flat ring-1 ring-slate-200/80">
+              <div className="space-y-5 p-5 min-[380px]:p-6">
                 <header className="space-y-3">
-                  <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-[0.18em] text-recap-text/75">
+                    <span>#{index + 1}</span>
+                    <span aria-hidden className="size-1 rounded-full bg-recap-text/40" />
                     <CategoryBadge category={item.category} size="sm" />
-                    <span className="ml-auto text-[11px] font-semibold tabular-nums text-sand-500">
-                      #{index + 1}
-                    </span>
                   </div>
-                  <h3 className="text-[1.05rem] font-semibold leading-snug text-sand-900 min-[380px]:text-lg">
+                  <h3 className="text-base font-semibold leading-snug text-sand-900 min-[380px]:text-lg">
                     {item.questionText}
                   </h3>
                 </header>
                 <QuestionReveal
                   result={item.result}
                   tone="recap"
+                  embedded
                   onVoteMemeCaption={
                     onVoteMemeCaption
                       ? (authorUserId, value) =>

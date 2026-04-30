@@ -47,7 +47,7 @@ const revealToneClasses: Record<
     dot: "bg-recap-primary",
     navText: "text-recap-text",
     selectedBorder: "border-recap-primary",
-    selectedBg: "bg-[#fff8fd]",
+    selectedBg: "bg-recap-soft/55",
     selectedPill: "bg-recap-primary",
     fill: "bg-recap-primary",
     track: "bg-slate-100",
@@ -58,10 +58,10 @@ const revealToneClasses: Record<
     dot: "bg-archive-primary",
     navText: "text-archive-primary",
     selectedBorder: "border-archive-primary",
-    selectedBg: "bg-archive-soft",
+    selectedBg: "bg-archive-soft/55",
     selectedPill: "bg-archive-primary",
     fill: "bg-archive-primary",
-    track: "bg-archive-soft",
+    track: "bg-archive-soft/45",
     voteActive: "bg-archive-primary",
     voteHover: "hover:border-archive-primary/60 hover:text-archive-primary",
   },
@@ -82,43 +82,51 @@ export function QuestionReveal({
   result,
   onVoteMemeCaption,
   tone = "daily",
+  embedded = false,
 }: {
   result: QuestionResult;
   onVoteMemeCaption?: (authorUserId: string, value: boolean) => Promise<void>;
   tone?: RevealTone;
+  embedded?: boolean;
 }) {
   switch (result.questionType) {
     case "single_choice":
-      return <SingleChoiceReveal result={result} tone={tone} />;
+      return <SingleChoiceReveal result={result} tone={tone} embedded={embedded} />;
     case "multi_choice":
-      return <MultiChoiceReveal result={result} tone={tone} />;
+      return <MultiChoiceReveal result={result} tone={tone} embedded={embedded} />;
     case "open_text":
-      return <OpenTextReveal result={result} />;
+      return <OpenTextReveal result={result} embedded={embedded} />;
     case "duel_1v1":
-      return <Duel1v1Reveal result={result} tone={tone} />;
+      return <Duel1v1Reveal result={result} tone={tone} embedded={embedded} />;
     case "duel_2v2":
-      return <Duel2v2Reveal result={result} tone={tone} />;
+      return <Duel2v2Reveal result={result} tone={tone} embedded={embedded} />;
     case "either_or":
-      return <EitherOrReveal result={result} tone={tone} />;
+      return <EitherOrReveal result={result} tone={tone} embedded={embedded} />;
     case "meme_caption":
       return (
         <MemeCaptionReveal
           result={result}
           tone={tone}
+          embedded={embedded}
           onVote={onVoteMemeCaption}
         />
       );
   }
 }
 
+const REVEAL_CARD_SURFACE =
+  "overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised";
+
 function MemeCaptionReveal({
   result,
   onVote,
   tone,
+  embedded,
 }: {
   result: MemeCaptionResult;
   onVote?: (authorUserId: string, value: boolean) => Promise<void>;
   tone: RevealTone;
+  embedded: boolean;
 }) {
   const toneClasses = revealToneClasses[tone];
   const entries = result.entries;
@@ -129,11 +137,9 @@ function MemeCaptionReveal({
 
   if (entries.length === 0) {
     return (
-      <div className="flex flex-col gap-3 rounded-card border border-sand-100 bg-white p-3 shadow-card-flat">
+      <div className="flex flex-col gap-3">
         <MemeImage imagePath={result.imagePath} />
-        <p className="rounded-2xl bg-sand-50 px-3 py-3 text-sm text-sand-600">
-          Noch keine Bildunterschriften.
-        </p>
+        <p className="text-sm text-sand-600">Noch keine Bildunterschriften.</p>
       </div>
     );
   }
@@ -165,14 +171,10 @@ function MemeCaptionReveal({
 
   const isWinner = index === winnerSlideIndex;
   const isLeaderboard = index === leaderboardSlideIndex;
+  const goFirst = () => setIndex(0);
   const goPrev = () => setIndex((i) => Math.max(0, i - 1));
   const goNext = () => setIndex((i) => Math.min(totalSlides - 1, i + 1));
-
-  const navLabel = isLeaderboard
-    ? "Rangliste"
-    : isWinner
-      ? "Gewinner"
-      : `Meme ${index + 1}`;
+  const goLast = () => setIndex(totalSlides - 1);
 
   // Image always shows current meme caption; winner + leaderboard show winning caption
   const imageEntry = isWinner || isLeaderboard ? winner.entry : entries[index];
@@ -203,54 +205,61 @@ function MemeCaptionReveal({
   const currentAuthorId = currentEntry?.author?.userId;
   const contentKey = isLeaderboard ? "leaderboard" : isWinner ? "winner" : `meme-${index}`;
 
+  const slideShellClass = embedded
+    ? "flex flex-col gap-4"
+    : "overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised";
+  const memeFrame = embedded ? "standalone" : "stage";
+  const footerWrapperClass = embedded ? "px-1" : "px-3 pb-3";
+
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-6">
       {isLeaderboard ? (
-        /* Leaderboard: rendered directly — no inner card, no extra border */
         <div key="leaderboard" className="anim-meme-slide-in">
           <MemeLeaderboard
             ranked={ranked}
             tone={tone}
+            embedded={embedded}
             onSelectMeme={(targetIndex) => setIndex(targetIndex)}
           />
         </div>
       ) : (
-        /* Meme / Winner: one integrated poster surface, no nested cards */
-        <div
-          className={`overflow-hidden rounded-[1.75rem] shadow-card-raised ${
-            isWinner
-              ? "bg-linear-to-b from-award-primary via-award-soft to-white"
-              : "bg-white"
-          }`}
-        >
-          <div className="relative">
+        <div className={slideShellClass}>
+          <div
+            className={`relative ${
+              isWinner
+                ? "rounded-xl ring-4 ring-award-primary shadow-[0_12px_30px_-10px_rgba(240,208,67,0.55)]"
+                : ""
+            }`}
+          >
             {isWinner ? (
-              <div className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-award-primary px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.18em] text-award-text shadow-card-flat">
+              <span className="absolute left-3 top-3 z-10 inline-flex items-center gap-1.5 rounded-full bg-award-primary px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.18em] text-award-text shadow-card-flat">
                 <span aria-hidden>🏆</span>
                 Gewinner
-              </div>
+              </span>
             ) : null}
             <MemeImage
               imagePath={result.imagePath}
               caption={imageEntry.text}
-              frame="stage"
+              frame={memeFrame}
             />
           </div>
-          <div key={contentKey} className="anim-meme-slide-in">
+          <div key={contentKey} className={`anim-meme-slide-in ${footerWrapperClass}`}>
             {isWinner ? (
-              <MemeWinnerPanel
+              <MemeFooter
                 entry={winner.entry}
                 count={effectiveCount(winner.entry)}
                 iVoted={effectiveVoted(winner.entry)}
                 tone={tone}
+                isWinner
                 onVote={winnerAuthorId ? () => handleVote(winnerAuthorId) : undefined}
               />
             ) : currentEntry ? (
-              <MemeMiniFooter
+              <MemeFooter
                 entry={currentEntry}
                 count={effectiveCount(currentEntry)}
                 iVoted={effectiveVoted(currentEntry)}
                 tone={tone}
+                isWinner={false}
                 onVote={currentAuthorId ? () => handleVote(currentAuthorId) : undefined}
               />
             ) : null}
@@ -258,13 +267,22 @@ function MemeCaptionReveal({
         </div>
       )}
 
-      {/* Navigation — identical structure across all states */}
+      {/* Navigation — first/prev/dots/next/last */}
       <div className="flex items-center justify-between gap-2">
+        <button
+          type="button"
+          onClick={goFirst}
+          disabled={index === 0}
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sand-600 ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-40"
+          aria-label="Zum ersten Slide"
+        >
+          ‹‹
+        </button>
         <button
           type="button"
           onClick={goPrev}
           disabled={index === 0}
-          className="inline-flex size-9 items-center justify-center rounded-full border border-sand-200 bg-white text-sand-700 transition hover:border-sand-300 disabled:opacity-40"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sand-600 ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-40"
           aria-label="Vorheriger Slide"
         >
           ‹
@@ -275,28 +293,18 @@ function MemeCaptionReveal({
             <span
               key={i}
               aria-hidden
-              className={`rounded-full transition ${i >= winnerSlideIndex ? "size-2" : "size-1.5"} ${
+              className={`size-1.5 rounded-full transition ${
                 i === index ? toneClasses.dot : "bg-slate-200"
               }`}
             />
           ))}
         </div>
 
-        <span
-          className={`text-xs font-semibold ${
-            isWinner || isLeaderboard
-              ? `uppercase tracking-wider ${toneClasses.navText}`
-              : "tracking-wider text-sand-500"
-          }`}
-        >
-          {navLabel}
-        </span>
-
         <button
           type="button"
           onClick={goNext}
           disabled={index === totalSlides - 1}
-          className="inline-flex size-9 items-center justify-center rounded-full border border-sand-200 bg-white text-sand-700 transition hover:border-sand-300 disabled:opacity-40"
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sand-600 ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-40"
           aria-label={
             isWinner
               ? hasLeaderboard
@@ -309,36 +317,50 @@ function MemeCaptionReveal({
         >
           ›
         </button>
+        <button
+          type="button"
+          onClick={goLast}
+          disabled={index === totalSlides - 1}
+          className="inline-flex size-9 shrink-0 items-center justify-center rounded-full text-sand-600 ring-1 ring-slate-200 transition hover:ring-slate-300 disabled:opacity-40"
+          aria-label="Zum letzten Slide"
+        >
+          ››
+        </button>
       </div>
     </div>
   );
 }
 
-function MemeMiniFooter({
+function MemeFooter({
   entry,
   count,
   iVoted,
   tone,
+  isWinner,
   onVote,
 }: {
   entry: MemeCaptionResult["entries"][number];
   count: number;
   iVoted: boolean;
   tone: RevealTone;
+  isWinner: boolean;
   onVote?: () => void;
 }) {
   const toneClasses = revealToneClasses[tone];
   return (
-    <div className="flex min-h-[58px] items-center justify-between gap-3 bg-white px-3 py-3">
+    <div className="flex items-center justify-between gap-3">
       <div className="flex min-w-0 items-center gap-3">
+        {isWinner ? (
+          <span aria-hidden className="anim-crown-bob shrink-0 text-lg">
+            🏆
+          </span>
+        ) : null}
         {entry.author ? (
           <>
             <AvatarCircle member={entry.author} size="md" />
-            <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-sand-900">
-                {entry.author.displayName}
-              </p>
-            </div>
+            <p className="min-w-0 truncate text-sm font-semibold text-sand-900">
+              {entry.author.displayName}
+            </p>
           </>
         ) : (
           <span className="text-sm font-semibold text-sand-400">Unbekannt</span>
@@ -363,67 +385,10 @@ function MemeMiniFooter({
   );
 }
 
-function MemeWinnerPanel({
-  entry,
-  count,
-  iVoted,
-  tone,
-  onVote,
-}: {
-  entry: MemeCaptionResult["entries"][number];
-  count: number;
-  iVoted: boolean;
-  tone: RevealTone;
-  onVote?: () => void;
-}) {
-  const toneClasses = revealToneClasses[tone];
-  return (
-    <div className="flex min-h-[62px] overflow-hidden bg-white">
-      {/* Trophy strip mirrors the leaderboard gold row. */}
-      <div className="flex w-11 shrink-0 items-center justify-center bg-award-primary">
-        <div className="flex size-8 items-center justify-center rounded-full bg-white/80 shadow-sm">
-          <span className="anim-crown-bob text-xl" aria-hidden>🏆</span>
-        </div>
-      </div>
-      {/* Content */}
-      <div className="flex flex-1 items-center justify-between gap-3 bg-white px-3 py-3">
-        <div className="flex min-w-0 items-center gap-3">
-          {entry.author ? (
-            <>
-              <AvatarCircle member={entry.author} size="md" />
-              <div className="min-w-0">
-                <p className="truncate text-sm font-semibold text-sand-900">
-                  {entry.author.displayName}
-                </p>
-              </div>
-            </>
-          ) : (
-            <span className="text-sm font-semibold text-sand-500">Unbekannt</span>
-          )}
-        </div>
-        <button
-          type="button"
-          onClick={onVote}
-          disabled={!onVote}
-          aria-pressed={iVoted}
-          aria-label={iVoted ? "Herz entfernen" : "Herz vergeben"}
-          className={`inline-flex shrink-0 items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-bold transition ${
-            iVoted
-              ? `${toneClasses.voteActive} text-white shadow-card-flat`
-              : `bg-white text-slate-700 ring-1 ring-slate-200 ${toneClasses.voteHover}`
-          } disabled:opacity-50`}
-        >
-          <span aria-hidden>{iVoted ? "❤️" : "🤍"}</span>
-          <span className="tabular-nums">{count}</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function MemeLeaderboard({
   ranked,
   tone,
+  embedded,
   onSelectMeme,
 }: {
   ranked: Array<{
@@ -432,107 +397,94 @@ function MemeLeaderboard({
     count: number;
   }>;
   tone: RevealTone;
+  embedded: boolean;
   onSelectMeme?: (index: number) => void;
 }) {
   const toneClasses = revealToneClasses[tone];
 
   return (
-    <div className="overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised">
-      <div className="anim-winner-badge flex items-center justify-between gap-3 bg-linear-to-br from-recap-soft via-white to-award-soft px-4 py-3">
-        <div className="flex items-center gap-2">
-          <span
-            className="flex size-8 items-center justify-center rounded-full bg-award-soft text-base ring-1 ring-award-primary/30"
-            aria-hidden
-          >
-            🏆
-          </span>
-          <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-sand-900">
-              Rangliste
-            </p>
-            <p className="text-[11px] font-medium text-sand-500">
-              Tippe auf eine Person, um das Meme zu sehen.
-            </p>
-          </div>
+    <div
+      className={
+        embedded
+          ? ""
+          : "overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised"
+      }
+    >
+      <div
+        className={`flex items-center gap-3 ${
+          embedded ? "px-1 pb-3" : "anim-winner-badge px-4 py-3"
+        }`}
+      >
+        <span
+          className="flex size-8 items-center justify-center rounded-full bg-award-soft text-base"
+          aria-hidden
+        >
+          🏆
+        </span>
+        <div className="min-w-0">
+          <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-sand-900">
+            Rangliste
+          </p>
+          <p className="text-[11px] text-sand-500">
+            Tippe auf eine Person, um das Meme zu sehen.
+          </p>
         </div>
       </div>
 
       <ul className="divide-y divide-slate-100">
         {ranked.map(({ entry, originalIdx, count }, i) => {
           const medal = i === 0 ? "🏆" : i === 1 ? "🥈" : i === 2 ? "🥉" : null;
+          const rankLabel = medal ?? `${i + 1}`;
+          const podiumBg =
+            i === 0
+              ? "bg-award-soft/55 hover:bg-award-soft/75"
+              : i === 1
+                ? "bg-slate-100/70 hover:bg-slate-100"
+                : i === 2
+                  ? "bg-[#FCE9D8] hover:bg-[#FBDFC2]"
+                  : onSelectMeme
+                    ? "hover:bg-slate-50"
+                    : "";
 
-          if (medal) {
-            // Podium rows keep the medal color, but live inside one shared list.
-            const strip =
-              i === 0
-                ? { bg: "bg-award-primary", w: "w-11", row: "bg-award-soft/45", py: "py-3.5", emoji: "text-xl" }
-                : i === 1
-                  ? { bg: "bg-slate-300", w: "w-10", row: "bg-slate-50", py: "py-3", emoji: "text-lg" }
-                  : { bg: "bg-[#CD7F32]", w: "w-10", row: "bg-[#FFF3E8]", py: "py-3", emoji: "text-base" };
-
-            return (
-              <li
-                key={originalIdx}
-                className={`anim-rank-fade-up flex overflow-hidden transition ${
-                  onSelectMeme ? "cursor-pointer hover:bg-slate-50" : ""
-                }`}
-                style={{ animationDelay: `${220 + i * 70}ms` }}
-                onClick={onSelectMeme ? () => onSelectMeme(originalIdx) : undefined}
-              >
-                {/* Colored accent strip — emoji on white backdrop for contrast */}
-                <div className={`flex shrink-0 items-center justify-center ${strip.w} ${strip.bg}`}>
-                  <div className="flex size-8 items-center justify-center rounded-full bg-white/80 shadow-sm">
-                    <span className={strip.emoji} aria-hidden>{medal}</span>
-                  </div>
-                </div>
-                {/* Row content */}
-                <div className={`flex flex-1 items-center gap-3 ${strip.row} px-3 ${strip.py}`}>
-                  {entry.author ? (
-                    <AvatarCircle member={entry.author} size="md" />
-                  ) : (
-                    <div className="size-9 shrink-0 rounded-full bg-sand-100" />
-                  )}
-                  <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-sand-900">
-                      {entry.author?.displayName ?? "Unbekannt"}
-                    </p>
-                  </div>
-                  <span className={`inline-flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums ${toneClasses.navText}`}>
-                    <span aria-hidden>❤️</span>
-                    {count}
-                  </span>
-                </div>
-              </li>
-            );
-          }
-
-          // Non-podium rows: simple flat style
           return (
             <li
               key={originalIdx}
-              className={`anim-rank-fade-up flex items-center gap-3 bg-white px-4 py-2.5 transition ${
-                onSelectMeme ? "cursor-pointer hover:bg-slate-50" : ""
-              }`}
-              style={{ animationDelay: `${220 + i * 70}ms` }}
-              onClick={onSelectMeme ? () => onSelectMeme(originalIdx) : undefined}
+              className="anim-rank-fade-up"
+              style={{ animationDelay: `${180 + i * 60}ms` }}
             >
-              <div className="flex w-7 shrink-0 items-center justify-center">
-                <span className="text-xs font-semibold tabular-nums text-sand-400">{i + 1}</span>
-              </div>
-              {entry.author ? (
-                <AvatarCircle member={entry.author} size="sm" />
-              ) : (
-                <div className="size-7 shrink-0 rounded-full bg-sand-100" />
-              )}
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-xs font-medium text-sand-500">
+              <button
+                type="button"
+                disabled={!onSelectMeme}
+                onClick={onSelectMeme ? () => onSelectMeme(originalIdx) : undefined}
+                className={`flex w-full items-center gap-3 px-3 py-3 text-left transition ${podiumBg} ${
+                  onSelectMeme ? "cursor-pointer" : "cursor-default"
+                }`}
+              >
+                <span
+                  aria-hidden
+                  className={`flex size-7 shrink-0 items-center justify-center text-sm tabular-nums ${
+                    medal
+                      ? "text-base"
+                      : "font-semibold text-sand-400"
+                  }`}
+                >
+                  {rankLabel}
+                </span>
+                {entry.author ? (
+                  <AvatarCircle member={entry.author} size="sm" />
+                ) : (
+                  <div className="size-7 shrink-0 rounded-full bg-sand-100" />
+                )}
+                <p className="min-w-0 flex-1 truncate text-sm font-semibold text-sand-900">
                   {entry.author?.displayName ?? "Unbekannt"}
                 </p>
-              </div>
-              <span className={`inline-flex shrink-0 items-center gap-1 text-xs font-bold tabular-nums ${toneClasses.navText}`}>
-                <span aria-hidden>❤️</span>
-                {count}
-              </span>
+                <span
+                  className={`inline-flex shrink-0 items-center gap-1 text-sm font-bold tabular-nums ${toneClasses.navText}`}
+                >
+                  <span aria-hidden>❤️</span>
+                  {count}
+                </span>
+              </button>
             </li>
           );
         })}
@@ -544,9 +496,11 @@ function MemeLeaderboard({
 function SingleChoiceReveal({
   result,
   tone,
+  embedded,
 }: {
   result: SingleChoiceResult;
   tone: RevealTone;
+  embedded: boolean;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const sorted = useMemo(
@@ -570,38 +524,38 @@ function SingleChoiceReveal({
   const hiddenCount = sorted.length - withVotes.length;
 
   return (
-    <div className="overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised">
-      {withVotes.map((row, idx) => {
-        const isMine = row.candidate.userId === result.myChoiceUserId;
-        const isTop = idx === 0;
-        const voters = votersByTargetId.get(row.candidate.userId) ?? [];
-        const expanded = expandedId === row.candidate.userId;
+    <div className={embedded ? "overflow-hidden" : REVEAL_CARD_SURFACE}>
+      <div className="divide-y divide-slate-100">
+        {withVotes.map((row) => {
+          const isMine = row.candidate.userId === result.myChoiceUserId;
+          const voters = votersByTargetId.get(row.candidate.userId) ?? [];
+          const expanded = expandedId === row.candidate.userId;
 
-        return (
-          <RevealBar
-            key={row.candidate.userId}
-            member={row.candidate}
-            label={row.candidate.displayName}
-            votes={row.votes}
-            percent={row.percent}
-            highlight={isMine}
-            top={isTop}
-            voters={voters}
-            expanded={expanded}
-            tone={tone}
-            onToggle={
-              voters.length > 0
-                ? () =>
-                    setExpandedId((curr) =>
-                      curr === row.candidate.userId ? null : row.candidate.userId,
-                    )
-                : undefined
-            }
-          />
-        );
-      })}
+          return (
+            <RevealBar
+              key={row.candidate.userId}
+              member={row.candidate}
+              label={row.candidate.displayName}
+              votes={row.votes}
+              percent={row.percent}
+              highlight={isMine}
+              voters={voters}
+              expanded={expanded}
+              tone={tone}
+              onToggle={
+                voters.length > 0
+                  ? () =>
+                      setExpandedId((curr) =>
+                        curr === row.candidate.userId ? null : row.candidate.userId,
+                      )
+                  : undefined
+              }
+            />
+          );
+        })}
+      </div>
       {hiddenCount > 0 ? (
-        <p className="border-t border-slate-100 px-4 py-2 text-[11px] text-sand-500">
+        <p className="px-4 pt-3 text-[11px] text-sand-500">
           {hiddenCount} weitere ohne Stimme
         </p>
       ) : null}
@@ -612,9 +566,11 @@ function SingleChoiceReveal({
 function MultiChoiceReveal({
   result,
   tone,
+  embedded,
 }: {
   result: MultiChoiceResult;
   tone: RevealTone;
+  embedded: boolean;
 }) {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const sorted = useMemo(
@@ -642,42 +598,42 @@ function MultiChoiceReveal({
   const hiddenCount = sorted.length - withVotes.length;
 
   return (
-    <div className="overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised">
-      <p className="bg-slate-50 px-4 py-2 text-[11px] text-sand-500">
+    <div className={embedded ? "overflow-hidden" : REVEAL_CARD_SURFACE}>
+      <p className="px-4 pb-2 text-[11px] text-sand-500">
         {result.totalVoters} {result.totalVoters === 1 ? "Antwort" : "Antworten"} ·
         Mehrfachauswahl
       </p>
-      {withVotes.map((row, idx) => {
-        const isMine = myChoices.has(row.candidate.userId);
-        const isTop = idx === 0;
-        const voters = votersByTargetId.get(row.candidate.userId) ?? [];
-        const expanded = expandedId === row.candidate.userId;
+      <div className="divide-y divide-slate-100">
+        {withVotes.map((row) => {
+          const isMine = myChoices.has(row.candidate.userId);
+          const voters = votersByTargetId.get(row.candidate.userId) ?? [];
+          const expanded = expandedId === row.candidate.userId;
 
-        return (
-          <RevealBar
-            key={row.candidate.userId}
-            member={row.candidate}
-            label={row.candidate.displayName}
-            votes={row.votes}
-            percent={row.percent}
-            highlight={isMine}
-            top={isTop}
-            voters={voters}
-            expanded={expanded}
-            tone={tone}
-            onToggle={
-              voters.length > 0
-                ? () =>
-                    setExpandedId((curr) =>
-                      curr === row.candidate.userId ? null : row.candidate.userId,
-                    )
-                : undefined
-            }
-          />
-        );
-      })}
+          return (
+            <RevealBar
+              key={row.candidate.userId}
+              member={row.candidate}
+              label={row.candidate.displayName}
+              votes={row.votes}
+              percent={row.percent}
+              highlight={isMine}
+              voters={voters}
+              expanded={expanded}
+              tone={tone}
+              onToggle={
+                voters.length > 0
+                  ? () =>
+                      setExpandedId((curr) =>
+                        curr === row.candidate.userId ? null : row.candidate.userId,
+                      )
+                  : undefined
+              }
+            />
+          );
+        })}
+      </div>
       {hiddenCount > 0 ? (
-        <p className="border-t border-slate-100 px-4 py-2 text-[11px] text-sand-500">
+        <p className="px-4 pt-3 text-[11px] text-sand-500">
           {hiddenCount} weitere ohne Stimme
         </p>
       ) : null}
@@ -685,7 +641,13 @@ function MultiChoiceReveal({
   );
 }
 
-function OpenTextReveal({ result }: { result: OpenTextResult }) {
+function OpenTextReveal({
+  result,
+  embedded,
+}: {
+  result: OpenTextResult;
+  embedded: boolean;
+}) {
   if (result.entries.length === 0) {
     return (
       <p className="rounded-2xl bg-sand-50 px-3 py-3 text-sm text-sand-600">
@@ -695,7 +657,7 @@ function OpenTextReveal({ result }: { result: OpenTextResult }) {
   }
 
   return (
-    <ul className="overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised">
+    <ul className={embedded ? "overflow-hidden" : REVEAL_CARD_SURFACE}>
       {result.entries.map((entry, idx) => (
         <li
           key={idx}
@@ -726,9 +688,11 @@ function OpenTextReveal({ result }: { result: OpenTextResult }) {
 function Duel1v1Reveal({
   result,
   tone,
+  embedded,
 }: {
   result: Duel1v1Result;
   tone: RevealTone;
+  embedded: boolean;
 }) {
   const [expandedSide, setExpandedSide] = useState<"left" | "right" | null>(null);
   const leftWins =
@@ -741,8 +705,12 @@ function Duel1v1Reveal({
       .filter((row) => row.side === side)
       .map((row) => row.voter);
 
+  const compact = tone === "recap" || tone === "archive";
+  const layoutClass = compact ? "" : "grid grid-cols-2";
+  const surfaceClass = embedded ? "overflow-hidden" : REVEAL_CARD_SURFACE;
+
   return (
-    <div className={tone === "recap" ? "overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised" : "grid grid-cols-2 overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised"}>
+    <div className={`${layoutClass} ${surfaceClass}`.trim()}>
         <DuelSideResult
           side={result.left}
           isMine={result.myChoice === "left"}
@@ -788,16 +756,15 @@ function DuelSideResult({
 }) {
   const toneClasses = revealToneClasses[tone];
   const clickable = Boolean(onToggle) && voters.length > 0;
-  const compact = tone === "recap";
+  const compact = tone === "recap" || tone === "archive";
 
   if (compact) {
-    const compactClass = `flex w-full items-center gap-3 border-b border-slate-100 p-3 text-left transition last:border-b-0 ${
-      isMine
-        ? `${toneClasses.selectedBg}`
-        : winner
-          ? "bg-white"
-          : "bg-white"
-    } ${clickable ? "cursor-pointer hover:bg-slate-50" : "cursor-default"}`;
+    const wrapperClass = `block w-full border-b border-slate-100 px-1.5 py-1.5 text-left transition last:border-b-0 ${
+      clickable ? "cursor-pointer" : "cursor-default"
+    }`;
+    const innerClass = `flex items-center gap-3 rounded-2xl p-3 transition ${
+      isMine ? toneClasses.selectedBg : ""
+    } ${clickable ? "hover:bg-slate-50" : ""}`;
     const compactInner = (
       <>
         <AvatarCircle member={side.member} size="md" />
@@ -832,14 +799,18 @@ function DuelSideResult({
           type="button"
           aria-expanded={expanded}
           onClick={onToggle}
-          className={compactClass}
+          className={wrapperClass}
         >
-          {compactInner}
+          <div className={innerClass}>{compactInner}</div>
         </button>
       );
     }
 
-    return <div className={compactClass}>{compactInner}</div>;
+    return (
+      <div className={wrapperClass}>
+        <div className={innerClass}>{compactInner}</div>
+      </div>
+    );
   }
 
   const baseClass = `flex w-full flex-col items-center gap-2 p-3 text-center transition ${
@@ -897,9 +868,11 @@ function DuelSideResult({
 function Duel2v2Reveal({
   result,
   tone,
+  embedded,
 }: {
   result: Duel2v2Result;
   tone: RevealTone;
+  embedded: boolean;
 }) {
   const [expandedTeam, setExpandedTeam] = useState<"teamA" | "teamB" | null>(null);
 
@@ -908,8 +881,12 @@ function Duel2v2Reveal({
       .filter((row) => row.team === team)
       .map((row) => row.voter);
 
+  const compact = tone === "recap" || tone === "archive";
+  const layoutClass = compact ? "" : "grid grid-cols-2";
+  const surfaceClass = embedded ? "overflow-hidden" : REVEAL_CARD_SURFACE;
+
   return (
-    <div className={tone === "recap" ? "overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised" : "grid grid-cols-2 overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised"}>
+    <div className={`${layoutClass} ${surfaceClass}`.trim()}>
       <DuelTeamResult
         team={result.teamA}
         label="Team A"
@@ -955,14 +932,15 @@ function DuelTeamResult({
 }) {
   const toneClasses = revealToneClasses[tone];
   const clickable = Boolean(onToggle) && voters.length > 0;
-  const compact = tone === "recap";
+  const compact = tone === "recap" || tone === "archive";
 
   if (compact) {
-    const compactClass = `flex w-full items-center gap-3 border-b border-slate-100 p-3 text-left transition last:border-b-0 ${
-      isMine
-        ? `${toneClasses.selectedBg}`
-        : "bg-white"
-    } ${clickable ? "cursor-pointer hover:bg-slate-50" : "cursor-default"}`;
+    const wrapperClass = `block w-full border-b border-slate-100 px-1.5 py-1.5 text-left transition last:border-b-0 ${
+      clickable ? "cursor-pointer" : "cursor-default"
+    }`;
+    const innerClass = `flex items-center gap-3 rounded-2xl p-3 transition ${
+      isMine ? toneClasses.selectedBg : ""
+    } ${clickable ? "hover:bg-slate-50" : ""}`;
     const compactInner = (
       <>
         <div className="flex shrink-0 items-center">
@@ -1007,14 +985,18 @@ function DuelTeamResult({
           type="button"
           aria-expanded={expanded}
           onClick={onToggle}
-          className={compactClass}
+          className={wrapperClass}
         >
-          {compactInner}
+          <div className={innerClass}>{compactInner}</div>
         </button>
       );
     }
 
-    return <div className={compactClass}>{compactInner}</div>;
+    return (
+      <div className={wrapperClass}>
+        <div className={innerClass}>{compactInner}</div>
+      </div>
+    );
   }
 
   const baseClass = `flex w-full flex-col items-center gap-2 p-3 text-center transition ${
@@ -1100,9 +1082,11 @@ function DuelVotersFooter({
 function EitherOrReveal({
   result,
   tone,
+  embedded,
 }: {
   result: EitherOrResult;
   tone: RevealTone;
+  embedded: boolean;
 }) {
   const toneClasses = revealToneClasses[tone];
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
@@ -1117,7 +1101,7 @@ function EitherOrReveal({
   }, [result.voterRows]);
 
   return (
-    <div className="overflow-hidden rounded-[1.75rem] bg-white shadow-card-raised">
+    <div className={embedded ? "overflow-hidden" : REVEAL_CARD_SURFACE}>
       {result.options.map((opt, idx) => {
         const isMine = idx === result.myChoiceIndex;
         const voters = votersByOption.get(idx) ?? [];
@@ -1135,29 +1119,42 @@ function EitherOrReveal({
                 curr === idx ? null : idx,
               )
             }
-            className={`block w-full border-b border-slate-100 p-4 text-left transition last:border-b-0 ${
-              isMine ? `${toneClasses.selectedBg}` : "bg-white"
-            } ${canToggle ? "cursor-pointer hover:bg-slate-50" : "cursor-default"}`}
+            className={`block w-full border-b border-slate-100 px-1.5 py-1.5 text-left transition last:border-b-0 ${
+              canToggle ? "cursor-pointer" : "cursor-default"
+            }`}
           >
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-semibold text-sand-900">
-                {opt.label}
-              </span>
-              <span className="text-sm font-bold tabular-nums text-sand-900">
-                {opt.percent}%
-              </span>
+            <div
+              className={`rounded-2xl p-3 transition ${
+                isMine ? toneClasses.selectedBg : ""
+              } ${canToggle ? "hover:bg-slate-50" : ""}`}
+            >
+              <div className="flex items-start gap-3">
+                <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-sand-100 text-xs font-bold text-sand-600">
+                  {String.fromCharCode(65 + idx)}
+                </span>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-sm font-semibold text-sand-900">
+                      {opt.label}
+                    </span>
+                    <span className="text-sm font-bold tabular-nums text-sand-900">
+                      {opt.percent}%
+                    </span>
+                  </div>
+                  <div className={`mt-2 h-2 overflow-hidden rounded-full ${toneClasses.track}`}>
+                    <div
+                      className={`h-full rounded-full ${toneClasses.fill} transition-[width] duration-500`}
+                      style={{ width: `${opt.percent}%` }}
+                    />
+                  </div>
+                  <VotersFooter
+                    votes={opt.votes}
+                    voters={voters}
+                    expanded={expanded}
+                  />
+                </div>
+              </div>
             </div>
-            <div className={`mt-2 h-2 overflow-hidden rounded-full ${toneClasses.track}`}>
-              <div
-                className={`h-full rounded-full ${toneClasses.fill} transition-[width] duration-500`}
-                style={{ width: `${opt.percent}%` }}
-              />
-            </div>
-            <VotersFooter
-              votes={opt.votes}
-              voters={voters}
-              expanded={expanded}
-            />
           </button>
         );
       })}
@@ -1171,7 +1168,6 @@ function RevealBar({
   votes,
   percent,
   highlight,
-  top,
   voters = [],
   expanded = false,
   tone,
@@ -1182,7 +1178,6 @@ function RevealBar({
   votes: number;
   percent: number;
   highlight: boolean;
-  top?: boolean;
   voters?: MemberLite[];
   expanded?: boolean;
   tone: RevealTone;
@@ -1197,36 +1192,38 @@ function RevealBar({
       disabled={!clickable}
       aria-expanded={clickable ? expanded : undefined}
       onClick={onToggle}
-      className={`block w-full border-b border-slate-100 p-4 text-left transition last:border-b-0 ${
-        highlight
-          ? `${toneClasses.selectedBg}`
-          : top
-            ? "bg-white"
-            : "bg-white"
-      } ${clickable ? "cursor-pointer hover:bg-slate-50" : "cursor-default"}`}
+      className={`block w-full px-1.5 py-1.5 text-left transition ${
+        clickable ? "cursor-pointer" : "cursor-default"
+      }`}
     >
-      <div className="flex items-start gap-3">
-        {member ? (
-          <div className="shrink-0 pt-0.5">
-            <AvatarCircle member={member} size="sm" />
+      <div
+        className={`rounded-2xl px-3 py-3 transition ${
+          highlight ? toneClasses.selectedBg : ""
+        } ${clickable ? "hover:bg-slate-50" : ""}`}
+      >
+        <div className="flex items-start gap-3">
+          {member ? (
+            <div className="shrink-0 pt-0.5">
+              <AvatarCircle member={member} size="sm" />
+            </div>
+          ) : null}
+          <div className="flex-1">
+            <div className="flex items-center justify-between gap-3">
+              <span className="text-[15px] font-semibold text-sand-900">{label}</span>
+              <span className="shrink-0 text-sm font-bold tabular-nums text-sand-700">
+                {percent}%
+              </span>
+            </div>
+            <div className={`mt-2 h-1 overflow-hidden rounded-full ${toneClasses.track}`}>
+              <div
+                className={`h-full rounded-full transition-[width] duration-500 ${
+                  highlight ? toneClasses.fill : "bg-slate-300"
+                }`}
+                style={{ width: `${percent}%` }}
+              />
+            </div>
+            <VotersFooter votes={votes} voters={voters} expanded={expanded} />
           </div>
-        ) : null}
-        <div className="flex-1">
-          <div className="flex items-center justify-between">
-            <span className="text-[15px] font-semibold text-sand-900">{label}</span>
-            <span className="text-[15px] font-bold tabular-nums text-sand-900">
-              {percent}%
-            </span>
-          </div>
-          <div className={`mt-1 h-1.5 overflow-hidden rounded-full ${toneClasses.track}`}>
-            <div
-              className={`h-full rounded-full transition-[width] duration-500 ${
-                highlight ? toneClasses.fill : "bg-slate-400"
-              }`}
-              style={{ width: `${percent}%` }}
-            />
-          </div>
-          <VotersFooter votes={votes} voters={voters} expanded={expanded} />
         </div>
       </div>
     </button>
@@ -1285,12 +1282,7 @@ function VoteSummary({
     >
       <p className="shrink-0 text-xs font-semibold text-sand-700">{label}</p>
       {showPreview ? (
-        <>
-          <AvatarStack voters={voters} limit={Math.min(previewLimit, 4)} />
-          <span className="hidden text-[10px] font-semibold uppercase tracking-[0.14em] text-sand-400 min-[390px]:inline">
-            gewählt von
-          </span>
-        </>
+        <AvatarStack voters={voters} limit={Math.min(previewLimit, 4)} />
       ) : null}
       {voters.length > 0 ? (
         <span

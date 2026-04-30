@@ -14,7 +14,7 @@ const items = [
   },
   {
     href: "/daily",
-    label: "Fragen",
+    label: "Daily",
     iconSrc: "/home-icons/daily.svg",
     activeClass: "border-daily-primary/45 bg-daily-soft text-daily-text",
     idleClass: "border-daily-primary/16 bg-white text-sand-600",

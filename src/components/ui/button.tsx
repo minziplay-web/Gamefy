@@ -19,15 +19,15 @@ const variantClasses: Record<Variant, string> = {
   ghost:
     "bg-transparent text-slate-700 hover:bg-slate-100 hover:text-slate-900",
   destructive:
-    "bg-archive-primary text-white shadow-[0_10px_24px_-12px_rgba(143,47,74,0.55)] hover:bg-archive-strong active:translate-y-px",
+    "bg-archive-primary text-white shadow-[0_10px_24px_-12px_rgba(110,26,40,0.55)] hover:bg-archive-strong active:translate-y-px",
   daily:
     "bg-daily-text text-white shadow-[0_12px_28px_-14px_rgba(107,67,26,0.42)] hover:bg-daily-accent active:translate-y-px",
   recap:
-    "bg-linear-to-r from-recap-primary to-recap-strong text-white shadow-[0_12px_28px_-12px_rgba(196,95,160,0.48)] hover:from-[#AD4E8C] hover:to-brand-strong active:translate-y-px",
+    "bg-linear-to-r from-recap-primary to-recap-strong text-white shadow-[0_12px_28px_-12px_rgba(126,91,174,0.5)] hover:from-[#6E4A9C] hover:to-[#2E1F58] active:translate-y-px",
   profile:
     "bg-linear-to-r from-profile-primary to-profile-strong text-white shadow-[0_12px_28px_-12px_rgba(74,86,153,0.55)] hover:from-[#3C477F] hover:to-[#101D46] active:translate-y-px",
   archive:
-    "bg-linear-to-r from-archive-primary to-archive-text text-white shadow-[0_12px_28px_-12px_rgba(143,47,74,0.46)] hover:from-[#74233A] hover:to-archive-strong active:translate-y-px",
+    "bg-linear-to-r from-archive-primary to-archive-text text-white shadow-[0_12px_28px_-12px_rgba(110,26,40,0.5)] hover:from-[#5A1421] hover:to-archive-strong active:translate-y-px",
 };
 
 const sizeClasses: Record<Size, string> = {

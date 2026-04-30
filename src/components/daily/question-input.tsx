@@ -104,7 +104,7 @@ function SingleChoiceInput({
   const selected = draft?.selectedUserId;
 
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-1.5">
       {question.candidates.map((candidate) => {
         const active = candidate.userId === selected;
         return (
@@ -119,7 +119,7 @@ function SingleChoiceInput({
                 selectedUserId: candidate.userId,
               })
             }
-            className={`flex min-h-16 items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition ${
+            className={`flex min-h-12 items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition ${
               active
                 ? "border-daily-primary bg-daily-soft/80 text-sand-950 shadow-card-flat"
                 : "border-slate-200 bg-white text-sand-800 hover:border-daily-primary/45"
@@ -165,14 +165,14 @@ function MultiChoiceInput({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       <div className="flex items-center justify-between rounded-2xl bg-sand-50 px-3 py-2 text-xs text-sand-500 ring-1 ring-sand-200">
         <span className="font-medium">Mehrfachauswahl möglich</span>
         <span className="font-semibold tabular-nums text-sand-800">
           {selected.size} gewählt
         </span>
       </div>
-      <div className="grid gap-2">
+      <div className="grid gap-1.5">
         {question.candidates.map((candidate) => {
           const active = selected.has(candidate.userId);
           return (
@@ -182,7 +182,7 @@ function MultiChoiceInput({
               disabled={disabled}
               aria-pressed={active}
               onClick={() => toggle(candidate.userId)}
-              className={`flex min-h-16 items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition ${
+              className={`flex min-h-12 items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition ${
                 active
                   ? "border-daily-primary bg-daily-soft/80 text-sand-950 shadow-card-flat"
                   : "border-slate-200 bg-white text-sand-800 hover:border-daily-primary/45"
@@ -221,6 +221,8 @@ function OpenTextInput({
       disabled={disabled}
       placeholder="Schreib deine Antwort..."
       maxLength={question.maxLength}
+      rows={2}
+      className="min-h-[60px]"
       helper={`${remaining} Zeichen übrig`}
       onChange={(event) =>
         onDraftChange({
@@ -250,7 +252,7 @@ function Duel1v1Input({
   ];
 
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-1.5">
       {sides.map(({ side, member }) => {
         const active = draft?.selectedSide === side;
         return (
@@ -304,7 +306,7 @@ function Duel2v2Input({
   ];
 
   return (
-    <div className="grid gap-2">
+    <div className="grid gap-1.5">
       {teams.map((team) => {
         const active = draft?.selectedTeam === team.key;
         return (
@@ -368,7 +370,9 @@ function MemeCaptionInput({
         disabled={disabled}
         placeholder="Schreib deine Bildunterschrift..."
         maxLength={question.maxLength}
-        helper={`${remaining} Zeichen übrig — Text erscheint live auf dem Bild`}
+        rows={2}
+        className="min-h-[60px]"
+        helper={`${remaining} Zeichen übrig`}
         onChange={(event) =>
           onDraftChange({
             type: "meme_caption",
@@ -393,7 +397,7 @@ function EitherOrInput({
   onDraftChange: (next: DailyAnswerDraft) => void;
 }) {
   return (
-    <div className="space-y-2">
+    <div className="space-y-1.5">
       {question.options.map((label, idx) => {
         const active = draft?.selectedOptionIndex === idx;
         return (
@@ -408,7 +412,7 @@ function EitherOrInput({
                 selectedOptionIndex: idx,
               })
             }
-            className={`flex min-h-14 w-full items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition ${
+            className={`flex min-h-11 w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition ${
               active
                 ? "border-daily-primary bg-daily-soft/80 text-sand-950 shadow-card-flat"
                 : "border-slate-200 bg-white text-sand-800 hover:border-daily-primary/45"

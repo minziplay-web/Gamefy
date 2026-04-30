@@ -1,5 +1,7 @@
 "use client";
 
+import { useState } from "react";
+
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryBadge } from "@/components/ui/category-badge";
@@ -33,6 +35,7 @@ export function AdminDailyList({
   onCreate,
   onReplaceToday,
   onDeleteRun,
+  onDeleteRunComplete,
   onResetToday,
   onRerollQuestion,
   onRemoveQuestion,
@@ -44,6 +47,7 @@ export function AdminDailyList({
   onCreate: () => void;
   onReplaceToday?: () => void;
   onDeleteRun?: (dateKey: DateKey) => void;
+  onDeleteRunComplete?: (dateKey: DateKey) => void;
   onResetToday?: () => void;
   onRerollQuestion?: (dateKey: DateKey, runId: string, questionId: string, text: string) => void;
   onRemoveQuestion?: (dateKey: DateKey, runId: string, questionId: string, text: string) => void;
@@ -51,6 +55,8 @@ export function AdminDailyList({
   runActionStatus?: "idle" | "running" | "success" | "error";
   runActionMessage?: string;
 }) {
+  const [todayOpen, setTodayOpen] = useState(false);
+
   const todayRuns = todayDateKey
     ? runs.filter((r) => r.dateKey === todayDateKey)
     : [];
@@ -64,114 +70,140 @@ export function AdminDailyList({
   return (
     <div className="space-y-3">
       {todayRun ? (
-        <div className="space-y-3 rounded-2xl border border-daily-primary/30 bg-white p-3 shadow-card-flat">
-          <div className="flex items-center justify-between gap-3">
+        <div className="overflow-hidden rounded-2xl border border-daily-primary/30 bg-white shadow-card-flat">
+          <button
+            type="button"
+            onClick={() => setTodayOpen((v) => !v)}
+            aria-expanded={todayOpen}
+            className="flex w-full items-center justify-between gap-3 p-3 text-left transition hover:bg-daily-soft/40"
+          >
             <div className="min-w-0">
               <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9A4C13]">
-              Heute
-            </p>
+                Heute
+              </p>
               <p className="truncate text-sm font-bold text-sand-900">
                 {todayRun.questionCount} Fragen
-            </p>
-            </div>
-            <Badge tone="warning" size="sm">Heute</Badge>
-          </div>
-          {todayRun.items && todayRun.items.length > 0 ? (
-            <div className="space-y-2">
-              <p className="px-1 text-xs font-bold uppercase tracking-[0.14em] text-sand-500">
-                Heutige Fragen
               </p>
-              <ul className="space-y-2">
-                {(todayRun.items ?? []).map((item, index) => (
-                  <li
-                    key={`${todayRun.runId}_${item.questionId}`}
-                    className="flex flex-col gap-3 rounded-2xl border border-sand-200 bg-sand-50/70 px-3 py-3 sm:flex-row sm:items-start sm:justify-between"
-                  >
-                    {item.type === "meme_caption" && item.imagePath ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.imagePath}
-                        alt=""
-                        className="h-24 w-full rounded-2xl object-cover sm:h-20 sm:w-28"
-                      />
-                    ) : null}
-                    <div className="min-w-0 flex-1 space-y-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sand-500">
-                          Frage {index + 1}
-                        </p>
-                        <CategoryBadge category={item.category} size="sm" />
-                        <Badge tone="neutral" size="sm">
-                          {TYPE_LABELS[item.type]}
-                        </Badge>
-                      </div>
-                      <p className="text-sm font-medium leading-6 text-sand-900">
-                        {item.text}
-                      </p>
-                    </div>
-                    <div className="grid w-full shrink-0 grid-cols-2 gap-2 sm:w-auto sm:grid-cols-1">
-                      <Button
-                        variant="ghost"
-                        className="rounded-xl px-3 text-[12px] text-brand-primary"
-                        onClick={() =>
-                          onRerollQuestion?.(
-                            todayRun.dateKey,
-                            todayRun.runId,
-                            item.questionId,
-                            item.text,
-                          )
-                        }
-                        disabled={runActionStatus === "running" || !onRerollQuestion}
+            </div>
+            <div className="flex shrink-0 items-center gap-2">
+              <Badge tone="warning" size="sm">Heute</Badge>
+              <span
+                aria-hidden
+                className={`text-sm text-sand-400 transition-transform duration-200 ${todayOpen ? "rotate-90" : ""}`}
+              >
+                ›
+              </span>
+            </div>
+          </button>
+
+          {todayOpen ? (
+            <div className="space-y-3 border-t border-daily-primary/15 p-3">
+              {todayRun.items && todayRun.items.length > 0 ? (
+                <div className="space-y-2">
+                  <p className="px-1 text-xs font-bold uppercase tracking-[0.14em] text-sand-500">
+                    Heutige Fragen
+                  </p>
+                  <ul className="space-y-2">
+                    {(todayRun.items ?? []).map((item, index) => (
+                      <li
+                        key={`${todayRun.runId}_${item.questionId}`}
+                        className="flex flex-col gap-3 rounded-2xl border border-sand-200 bg-sand-50/70 px-3 py-3 sm:flex-row sm:items-start sm:justify-between"
                       >
-                        Neu würfeln
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="rounded-xl px-3 text-[12px] text-danger-text"
-                        onClick={() =>
-                          onRemoveQuestion?.(
-                            todayRun.dateKey,
-                            todayRun.runId,
-                            item.questionId,
-                            item.text,
-                          )
-                        }
-                        disabled={runActionStatus === "running" || !onRemoveQuestion}
-                      >
-                        Entfernen
-                      </Button>
-                    </div>
-                  </li>
-                ))}
-              </ul>
+                        {item.type === "meme_caption" && item.imagePath ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={item.imagePath}
+                            alt=""
+                            className="h-24 w-full rounded-2xl object-cover sm:h-20 sm:w-28"
+                          />
+                        ) : null}
+                        <div className="min-w-0 flex-1 space-y-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sand-500">
+                              Frage {index + 1}
+                            </p>
+                            <CategoryBadge category={item.category} size="sm" />
+                            <Badge tone="neutral" size="sm">
+                              {TYPE_LABELS[item.type]}
+                            </Badge>
+                          </div>
+                          <p className="text-sm font-medium leading-6 text-sand-900">
+                            {item.text}
+                          </p>
+                        </div>
+                        <div className="grid w-full shrink-0 grid-cols-2 gap-2 sm:w-auto sm:grid-cols-1">
+                          <Button
+                            variant="ghost"
+                            className="rounded-xl px-3 text-[12px] text-brand-primary"
+                            onClick={() =>
+                              onRerollQuestion?.(
+                                todayRun.dateKey,
+                                todayRun.runId,
+                                item.questionId,
+                                item.text,
+                              )
+                            }
+                            disabled={runActionStatus === "running" || !onRerollQuestion}
+                          >
+                            Neu würfeln
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            className="rounded-xl px-3 text-[12px] text-danger-text"
+                            onClick={() =>
+                              onRemoveQuestion?.(
+                                todayRun.dateKey,
+                                todayRun.runId,
+                                item.questionId,
+                                item.text,
+                              )
+                            }
+                            disabled={runActionStatus === "running" || !onRemoveQuestion}
+                          >
+                            Entfernen
+                          </Button>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ) : null}
+              <div className="grid grid-cols-1 gap-2 min-[430px]:grid-cols-3">
+                <Button
+                  className="w-full rounded-xl text-[12px]"
+                  variant="secondary"
+                  onClick={onCreate}
+                  disabled={runActionStatus === "running"}
+                >
+                  {runActionStatus === "running" ? "Fügt hinzu..." : "Frage hinzufügen"}
+                </Button>
+                <Button
+                  className="w-full rounded-xl text-[12px]"
+                  variant="ghost"
+                  onClick={onReplaceToday}
+                  disabled={runActionStatus === "running" || !onReplaceToday}
+                >
+                  {runActionStatus === "running" ? "Rerollt..." : "Daily rerollen"}
+                </Button>
+                <Button
+                  className="w-full rounded-xl text-[12px]"
+                  variant="ghost"
+                  onClick={onResetToday}
+                  disabled={runActionStatus === "running" || !onResetToday}
+                >
+                  {runActionStatus === "running" ? "Setzt zurück..." : "Antworten resetten"}
+                </Button>
+              </div>
+              <Button
+                className="w-full rounded-xl text-[12px]"
+                variant="destructive"
+                onClick={() => onDeleteRunComplete?.(todayRun.dateKey)}
+                disabled={runActionStatus === "running" || !onDeleteRunComplete}
+              >
+                Daily löschen
+              </Button>
             </div>
           ) : null}
-          <div className="grid grid-cols-1 gap-2 min-[430px]:grid-cols-3">
-            <Button
-              className="w-full rounded-xl text-[12px]"
-              variant="secondary"
-              onClick={onCreate}
-              disabled={runActionStatus === "running"}
-            >
-              {runActionStatus === "running" ? "Fügt hinzu..." : "Frage hinzufügen"}
-            </Button>
-            <Button
-              className="w-full rounded-xl text-[12px]"
-              variant="ghost"
-              onClick={onReplaceToday}
-              disabled={runActionStatus === "running" || !onReplaceToday}
-            >
-              {runActionStatus === "running" ? "Rerollt..." : "Daily rerollen"}
-            </Button>
-            <Button
-              className="w-full rounded-xl text-[12px]"
-              variant="ghost"
-              onClick={onResetToday}
-              disabled={runActionStatus === "running" || !onResetToday}
-            >
-              {runActionStatus === "running" ? "Setzt zurück..." : "Antworten resetten"}
-            </Button>
-          </div>
         </div>
       ) : (
         <Button className="w-full" onClick={onCreate} disabled={runActionStatus === "running"}>

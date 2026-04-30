@@ -106,7 +106,7 @@ export function DailyCallout({
       ? "Deine eigene Frage ist jetzt live im heutigen Daily."
       : `Eine neue Frage wurde von ${customQuestionNotice?.authorDisplayName} erstellt.`
     : teaser.revealPolicy === "after_answer"
-      ? "Nach deiner Antwort siehst du direkt, wie die anderen abgestimmt haben."
+      ? null
       : "Die Ergebnisse werden gesammelt und erst nach Tagesende aufgedeckt.";
   const buttonLabel = hasCustomQuestionNotice
     ? "Jetzt anschauen"
@@ -140,9 +140,9 @@ export function DailyCallout({
           Einige Fragen konnten heute nicht ausgespielt werden.
         </p>
       ) : null}
-      <p className="text-sm leading-relaxed text-sand-700">
-        {body}
-      </p>
+      {body ? (
+        <p className="text-sm leading-relaxed text-sand-700">{body}</p>
+      ) : null}
       <Link href="/daily" className="block">
         <Button className="w-full" variant="recap">{buttonLabel}</Button>
       </Link>

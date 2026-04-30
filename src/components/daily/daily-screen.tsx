@@ -54,6 +54,15 @@ export function DailyScreen({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [showCompletion, setShowCompletion] = useState(false);
   const didInitRef = useRef(false);
+  const isFirstIndexChange = useRef(true);
+
+  useEffect(() => {
+    if (isFirstIndexChange.current) {
+      isFirstIndexChange.current = false;
+      return;
+    }
+    window.scrollTo(0, 0);
+  }, [currentIndex]);
 
   // Seed currentIndex once the first card array arrives (or resets once the run changes).
   useEffect(() => {
@@ -77,14 +86,14 @@ export function DailyScreen({
     );
 
     if (allAnswered) {
-      queueMicrotask(() => setShowCompletion(true));
+      queueMicrotask(() => { setShowCompletion(true); window.scrollTo(0, 0); });
     }
   }, [state]);
 
   if (state.status === "loading") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Heute" title="Fragen beantworten" theme="daily" />
+        <ScreenHeader eyebrow="Heute" title="Daily" theme="daily" />
         <div className="flex justify-center py-12">
           <ThreeBodyLoader size={48} label="Daily wird geladen" />
         </div>
@@ -95,7 +104,7 @@ export function DailyScreen({
   if (state.status === "error") {
     return (
       <div className="space-y-4">
-        <ScreenHeader eyebrow="Heute" title="Fragen beantworten" theme="daily" />
+        <ScreenHeader eyebrow="Heute" title="Daily" theme="daily" />
         <ErrorBanner message={state.message} />
       </div>
     );
@@ -106,7 +115,7 @@ export function DailyScreen({
       <div className="space-y-4">
         <ScreenHeader
           eyebrow={formatBerlinDateLabel(state.dateKey)}
-          title="Fragen beantworten"
+          title="Daily"
           theme="daily"
         />
         <EmptyState
@@ -123,7 +132,7 @@ export function DailyScreen({
       <div className="space-y-4">
         <ScreenHeader
           eyebrow={formatBerlinDateLabel(state.dateKey)}
-          title="Fragen beantworten"
+          title="Daily"
           theme="daily"
         />
         <EmptyState
@@ -190,7 +199,7 @@ export function DailyScreen({
     }));
 
     if (!willFinish && nextUnansweredIndex >= 0) {
-      setCurrentIndex(nextUnansweredIndex);
+      window.setTimeout(() => setCurrentIndex(nextUnansweredIndex), 350);
     }
 
     const currentCard =
@@ -203,6 +212,7 @@ export function DailyScreen({
         .then(() => {
           if (willFinish) {
             setShowCompletion(true);
+            window.scrollTo(0, 0);
           }
 
           updateCard(cardKey, (card) => ({
@@ -262,15 +272,8 @@ export function DailyScreen({
     <div className="flex flex-col gap-4">
       <ScreenHeader
         eyebrow={formatBerlinDateLabel(state.dateKey)}
-        title="Fragen beantworten"
+        title="Daily"
         theme="daily"
-        subtitle={
-          state.runStatus === "closed"
-            ? "Diese Daily ist abgeschlossen."
-            : showCompletion
-              ? "Fertig. Deine Antworten wurden erfolgreich gespeichert."
-              : "Antwort abgeben, dann direkt weiter."
-        }
       />
 
       {!showCompletion ? (
