@@ -6,8 +6,22 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { CategoryBadge } from "@/components/ui/category-badge";
 import { EmptyState } from "@/components/ui/empty-state";
+import { CATEGORY_LABELS } from "@/lib/mapping/categories";
 import { formatBerlinDateLabel } from "@/lib/mapping/date";
-import type { AdminDailyRunRow, DateKey, QuestionType } from "@/lib/types/frontend";
+import type {
+  AdminDailyQuestionAddResult,
+  AdminDailyRunRow,
+  AdminQuestionEditInput,
+  AdminQuestionRow,
+  Category,
+  DateKey,
+  QuestionType,
+} from "@/lib/types/frontend";
+
+import {
+  QuestionEditPanel,
+  normalizeEitherOrOptions,
+} from "@/components/admin/admin-question-list";
 
 type BadgeTone = "neutral" | "dark" | "accent" | "success" | "warning" | "danger";
 
@@ -39,6 +53,9 @@ export function AdminDailyList({
   onResetToday,
   onRerollQuestion,
   onRemoveQuestion,
+  onUpdateQuestion,
+  onAddSpecificQuestion,
+  questionPool,
   todayDateKey,
   runActionStatus = "idle",
   runActionMessage,
@@ -51,11 +68,86 @@ export function AdminDailyList({
   onResetToday?: () => void;
   onRerollQuestion?: (dateKey: DateKey, runId: string, questionId: string, text: string) => void;
   onRemoveQuestion?: (dateKey: DateKey, runId: string, questionId: string, text: string) => void;
+  onUpdateQuestion?: (questionId: string, input: AdminQuestionEditInput) => Promise<void>;
+  onAddSpecificQuestion?: (
+    dateKey: DateKey,
+    questionId: string,
+  ) => Promise<AdminDailyQuestionAddResult>;
+  questionPool?: AdminQuestionRow[];
   todayDateKey?: DateKey;
   runActionStatus?: "idle" | "running" | "success" | "error";
   runActionMessage?: string;
 }) {
   const [todayOpen, setTodayOpen] = useState(false);
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const [addStep, setAddStep] = useState<"choose" | "preview">("choose");
+  const [addCategory, setAddCategory] = useState<Category | "all">("all");
+  const [addSelected, setAddSelected] = useState<AdminQuestionRow | null>(null);
+  const [addPickedVia, setAddPickedVia] = useState<"random" | "category" | null>(null);
+  const [addStatus, setAddStatus] = useState<"idle" | "saving" | "error">("idle");
+  const [addMessage, setAddMessage] = useState<string | undefined>(undefined);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState<AdminQuestionEditInput | null>(null);
+  const [editStatus, setEditStatus] = useState<"idle" | "saving" | "error" | "success">("idle");
+  const [editMessage, setEditMessage] = useState<string | undefined>(undefined);
+
+  const startEditing = (item: NonNullable<AdminDailyRunRow["items"]>[number]) => {
+    setEditingId(item.questionId);
+    setEditDraft({
+      text: item.text,
+      category: item.category,
+      type: item.type,
+      targetMode: "daily",
+      options:
+        item.type === "either_or" ? normalizeEitherOrOptions(item.options) : undefined,
+      imagePath: item.type === "meme_caption" ? item.imagePath ?? "" : undefined,
+    });
+    setEditStatus("idle");
+    setEditMessage(undefined);
+  };
+
+  const cancelEditing = () => {
+    setEditingId(null);
+    setEditDraft(null);
+    setEditStatus("idle");
+    setEditMessage(undefined);
+  };
+
+  const updateDraft = (patch: Partial<AdminQuestionEditInput>) => {
+    setEditDraft((current) => (current ? { ...current, ...patch } : current));
+    setEditStatus("idle");
+    setEditMessage(undefined);
+  };
+
+  const changeDraftType = (type: QuestionType) => {
+    setEditDraft((current) => {
+      if (!current) return current;
+      return {
+        ...current,
+        type,
+        options: type === "either_or" ? normalizeEitherOrOptions(current.options) : undefined,
+        imagePath: type === "meme_caption" ? current.imagePath ?? "" : undefined,
+      };
+    });
+    setEditStatus("idle");
+    setEditMessage(undefined);
+  };
+
+  const saveEdit = async () => {
+    if (!editingId || !editDraft || !onUpdateQuestion) return;
+    setEditStatus("saving");
+    setEditMessage(undefined);
+    try {
+      await onUpdateQuestion(editingId, editDraft);
+      setEditStatus("success");
+      setEditMessage("Gespeichert");
+      setEditingId(null);
+      setEditDraft(null);
+    } catch (error) {
+      setEditStatus("error");
+      setEditMessage(error instanceof Error ? error.message : "Speichern fehlgeschlagen.");
+    }
+  };
 
   const todayRuns = todayDateKey
     ? runs.filter((r) => r.dateKey === todayDateKey)
@@ -66,6 +158,83 @@ export function AdminDailyList({
   const visibleRuns = runs.filter(
     (run) => !(run.dateKey === todayDateKey && run.runNumber > 1),
   );
+
+  const eligiblePool = (() => {
+    if (!questionPool || !todayRun) return [];
+    const used = new Set(todayRun.items?.map((item) => item.questionId) ?? []);
+    return questionPool.filter(
+      (row) =>
+        row.active &&
+        !row.dailyLocked &&
+        row.source === "admin_pool" &&
+        !used.has(row.questionId),
+    );
+  })();
+
+  const filteredPool =
+    addCategory === "all"
+      ? eligiblePool
+      : eligiblePool.filter((row) => row.category === addCategory);
+
+  const openAddModal = () => {
+    setAddModalOpen(true);
+    setAddStep("choose");
+    setAddSelected(null);
+    setAddPickedVia(null);
+    setAddCategory("all");
+    setAddStatus("idle");
+    setAddMessage(undefined);
+  };
+
+  const closeAddModal = () => {
+    setAddModalOpen(false);
+    setAddStep("choose");
+    setAddSelected(null);
+    setAddPickedVia(null);
+    setAddStatus("idle");
+    setAddMessage(undefined);
+  };
+
+  const pickRandom = () => {
+    if (eligiblePool.length === 0) {
+      setAddStatus("error");
+      setAddMessage("Keine eligible Fragen im Pool.");
+      return;
+    }
+    const pool =
+      addSelected && eligiblePool.length > 1
+        ? eligiblePool.filter((row) => row.questionId !== addSelected.questionId)
+        : eligiblePool;
+    const random = pool[Math.floor(Math.random() * pool.length)];
+    setAddSelected(random);
+    setAddPickedVia("random");
+    setAddStep("preview");
+    setAddStatus("idle");
+    setAddMessage(undefined);
+  };
+
+  const pickFromCategory = (row: AdminQuestionRow) => {
+    setAddSelected(row);
+    setAddPickedVia("category");
+    setAddStep("preview");
+    setAddStatus("idle");
+    setAddMessage(undefined);
+  };
+
+  const confirmAdd = async () => {
+    if (!addSelected || !todayRun || !onAddSpecificQuestion) return;
+    setAddStatus("saving");
+    setAddMessage(undefined);
+    try {
+      await onAddSpecificQuestion(todayRun.dateKey, addSelected.questionId);
+      closeAddModal();
+    } catch (error) {
+      setAddStatus("error");
+      setAddMessage(
+        error instanceof Error ? error.message : "Frage konnte nicht hinzugefügt werden.",
+      );
+    }
+  };
 
   return (
     <div className="space-y-3">
@@ -107,62 +276,83 @@ export function AdminDailyList({
                     {(todayRun.items ?? []).map((item, index) => (
                       <li
                         key={`${todayRun.runId}_${item.questionId}`}
-                        className="flex flex-col gap-3 rounded-2xl border border-sand-200 bg-sand-50/70 px-3 py-3 sm:flex-row sm:items-start sm:justify-between"
+                        className="space-y-3 rounded-2xl border border-sand-200 bg-sand-50/70 px-3 py-3"
                       >
-                        {item.type === "meme_caption" && item.imagePath ? (
-                          // eslint-disable-next-line @next/next/no-img-element
-                          <img
-                            src={item.imagePath}
-                            alt=""
-                            className="h-24 w-full rounded-2xl object-cover sm:h-20 sm:w-28"
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+                          {item.type === "meme_caption" && item.imagePath ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={item.imagePath}
+                              alt=""
+                              className="h-24 w-full rounded-2xl object-cover sm:h-20 sm:w-28"
+                            />
+                          ) : null}
+                          <div className="min-w-0 flex-1 space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sand-500">
+                                Frage {index + 1}
+                              </p>
+                              <CategoryBadge category={item.category} size="sm" />
+                              <Badge tone="neutral" size="sm">
+                                {TYPE_LABELS[item.type]}
+                              </Badge>
+                            </div>
+                            <p className="text-sm font-medium leading-6 text-sand-900">
+                              {item.text}
+                            </p>
+                          </div>
+                          <div className="grid w-full shrink-0 grid-cols-3 gap-2 sm:w-auto sm:grid-cols-1">
+                            <Button
+                              variant="ghost"
+                              className="rounded-xl px-3 text-[12px] text-admin-primary"
+                              onClick={() => startEditing(item)}
+                              disabled={runActionStatus === "running" || !onUpdateQuestion}
+                            >
+                              Bearbeiten
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="rounded-xl px-3 text-[12px] text-brand-primary"
+                              onClick={() =>
+                                onRerollQuestion?.(
+                                  todayRun.dateKey,
+                                  todayRun.runId,
+                                  item.questionId,
+                                  item.text,
+                                )
+                              }
+                              disabled={runActionStatus === "running" || !onRerollQuestion}
+                            >
+                              Neu würfeln
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              className="rounded-xl px-3 text-[12px] text-danger-text"
+                              onClick={() =>
+                                onRemoveQuestion?.(
+                                  todayRun.dateKey,
+                                  todayRun.runId,
+                                  item.questionId,
+                                  item.text,
+                                )
+                              }
+                              disabled={runActionStatus === "running" || !onRemoveQuestion}
+                            >
+                              Entfernen
+                            </Button>
+                          </div>
+                        </div>
+                        {editingId === item.questionId && editDraft ? (
+                          <QuestionEditPanel
+                            draft={editDraft}
+                            status={editStatus}
+                            message={editMessage}
+                            onChange={updateDraft}
+                            onTypeChange={changeDraftType}
+                            onSave={saveEdit}
+                            onCancel={cancelEditing}
                           />
                         ) : null}
-                        <div className="min-w-0 flex-1 space-y-1">
-                          <div className="flex flex-wrap items-center gap-2">
-                            <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sand-500">
-                              Frage {index + 1}
-                            </p>
-                            <CategoryBadge category={item.category} size="sm" />
-                            <Badge tone="neutral" size="sm">
-                              {TYPE_LABELS[item.type]}
-                            </Badge>
-                          </div>
-                          <p className="text-sm font-medium leading-6 text-sand-900">
-                            {item.text}
-                          </p>
-                        </div>
-                        <div className="grid w-full shrink-0 grid-cols-2 gap-2 sm:w-auto sm:grid-cols-1">
-                          <Button
-                            variant="ghost"
-                            className="rounded-xl px-3 text-[12px] text-brand-primary"
-                            onClick={() =>
-                              onRerollQuestion?.(
-                                todayRun.dateKey,
-                                todayRun.runId,
-                                item.questionId,
-                                item.text,
-                              )
-                            }
-                            disabled={runActionStatus === "running" || !onRerollQuestion}
-                          >
-                            Neu würfeln
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            className="rounded-xl px-3 text-[12px] text-danger-text"
-                            onClick={() =>
-                              onRemoveQuestion?.(
-                                todayRun.dateKey,
-                                todayRun.runId,
-                                item.questionId,
-                                item.text,
-                              )
-                            }
-                            disabled={runActionStatus === "running" || !onRemoveQuestion}
-                          >
-                            Entfernen
-                          </Button>
-                        </div>
                       </li>
                     ))}
                   </ul>
@@ -172,10 +362,10 @@ export function AdminDailyList({
                 <Button
                   className="w-full rounded-xl text-[12px]"
                   variant="secondary"
-                  onClick={onCreate}
-                  disabled={runActionStatus === "running"}
+                  onClick={onAddSpecificQuestion ? openAddModal : onCreate}
+                  disabled={runActionStatus === "running" || addStatus === "saving"}
                 >
-                  {runActionStatus === "running" ? "Fügt hinzu..." : "Frage hinzufügen"}
+                  Frage hinzufügen
                 </Button>
                 <Button
                   className="w-full rounded-xl text-[12px]"
@@ -282,6 +472,177 @@ export function AdminDailyList({
           })}
         </ul>
       )}
+
+      {addModalOpen ? (
+        <div
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl bg-white shadow-card-raised">
+            <div className="flex items-center justify-between gap-3 border-b border-sand-100 px-4 py-3">
+              <p className="text-sm font-bold text-sand-900">
+                {addStep === "choose" ? "Frage zum Daily hinzufügen" : "Vorschau"}
+              </p>
+              <button
+                type="button"
+                onClick={closeAddModal}
+                className="text-sand-400 hover:text-sand-700"
+                aria-label="Schließen"
+              >
+                ✕
+              </button>
+            </div>
+
+            <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
+              {addStep === "choose" ? (
+                <>
+                  <Button
+                    className="w-full rounded-xl"
+                    variant="secondary"
+                    onClick={pickRandom}
+                    disabled={eligiblePool.length === 0}
+                  >
+                    🎲 Würfeln (zufällig aus Pool)
+                  </Button>
+
+                  <div className="space-y-2">
+                    <label className="space-y-1.5">
+                      <span className="text-xs font-bold uppercase tracking-[0.18em] text-sand-500">
+                        Aus Kategorie wählen
+                      </span>
+                      <select
+                        value={addCategory}
+                        onChange={(event) =>
+                          setAddCategory(event.target.value as Category | "all")
+                        }
+                        className="w-full rounded-2xl border border-sand-200 bg-white px-3 py-2 text-sm font-semibold text-sand-900 outline-none transition focus:border-admin-primary focus:ring-2 focus:ring-admin-primary/20"
+                      >
+                        <option value="all">Alle Kategorien</option>
+                        {(Object.keys(CATEGORY_LABELS) as Category[]).map((category) => (
+                          <option key={category} value={category}>
+                            {CATEGORY_LABELS[category]}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+
+                    {filteredPool.length === 0 ? (
+                      <p className="rounded-xl bg-sand-50 px-3 py-2 text-xs text-sand-600">
+                        Keine eligible Fragen in dieser Kategorie.
+                      </p>
+                    ) : (
+                      <ul className="max-h-[40vh] space-y-1 overflow-y-auto rounded-xl border border-sand-100 bg-sand-50/50 p-2">
+                        {filteredPool.map((row) => (
+                          <li key={row.questionId}>
+                            <button
+                              type="button"
+                              onClick={() => pickFromCategory(row)}
+                              className="flex w-full flex-col gap-1 rounded-lg bg-white px-3 py-2 text-left text-xs transition hover:bg-admin-primary/5"
+                            >
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <CategoryBadge category={row.category} size="sm" />
+                                <Badge tone="neutral" size="sm">
+                                  {TYPE_LABELS[row.type]}
+                                </Badge>
+                              </div>
+                              <p className="text-sm font-medium text-sand-900">{row.text}</p>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                </>
+              ) : addSelected ? (
+                <div className="space-y-3">
+                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sand-500">
+                    Diese Frage ins Daily pushen?
+                  </p>
+                  <div className="space-y-2 rounded-2xl border border-sand-200 bg-sand-50/70 p-3">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <CategoryBadge category={addSelected.category} size="sm" />
+                      <Badge tone="neutral" size="sm">
+                        {TYPE_LABELS[addSelected.type]}
+                      </Badge>
+                    </div>
+                    <p className="text-sm font-medium leading-6 text-sand-900">
+                      {addSelected.text}
+                    </p>
+                    {addSelected.type === "either_or" && addSelected.options ? (
+                      <ul className="list-disc space-y-0.5 pl-5 text-xs text-sand-700">
+                        {addSelected.options.map((opt, i) => (
+                          <li key={i}>{opt}</li>
+                        ))}
+                      </ul>
+                    ) : null}
+                    {addSelected.type === "meme_caption" && addSelected.imagePath ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={addSelected.imagePath}
+                        alt=""
+                        className="h-32 w-full rounded-xl object-cover"
+                      />
+                    ) : null}
+                  </div>
+                </div>
+              ) : null}
+
+              {addMessage ? (
+                <p
+                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
+                    addStatus === "error"
+                      ? "bg-danger-soft text-danger-text"
+                      : "bg-sand-50 text-sand-700"
+                  }`}
+                >
+                  {addMessage}
+                </p>
+              ) : null}
+            </div>
+
+            <div className="flex items-center justify-end gap-2 border-t border-sand-100 px-4 py-3">
+              {addStep === "preview" ? (
+                <>
+                  <Button
+                    variant="ghost"
+                    onClick={() => {
+                      setAddStep("choose");
+                      setAddSelected(null);
+                      setAddPickedVia(null);
+                      setAddStatus("idle");
+                      setAddMessage(undefined);
+                    }}
+                    disabled={addStatus === "saving"}
+                  >
+                    Zurück
+                  </Button>
+                  {addPickedVia === "random" ? (
+                    <Button
+                      variant="ghost"
+                      onClick={pickRandom}
+                      disabled={addStatus === "saving" || eligiblePool.length <= 1}
+                    >
+                      🎲 Erneut würfeln
+                    </Button>
+                  ) : null}
+                  <Button
+                    variant="primary"
+                    onClick={confirmAdd}
+                    disabled={addStatus === "saving"}
+                  >
+                    {addStatus === "saving" ? "Pushe..." : "Ins Daily pushen"}
+                  </Button>
+                </>
+              ) : (
+                <Button variant="ghost" onClick={closeAddModal}>
+                  Abbrechen
+                </Button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }

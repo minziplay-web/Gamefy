@@ -170,6 +170,7 @@ export function useAdminViewState(): AdminViewState {
               active: data.active,
               dailyLocked: data.dailyLocked === true,
               dailyLockedDateKey: data.dailyLockedDateKey ?? null,
+              source: data.source === "user_trophy" ? "user_trophy" : "admin_pool",
               createdAtIso: toIsoString(data.createdAt) ?? new Date(0).toISOString(),
               createdByDisplayName: createdByName ?? "Admin",
             };
@@ -211,6 +212,9 @@ export function useAdminViewState(): AdminViewState {
                 imagePath:
                   item.questionSnapshot?.imagePath ??
                   questions.get(item.questionId)?.imagePath,
+                options:
+                  item.questionSnapshot?.options ??
+                  questions.get(item.questionId)?.options,
               })) ?? [];
             return {
               runId: data.runId ?? doc.id,

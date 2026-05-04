@@ -572,6 +572,7 @@ export interface AdminQuestionRow {
   active: boolean;
   dailyLocked: boolean;
   dailyLockedDateKey: DateKey | null;
+  source: "admin_pool" | "user_trophy";
   createdAtIso: string;
   createdByDisplayName: string;
 }
@@ -593,6 +594,13 @@ export interface AdminQuestionFilter {
   targetMode: TargetMode | "all";
 }
 
+export interface AdminDailyQuestionAddResult {
+  dateKey: DateKey;
+  questionId: QuestionId;
+  questionText: string;
+  questionCount: number;
+}
+
 export interface AdminDailyRunRow {
   runId: string;
   dateKey: DateKey;
@@ -607,6 +615,7 @@ export interface AdminDailyRunRow {
     category: Category;
     type: QuestionType;
     imagePath?: string;
+    options?: string[];
   }>;
 }
 

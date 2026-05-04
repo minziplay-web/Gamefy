@@ -21,6 +21,7 @@ import { berlinDateKey } from "@/lib/mapping/date";
 import type {
   AdminDailyDeleteResult,
   AdminDailyCategoryPlan,
+  AdminDailyQuestionAddResult,
   AdminDailyQuestionRemoveResult,
   AdminDailyQuestionRerollResult,
   AdminQuestionFilter,
@@ -48,6 +49,7 @@ export function AdminScreen({
   onResetToday,
   onRerollQuestion,
   onRemoveQuestion,
+  onAddSpecificQuestion,
   onDeactivateUser,
   onGrantTrophy,
   onResetProfilePhoto,
@@ -81,6 +83,10 @@ export function AdminScreen({
     runId: string,
     questionId: string,
   ) => Promise<AdminDailyQuestionRemoveResult>;
+  onAddSpecificQuestion?: (
+    dateKey: string,
+    questionId: string,
+  ) => Promise<AdminDailyQuestionAddResult>;
   onDeactivateUser?: (userId: string) => Promise<void>;
   onGrantTrophy?: (userId: string) => Promise<void>;
   onResetProfilePhoto?: (userId: string) => Promise<void>;
@@ -650,6 +656,7 @@ export function AdminScreen({
           />
           <AdminDailyList
             runs={state.dailyRuns}
+            questionPool={state.questions.rows}
             onCreate={requestCreateRun}
             onReplaceToday={() => setReplaceConfirm(berlinDateKey())}
             onRerollQuestion={(dateKey, runId, questionId, text) =>
@@ -657,6 +664,19 @@ export function AdminScreen({
             }
             onRemoveQuestion={(dateKey, runId, questionId, text) =>
               setRemoveQuestionConfirm({ dateKey, runId, questionId, text })
+            }
+            onUpdateQuestion={onUpdateQuestion}
+            onAddSpecificQuestion={
+              onAddSpecificQuestion
+                ? async (dateKey, questionId) => {
+                    const result = await onAddSpecificQuestion(dateKey, questionId);
+                    setRunActionState({
+                      status: "success",
+                      message: `Hinzugefügt · ${result.questionCount} Fragen`,
+                    });
+                    return result;
+                  }
+                : undefined
             }
             onDeleteRun={(dateKey) =>
               setDeleteRunConfirm({
@@ -839,13 +859,11 @@ function buildImportMessage(result: AdminQuestionImportResult) {
 
 function buildRunActionMessage(result: AdminRunActionResult) {
   if (result.mode === "create") {
-    return `Run für ${result.dateKey} mit ${result.questionCount} Fragen erzeugt.`;
+    return `Erzeugt · ${result.questionCount} Fragen`;
   }
 
   if (result.mode === "extend") {
-    return result.addedQuestionText
-      ? `Frage hinzugefügt: „${result.addedQuestionText}“. Jetzt ${result.questionCount} Fragen im Daily.`
-      : `Frage zum Daily hinzugefügt. Jetzt ${result.questionCount} Fragen.`;
+    return `Hinzugefügt · ${result.questionCount} Fragen`;
   }
 
   const clearedTotal =
@@ -854,43 +872,30 @@ function buildRunActionMessage(result: AdminRunActionResult) {
     result.deletedFirstAnswerLocks;
 
   if (clearedTotal === 0) {
-    return `Daily für ${result.dateKey} gererollt. ${result.questionCount} neue Fragen sind jetzt aktiv.`;
+    return "Gererollt";
   }
 
-  const parts: string[] = [`Daily für ${result.dateKey} gererollt.`];
-  if (result.deletedPublicAnswers > 0) {
-    parts.push(`${result.deletedPublicAnswers} öffentliche Antworten entfernt`);
-  }
-  if (result.deletedPrivateAnswers > 0) {
-    parts.push(`${result.deletedPrivateAnswers} private Antworten entfernt`);
-  }
-  if (result.deletedFirstAnswerLocks > 0) {
-    parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);
-  }
-
-  return parts.join(" · ");
+  return `Gererollt · ${clearedTotal} Antworten entfernt`;
 }
 
 function buildDeleteRunMessage(
   mode: "delete" | "reset" | "complete_delete",
   result: AdminDailyDeleteResult & { unlockedQuestions?: number },
 ) {
-  const parts = [
+  const head =
     mode === "reset"
-      ? `Daily für ${result.dateKey} auf frisch erzeugt zurückgesetzt.`
+      ? "Zurückgesetzt"
       : mode === "complete_delete"
-        ? `Daily für ${result.dateKey} vollständig gelöscht.`
-        : `Daily für ${result.dateKey} gelöscht.`,
-  ];
+        ? "Vollständig gelöscht"
+        : "Gelöscht";
+  const parts: string[] = [head];
 
-  if (result.deletedPublicAnswers > 0) {
-    parts.push(`${result.deletedPublicAnswers} öffentliche Antworten entfernt`);
-  }
-  if (result.deletedPrivateAnswers > 0) {
-    parts.push(`${result.deletedPrivateAnswers} private Antworten entfernt`);
-  }
-  if (result.deletedFirstAnswerLocks > 0) {
-    parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);
+  const answersTotal =
+    result.deletedPublicAnswers +
+    result.deletedPrivateAnswers +
+    result.deletedFirstAnswerLocks;
+  if (answersTotal > 0) {
+    parts.push(`${answersTotal} Antworten entfernt`);
   }
   if (result.unlockedQuestions && result.unlockedQuestions > 0) {
     parts.push(`${result.unlockedQuestions} Fragen freigegeben`);
@@ -900,42 +905,27 @@ function buildDeleteRunMessage(
 }
 
 function buildRerollQuestionMessage(result: AdminDailyQuestionRerollResult) {
-  const parts = [
-    `Frage neu gewürfelt. Neu drin: ${result.replacementQuestionText}.`,
-  ];
-
-  if (result.deletedPublicAnswers > 0) {
-    parts.push(`${result.deletedPublicAnswers} öffentliche Antworten entfernt`);
+  const cleared =
+    result.deletedPublicAnswers +
+    result.deletedPrivateAnswers +
+    result.deletedFirstAnswerLocks +
+    result.deletedMemeVotes;
+  const parts: string[] = ["Gewürfelt"];
+  if (cleared > 0) {
+    parts.push(`${cleared} Antworten entfernt`);
   }
-  if (result.deletedPrivateAnswers > 0) {
-    parts.push(`${result.deletedPrivateAnswers} private Antworten entfernt`);
-  }
-  if (result.deletedFirstAnswerLocks > 0) {
-    parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);
-  }
-  if (result.deletedMemeVotes > 0) {
-    parts.push(`${result.deletedMemeVotes} Herzen entfernt`);
-  }
-
   return parts.join(" · ");
 }
 
 function buildRemoveQuestionMessage(result: AdminDailyQuestionRemoveResult) {
-  const parts = [
-    `Frage entfernt: ${result.removedQuestionText}. Jetzt ${result.questionCount} Fragen im Daily.`,
-  ];
-
-  if (result.deletedPublicAnswers > 0) {
-    parts.push(`${result.deletedPublicAnswers} öffentliche Antworten entfernt`);
-  }
-  if (result.deletedPrivateAnswers > 0) {
-    parts.push(`${result.deletedPrivateAnswers} private Antworten entfernt`);
-  }
-  if (result.deletedFirstAnswerLocks > 0) {
-    parts.push(`${result.deletedFirstAnswerLocks} First-Answer-Locks entfernt`);
-  }
-  if (result.deletedMemeVotes > 0) {
-    parts.push(`${result.deletedMemeVotes} Herzen entfernt`);
+  const cleared =
+    result.deletedPublicAnswers +
+    result.deletedPrivateAnswers +
+    result.deletedFirstAnswerLocks +
+    result.deletedMemeVotes;
+  const parts: string[] = [`Entfernt · ${result.questionCount} Fragen`];
+  if (cleared > 0) {
+    parts.push(`${cleared} Antworten entfernt`);
   }
 
   return parts.join(" · ");

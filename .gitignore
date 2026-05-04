@@ -32,6 +32,7 @@ yarn-error.log*
 .next-dev*.log
 .next-start*.log
 .next-prod-check*.log
+.dev-log.txt
 
 # env files (can opt-in for committing if needed)
 .env*

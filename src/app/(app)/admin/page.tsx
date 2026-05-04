@@ -3,6 +3,7 @@
 import { AdminScreen } from "@/components/admin/admin-screen";
 import { useAuth } from "@/lib/auth/auth-context";
 import {
+  addSpecificQuestionToDailyRun,
   bulkDeleteQuestions,
   bulkSetQuestionsActive,
   createQuestion,
@@ -103,6 +104,13 @@ export default function AdminPage() {
         }
 
         return removeDailyRunQuestion({ dateKey, runId, questionId });
+      }}
+      onAddSpecificQuestion={async (dateKey, questionId) => {
+        if (authState.status !== "authenticated" || state.status !== "ready") {
+          throw new Error("Nicht bereit.");
+        }
+
+        return addSpecificQuestionToDailyRun({ dateKey, questionId });
       }}
       onDeactivateUser={async (userId) => {
         if (authState.status !== "authenticated" || state.status !== "ready") {

@@ -444,9 +444,9 @@ export function AdminQuestionList({
                             <Badge tone="neutral" size="sm">
                               {TYPE_LABELS[row.type]}
                             </Badge>
-                            {row.dailyLocked ? (
+                            {row.dailyLockedDateKey ? (
                               <Badge tone="warning" size="sm">
-                                Verbraucht{row.dailyLockedDateKey ? ` · ${row.dailyLockedDateKey}` : ""}
+                                Verbraucht · {row.dailyLockedDateKey}
                               </Badge>
                             ) : null}
                             <span className="w-full text-[11px] text-sand-500 sm:ml-auto sm:w-auto">
@@ -534,7 +534,7 @@ export function AdminQuestionList({
   );
 }
 
-function QuestionEditPanel({
+export function QuestionEditPanel({
   draft,
   status,
   message,
@@ -693,7 +693,7 @@ function QuestionEditPanel({
   );
 }
 
-function normalizeEitherOrOptions(options: string[] | undefined): [string, string] {
+export function normalizeEitherOrOptions(options: string[] | undefined): [string, string] {
   return [options?.[0] ?? "", options?.[1] ?? ""];
 }
 
