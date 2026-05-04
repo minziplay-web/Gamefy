@@ -87,8 +87,19 @@ export function DailyScreen({
 
     if (allAnswered) {
       queueMicrotask(() => { setShowCompletion(true); window.scrollTo(0, 0); });
+      return;
     }
-  }, [state]);
+
+    if (showCompletion) {
+      const nextOpen = state.cards.findIndex(
+        (card) => card.phase === "unanswered" || card.phase === "error",
+      );
+      if (nextOpen !== -1) {
+        setCurrentIndex(nextOpen);
+        setShowCompletion(false);
+      }
+    }
+  }, [state, showCompletion]);
 
   if (state.status === "loading") {
     return (

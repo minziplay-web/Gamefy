@@ -201,7 +201,7 @@ export function useHomeViewState(): HomeViewState {
           })
         : 0;
       const pendingCustomQuestion = myCustomQuestions.find((question) =>
-        isPendingUserTrophyQuestion(question, targetCustomQuestionDateKey),
+        isPendingUserTrophyQuestion(question),
       );
       const activeCustomQuestionNotice =
         runData.length > 0

@@ -1457,9 +1457,9 @@ async function upsertDailyRun(params: {
     (question) =>
       isUserTrophyQuestion(question)
       && !existingDailyQuestionIds.has(question.questionId)
-      && question.targetDateKey === dateKey
-      && (question.consumedInDailyDateKey == null
-        || question.consumedInDailyDateKey === dateKey),
+      && question.consumedInDailyDateKey == null
+      && typeof question.targetDateKey === "string"
+      && question.targetDateKey <= dateKey,
   );
   const eligibleQuestions = allQuestions
     .filter(

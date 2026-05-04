@@ -87,9 +87,9 @@ export async function maybeAutoCreateDailyRun(
   const customQuestions = allQuestions.filter(
     (question) =>
       isUserTrophyQuestion(question)
-      && question.targetDateKey === dateKey
-      && (question.consumedInDailyDateKey == null
-        || question.consumedInDailyDateKey === dateKey),
+      && question.consumedInDailyDateKey == null
+      && typeof question.targetDateKey === "string"
+      && question.targetDateKey <= dateKey,
   );
   const eligibleQuestions = allQuestions
     .filter(
