@@ -1,13 +1,5 @@
 import type { ReactNode } from "react";
-import { Fraunces, Geist, Geist_Mono } from "next/font/google";
-
-const fraunces = Fraunces({
-  subsets: ["latin"],
-  variable: "--mockup-display",
-  weight: ["400", "500", "600", "700"],
-  style: ["normal", "italic"],
-  display: "swap",
-});
+import { Geist, Geist_Mono } from "next/font/google";
 
 const geist = Geist({
   subsets: ["latin"],
@@ -31,7 +23,7 @@ export const metadata = {
 export default function MockupLayout({ children }: { children: ReactNode }) {
   return (
     <div
-      className={`${fraunces.variable} ${geist.variable} ${geistMono.variable} min-h-dvh bg-white text-[#172031]`}
+      className={`${geist.variable} ${geistMono.variable} min-h-dvh bg-black text-white`}
       style={{ fontFamily: "var(--mockup-body)" }}
     >
       {children}
