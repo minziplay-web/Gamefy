@@ -485,7 +485,7 @@ function CommentBottomSheet({
                   </p>
                 </div>
               ) : (
-                <ul className="divide-y" style={{ borderColor: DARK.hair }}>
+                <ul className="space-y-1">
                   {comments.map((comment) => {
                     const user = users.get(comment.userId);
                     const isOwn = currentUser?.userId === comment.userId;
