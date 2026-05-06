@@ -121,6 +121,37 @@ export interface DailyMemeVoteDoc {
   createdAt?: unknown;
 }
 
+export interface ActivityEventDoc {
+  dateKey: string;
+  type: "answer_submitted" | "comment_created" | "meme_winner";
+  userId: string;
+  questionId?: string;
+  runId?: string;
+  payload?: {
+    commentPreview?: string;
+    memeWinnerUserId?: string;
+  };
+  createdAt?: unknown;
+}
+
+export interface DailyCommentDoc {
+  dateKey: string;
+  runId: string;
+  questionId: string;
+  userId: string;
+  text: string;
+  createdAt?: unknown;
+  editedAt?: unknown;
+}
+
+export interface DailyQuestionLikeDoc {
+  dateKey: string;
+  runId: string;
+  questionId: string;
+  userId: string;
+  createdAt?: unknown;
+}
+
 export interface UserStatsDoc {
   userId: string;
   daily?: {

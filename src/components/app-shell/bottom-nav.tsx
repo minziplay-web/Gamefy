@@ -1,107 +1,157 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-const items = [
+import { AvatarCircle } from "@/components/ui/avatar";
+import {
+  HomeNavIcon,
+  LibraryNavIcon,
+  PenNavIcon,
+} from "@/components/app-shell/nav-icons";
+import { useAuth } from "@/lib/auth/auth-context";
+
+type Tab = {
+  href: string;
+  label: string;
+  color: string;
+  match: (pathname: string) => boolean;
+  Icon: (props: { active: boolean }) => React.ReactNode;
+};
+
+const TABS: Tab[] = [
   {
     href: "/",
-    label: "Home",
-    icon: HomeIcon,
-    activeClass: "border-brand-primary/45 bg-brand-soft text-brand-primary",
-    idleClass: "border-brand-primary/16 bg-white text-sand-600",
+    label: "Daily",
+    color: "#F39A2B", // sunny orange
+    match: (p) => p === "/",
+    Icon: ({ active }) => <HomeNavIcon active={active} />,
   },
   {
     href: "/daily",
-    label: "Daily",
-    iconSrc: "/home-icons/daily.svg",
-    activeClass: "border-daily-primary/45 bg-daily-soft text-daily-text",
-    idleClass: "border-daily-primary/16 bg-white text-sand-600",
-  },
-  {
-    href: "/resolved",
-    label: "Recap",
-    iconSrc: "/home-icons/resolved.svg",
-    activeClass: "border-recap-primary/45 bg-recap-soft text-recap-text",
-    idleClass: "border-recap-primary/16 bg-white text-sand-600",
+    label: "Fragen",
+    color: "#4A5699", // brand blue — Round 3 Update
+    match: (p) => p === "/daily" || p.startsWith("/daily/"),
+    Icon: ({ active }) => <PenNavIcon active={active} />,
   },
   {
     href: "/past-dailies",
     label: "Archiv",
-    iconSrc: "/home-icons/past.svg",
-    activeClass: "border-archive-primary/45 bg-archive-soft text-archive-text",
-    idleClass: "border-archive-primary/16 bg-white text-sand-600",
+    color: "#E5594F", // coral
+    match: (p) => p.startsWith("/past-dailies"),
+    Icon: ({ active }) => <LibraryNavIcon active={active} />,
   },
-] as const;
+  // Profil-Tab is rendered separately because the icon = current user's avatar
+];
 
-function isActive(pathname: string, href: string) {
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
-}
+const PROFIL: Omit<Tab, "Icon"> = {
+  href: "/profile",
+  label: "Profil",
+  color: "#D860B5", // pink — Round 3 Update (User explicit)
+  match: (p) => p.startsWith("/profile"),
+};
+
+const IDLE = "#A8A8A8"; // muted text on dark bg
 
 export function BottomNav() {
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "/";
+  const { authState } = useAuth();
+  const profile = authState.status === "authenticated" ? authState.user : null;
 
   return (
     <nav
-      className="safe-area-bottom fixed inset-x-0 bottom-0 z-30 border-t border-sand-200/80 bg-white/92 shadow-[0_-18px_42px_-32px_rgba(23,32,49,0.38)] backdrop-blur-xl"
+      className="safe-area-bottom fixed inset-x-0 bottom-0 z-30"
+      style={{
+        backgroundColor: "#000000",
+        borderTop: "1px solid #1F1F1F",
+      }}
       aria-label="Hauptnavigation"
     >
-      <ul className="mx-auto grid max-w-screen-sm grid-cols-4 gap-1.5 px-3 py-2">
-        {items.map((item) => {
-          const active = isActive(pathname, item.href);
+      <ul className="mx-auto grid max-w-screen-sm grid-cols-4">
+        {TABS.map((tab) => {
+          const active = tab.match(pathname);
+          const color = active ? tab.color : IDLE;
           return (
-            <li key={item.href}>
+            <li key={tab.href}>
               <Link
-                href={item.href}
+                href={tab.href}
                 aria-current={active ? "page" : undefined}
-                className={`flex min-h-[3.25rem] flex-col items-center justify-center gap-0.5 rounded-[1rem] border px-1 py-1 text-[10px] font-black uppercase tracking-[0.06em] shadow-card-flat transition active:scale-[0.97] ${
-                  active ? item.activeClass : item.idleClass
-                }`}
+                className="flex w-full flex-col items-center justify-center gap-1.5 py-3"
+                style={{ color }}
               >
+                <tab.Icon active={active} />
                 <span
-                  className={`relative flex size-6 items-center justify-center rounded-lg ${
-                    active ? "bg-white/72" : "bg-sand-50"
-                  }`}
+                  className="text-[10px] uppercase tracking-[0.16em]"
+                  style={{
+                    fontFamily: "var(--font-mono)",
+                    color,
+                    fontWeight: active ? 600 : 500,
+                  }}
                 >
-                  {"iconSrc" in item ? (
-                    <Image
-                      src={item.iconSrc}
-                      alt=""
-                      fill
-                      sizes="24px"
-                      className="object-contain p-1"
-                      aria-hidden
-                    />
-                  ) : (
-                    <item.icon className="size-4.5" active={active} />
-                  )}
+                  {tab.label}
                 </span>
-                <span className="leading-none">{item.label}</span>
               </Link>
             </li>
           );
         })}
+
+        {/* Profil-Tab — Icon = Avatar of current user */}
+        <li>
+          <Link
+            href={PROFIL.href}
+            aria-current={PROFIL.match(pathname) ? "page" : undefined}
+            className="flex w-full flex-col items-center justify-center gap-1.5 py-3"
+          >
+            <ProfilTabIcon
+              active={PROFIL.match(pathname)}
+              activeColor={PROFIL.color}
+              displayName={profile?.displayName ?? "Du"}
+              userId={profile?.userId ?? "anon"}
+              photoURL={profile?.photoURL ?? null}
+            />
+            <span
+              className="text-[10px] uppercase tracking-[0.16em]"
+              style={{
+                fontFamily: "var(--font-mono)",
+                color: PROFIL.match(pathname) ? PROFIL.color : IDLE,
+                fontWeight: PROFIL.match(pathname) ? 600 : 500,
+              }}
+            >
+              {PROFIL.label}
+            </span>
+          </Link>
+        </li>
       </ul>
     </nav>
   );
 }
 
-function HomeIcon({ className, active }: { className?: string; active: boolean }) {
+function ProfilTabIcon({
+  active,
+  activeColor,
+  displayName,
+  userId,
+  photoURL,
+}: {
+  active: boolean;
+  activeColor: string;
+  displayName: string;
+  userId: string;
+  photoURL: string | null;
+}) {
   return (
-    <svg
-      className={className}
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      strokeWidth={active ? 2.5 : 2}
-      strokeLinecap="round"
-      strokeLinejoin="round"
-      aria-hidden
+    <span
+      className="flex size-6 items-center justify-center rounded-full"
+      style={{
+        boxShadow: active ? `0 0 0 2px ${activeColor}` : "none",
+      }}
     >
-      <path d="M3.5 11.4 12 4.5l8.5 6.9" />
-      <path d="M6 10.5V19a1 1 0 0 0 1 1h3.2v-5.4h3.6V20H17a1 1 0 0 0 1-1v-8.5" />
-    </svg>
+      <AvatarCircle
+        member={{ userId, displayName, photoURL }}
+        size="xs"
+        className="size-6 text-[10px]"
+      />
+    </span>
   );
 }
+

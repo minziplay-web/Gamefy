@@ -2,44 +2,14 @@ import type { ReactNode } from "react";
 
 type HeaderTheme = "default" | "daily" | "recap" | "profile" | "archive";
 
-const themeClasses: Record<
-  HeaderTheme,
-  { shell: string; eyebrow: string; title: string; subtitle: string }
-> = {
-  default: {
-    shell: "",
-    eyebrow: "text-sand-500",
-    title: "text-sand-900",
-    subtitle: "text-sand-700",
-  },
-  daily: {
-    shell:
-      "rounded-[30px] border border-white/55 bg-linear-to-br from-daily-primary to-daily-text px-5 py-5 shadow-[0_18px_44px_rgba(107,67,26,0.18)] text-center",
-    eyebrow: "text-white/82",
-    title: "text-white",
-    subtitle: "text-white/82",
-  },
-  recap: {
-    shell:
-      "rounded-[30px] border border-white/50 bg-linear-to-br from-recap-primary to-recap-strong px-5 py-5 shadow-[0_20px_50px_rgba(126,91,174,0.26)] text-center",
-    eyebrow: "text-white/82",
-    title: "text-white",
-    subtitle: "text-white/82",
-  },
-  profile: {
-    shell:
-      "rounded-[30px] border border-white/55 bg-linear-to-br from-brand-light via-profile-primary to-profile-strong px-5 py-5 shadow-[0_20px_50px_rgba(74,86,153,0.26)] text-center",
-    eyebrow: "text-white/82",
-    title: "text-white",
-    subtitle: "text-white/82",
-  },
-  archive: {
-    shell:
-      "rounded-[30px] border border-white/55 bg-linear-to-br from-archive-mid via-archive-primary to-archive-strong px-5 py-5 shadow-[0_20px_50px_rgba(110,26,40,0.25)] text-center",
-    eyebrow: "text-white/82",
-    title: "text-white",
-    subtitle: "text-white/82",
-  },
+// Akzent-Farbe pro Theme. Dark-Insta-Look: kein Gradient-Shell mehr, nur
+// kleine Eyebrow in Tab-Akzent + weißer Title auf Page-BG.
+const themeAccent: Record<HeaderTheme, string> = {
+  default: "#A8A8A8",
+  daily: "#F39A2B",
+  recap: "#F39A2B",
+  profile: "#D860B5",
+  archive: "#E5594F",
 };
 
 export function ScreenHeader({
@@ -55,29 +25,33 @@ export function ScreenHeader({
   action?: ReactNode;
   theme?: HeaderTheme;
 }) {
-  const colors = themeClasses[theme];
+  const accent = themeAccent[theme];
   return (
-    <header
-      className={`space-y-2 px-1 pb-3 pt-4 ${
-        colors.shell ? colors.shell : ""
-      }`}
-    >
+    <header className="space-y-1 px-1 pb-3 pt-4">
       {eyebrow ? (
         <p
-          className={`text-xs font-semibold uppercase tracking-[0.18em] ${colors.eyebrow}`}
+          className="text-[10px] font-semibold uppercase tracking-[0.22em]"
+          style={{
+            color: accent,
+            fontFamily: "var(--font-mono)",
+          }}
         >
           {eyebrow}
         </p>
       ) : null}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 space-y-1.5">
           <h1
-            className={`text-[clamp(1.8rem,7vw,3rem)] font-semibold leading-[1.1] tracking-tight ${colors.title}`}
+            className="text-[26px] font-semibold leading-[1.1] tracking-tight"
+            style={{ color: "#FAFAFA", textWrap: "balance" }}
           >
             {title}
           </h1>
           {subtitle ? (
-            <p className={`text-[15px] leading-relaxed ${colors.subtitle}`}>
+            <p
+              className="text-[14px] leading-relaxed"
+              style={{ color: "#A8A8A8" }}
+            >
               {subtitle}
             </p>
           ) : null}

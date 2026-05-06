@@ -3,6 +3,7 @@
 import { AvatarCircle } from "@/components/ui/avatar";
 import { MemeImage } from "@/components/daily/meme-image";
 import { TextArea } from "@/components/ui/text-field";
+import { STORY_COLORS } from "@/components/story";
 import type {
   DailyAnswerDraft,
   DailyQuestion,
@@ -20,6 +21,25 @@ interface Props {
   draft?: DailyAnswerDraft;
   disabled?: boolean;
   onDraftChange: (next: DailyAnswerDraft) => void;
+}
+
+// Tab-Akzent: Antworten/Fragen-Tab ist Brand Blue. Selected-Option nutzt diesen Akzent.
+const ACCENT = STORY_COLORS.antworten; // #4A5699
+const optionBaseClass =
+  "flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left transition disabled:opacity-60";
+
+function optionClasses(active: boolean) {
+  return active
+    ? `${optionBaseClass} text-[#FAFAFA]`
+    : `${optionBaseClass} text-[#FAFAFA] hover:bg-[#1F1F1F]`;
+}
+
+function optionStyle(active: boolean): React.CSSProperties {
+  return {
+    backgroundColor: active ? `${ACCENT}33` : "#161616",
+    borderColor: active ? ACCENT : "#2C2C2E",
+    fontWeight: active ? 600 : 500,
+  };
 }
 
 export function QuestionInput({ question, draft, disabled, onDraftChange }: Props) {
@@ -119,14 +139,11 @@ function SingleChoiceInput({
                 selectedUserId: candidate.userId,
               })
             }
-            className={`flex min-h-12 items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition ${
-              active
-                ? "border-daily-primary bg-daily-soft/80 text-sand-950 shadow-card-flat"
-                : "border-slate-200 bg-white text-sand-800 hover:border-daily-primary/45"
-            } disabled:opacity-60`}
+            className={optionClasses(active)}
+            style={optionStyle(active)}
           >
-            <AvatarCircle member={candidate} size="md" />
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold leading-snug">
+            <AvatarCircle member={candidate} size="sm" />
+            <span className="min-w-0 flex-1 truncate text-[14px] leading-snug">
               {candidate.displayName}
             </span>
             <ChoiceMark active={active} />
@@ -152,11 +169,8 @@ function MultiChoiceInput({
 
   const toggle = (userId: string) => {
     const next = new Set(selected);
-    if (next.has(userId)) {
-      next.delete(userId);
-    } else {
-      next.add(userId);
-    }
+    if (next.has(userId)) next.delete(userId);
+    else next.add(userId);
     onDraftChange({
       type: "multi_choice",
       questionId: question.questionId,
@@ -166,10 +180,18 @@ function MultiChoiceInput({
 
   return (
     <div className="space-y-2">
-      <div className="flex items-center justify-between rounded-2xl bg-sand-50 px-3 py-2 text-xs text-sand-500 ring-1 ring-sand-200">
-        <span className="font-medium">Mehrfachauswahl möglich</span>
-        <span className="font-semibold tabular-nums text-sand-800">
-          {selected.size} gewählt
+      <div
+        className="flex items-center justify-between rounded-xl px-3 py-1.5 text-[11px]"
+        style={{
+          backgroundColor: "#0E0E0E",
+          color: "#A8A8A8",
+          fontFamily: "var(--font-mono)",
+          letterSpacing: "0.04em",
+        }}
+      >
+        <span className="uppercase tracking-[0.18em]">MEHRFACHAUSWAHL</span>
+        <span style={{ color: "#FAFAFA", fontWeight: 600 }}>
+          {selected.size} GEWÄHLT
         </span>
       </div>
       <div className="grid gap-1.5">
@@ -182,14 +204,11 @@ function MultiChoiceInput({
               disabled={disabled}
               aria-pressed={active}
               onClick={() => toggle(candidate.userId)}
-              className={`flex min-h-12 items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition ${
-                active
-                  ? "border-daily-primary bg-daily-soft/80 text-sand-950 shadow-card-flat"
-                  : "border-slate-200 bg-white text-sand-800 hover:border-daily-primary/45"
-              } disabled:opacity-60`}
+              className={optionClasses(active)}
+              style={optionStyle(active)}
             >
-              <AvatarCircle member={candidate} size="md" />
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold leading-snug">
+              <AvatarCircle member={candidate} size="sm" />
+              <span className="min-w-0 flex-1 truncate text-[14px] leading-snug">
                 {candidate.displayName}
               </span>
               <ChoiceMark active={active} />
@@ -267,14 +286,11 @@ function Duel1v1Input({
                 selectedSide: side,
               })
             }
-            className={`flex min-h-20 items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition ${
-              active
-                ? "border-daily-primary bg-daily-soft/80 shadow-card-flat"
-                : "border-slate-200 bg-white hover:border-daily-primary/45"
-            } disabled:opacity-60`}
+            className={optionClasses(active)}
+            style={optionStyle(active)}
           >
-            <AvatarCircle member={member} size="md" />
-            <span className="min-w-0 flex-1 truncate text-sm font-semibold text-sand-900">
+            <AvatarCircle member={member} size="sm" />
+            <span className="min-w-0 flex-1 truncate text-[14px] leading-snug">
               {member.displayName}
             </span>
             <ChoiceMark active={active} />
@@ -321,22 +337,22 @@ function Duel2v2Input({
                 selectedTeam: team.key,
               })
             }
-            className={`flex min-h-24 items-center gap-3 rounded-2xl border px-3.5 py-3 text-left transition ${
-              active
-                ? "border-daily-primary bg-daily-soft/80 shadow-card-flat"
-                : "border-slate-200 bg-white hover:border-daily-primary/45"
-            } disabled:opacity-60`}
+            className={optionClasses(active)}
+            style={optionStyle(active)}
           >
             <div className="flex shrink-0 items-center gap-1.5">
               {team.members.map((m) => (
-                <AvatarCircle key={m.userId} member={m} size="sm" />
+                <AvatarCircle key={m.userId} member={m} size="xs" />
               ))}
             </div>
             <span className="min-w-0 flex-1">
-              <span className="block text-xs font-semibold uppercase tracking-wider text-sand-500">
+              <span
+                className="block text-[10px] uppercase tracking-[0.18em]"
+                style={{ color: "#6E6E73", fontFamily: "var(--font-mono)" }}
+              >
                 {team.label}
               </span>
-              <span className="mt-0.5 block truncate text-sm font-semibold text-sand-900">
+              <span className="mt-0.5 block truncate text-[14px] leading-snug">
                 {team.members.map((m) => m.displayName).join(" & ")}
               </span>
             </span>
@@ -412,16 +428,19 @@ function EitherOrInput({
                 selectedOptionIndex: idx,
               })
             }
-            className={`flex min-h-11 w-full items-center gap-3 rounded-2xl border px-3 py-2.5 text-left transition ${
-              active
-                ? "border-daily-primary bg-daily-soft/80 text-sand-950 shadow-card-flat"
-                : "border-slate-200 bg-white text-sand-800 hover:border-daily-primary/45"
-            } disabled:opacity-60`}
+            className={optionClasses(active)}
+            style={optionStyle(active)}
           >
-            <span className="inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-sand-100 text-xs font-bold text-sand-600">
+            <span
+              className="inline-flex size-7 shrink-0 items-center justify-center rounded-full text-[11px] font-bold"
+              style={{
+                backgroundColor: active ? ACCENT : "#0E0E0E",
+                color: active ? "#FFFFFF" : "#A8A8A8",
+              }}
+            >
               {String.fromCharCode(65 + idx)}
             </span>
-            <span className="min-w-0 flex-1 text-sm font-semibold leading-snug">
+            <span className="min-w-0 flex-1 text-[14px] leading-snug">
               {label}
             </span>
             <ChoiceMark active={active} />
@@ -436,11 +455,12 @@ function ChoiceMark({ active }: { active: boolean }) {
   return (
     <span
       aria-hidden
-      className={`inline-flex size-6 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold transition ${
-        active
-          ? "border-daily-text bg-daily-text text-white"
-          : "border-slate-200 bg-white text-transparent"
-      }`}
+      className="inline-flex size-5 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold transition"
+      style={{
+        backgroundColor: active ? ACCENT : "transparent",
+        borderColor: active ? ACCENT : "#2C2C2E",
+        color: active ? "#FFFFFF" : "transparent",
+      }}
     >
       ✓
     </span>

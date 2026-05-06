@@ -17,10 +17,17 @@ import { SkeletonCard } from "@/components/ui/skeleton";
 import { useAuth } from "@/lib/auth/auth-context";
 import type { ProfileViewState } from "@/lib/types/frontend";
 
+const PROFILE_ACCENT = "#D860B5";
+
 export function ProfileScreen({ state }: { state: ProfileViewState }) {
   const { logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [activeEditor, setActiveEditor] = useState<"name" | "photo" | null>(null);
+  const toggleEditing = () => {
+    const next = !isEditing;
+    setIsEditing(next);
+    setActiveEditor(next ? "name" : null);
+  };
 
   if (state.status === "loading") {
     return (
@@ -53,7 +60,7 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
   }
 
   return (
-    <div className="space-y-5">
+    <div className="min-h-dvh space-y-5 bg-[#000000] text-[#FAFAFA]">
       <ScreenHeader
         eyebrow={state.isSelf ? "Mein Bereich" : "Mitglied"}
         title={state.isSelf ? "Profil" : state.user.displayName}
@@ -69,21 +76,54 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
           user={state.user}
           isSelf={state.isSelf}
           isEditing={isEditing}
-          onToggleEditing={() => {
-            setIsEditing((prev) => {
-              const next = !prev;
-              if (!next) {
-                setActiveEditor(null);
-              }
-              return next;
-            });
-          }}
+          onToggleEditing={toggleEditing}
           onEditName={() => setActiveEditor("name")}
           onEditPhoto={() => setActiveEditor("photo")}
         />
       ) : (
         <ProfileHeader user={state.user} isSelf={state.isSelf} />
       )}
+      {state.isSelf ? (
+        <button
+          type="button"
+          className="flex min-h-12 w-full items-center justify-center rounded-2xl border text-sm font-semibold transition active:translate-y-px"
+          style={{
+            backgroundColor: isEditing ? "#241320" : "#161616",
+            borderColor: isEditing ? PROFILE_ACCENT : "#2C2C2E",
+            color: isEditing ? "#FAFAFA" : PROFILE_ACCENT,
+          }}
+          aria-expanded={isEditing}
+          onClick={toggleEditing}
+        >
+          {isEditing ? "Bearbeiten beenden" : "Profil bearbeiten"}
+        </button>
+      ) : null}
+      {state.isSelf && isEditing ? (
+        <div className="grid grid-cols-2 gap-2 rounded-2xl border border-[#2C2C2E] bg-[#161616] p-1">
+          <button
+            type="button"
+            className="min-h-10 rounded-xl text-sm font-semibold transition"
+            style={{
+              backgroundColor: activeEditor === "name" ? PROFILE_ACCENT : "transparent",
+              color: activeEditor === "name" ? "#FFFFFF" : "#A8A8A8",
+            }}
+            onClick={() => setActiveEditor("name")}
+          >
+            Name
+          </button>
+          <button
+            type="button"
+            className="min-h-10 rounded-xl text-sm font-semibold transition"
+            style={{
+              backgroundColor: activeEditor === "photo" ? PROFILE_ACCENT : "transparent",
+              color: activeEditor === "photo" ? "#FFFFFF" : "#A8A8A8",
+            }}
+            onClick={() => setActiveEditor("photo")}
+          >
+            Bild
+          </button>
+        </div>
+      ) : null}
       {state.isSelf && isEditing && activeEditor === "name" ? (
         <ProfileNameEditor key={`${state.user.userId}:${state.user.displayName}`} user={state.user} />
       ) : null}
@@ -97,7 +137,10 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
 
       {state.isSelf ? (
         <section className="space-y-3">
-          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-[0.18em] text-brand-primary">
+          <h2
+            className="px-1 text-[11px] font-semibold uppercase tracking-[0.18em]"
+            style={{ color: PROFILE_ACCENT }}
+          >
             Meine letzten Dailys
           </h2>
           <DailyHistoryList entries={state.dailyHistory} />
@@ -105,7 +148,10 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
       ) : null}
 
       <section className="space-y-3">
-        <h2 className="px-1 text-sm font-semibold uppercase tracking-[0.14em] text-brand-primary">
+        <h2
+          className="px-1 text-sm font-semibold uppercase tracking-[0.14em]"
+          style={{ color: PROFILE_ACCENT }}
+        >
           Mitglieder
         </h2>
         <MemberRail members={state.members} activeUserId={state.user.userId} />
@@ -126,7 +172,8 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
           <button
             type="button"
             onClick={() => logout()}
-            className="mx-auto block min-h-10 text-sm font-medium text-brand-primary underline underline-offset-2 hover:text-profile-strong"
+            className="mx-auto block min-h-10 text-sm font-medium underline underline-offset-2 transition hover:opacity-80"
+            style={{ color: PROFILE_ACCENT }}
           >
             Abmelden
           </button>
