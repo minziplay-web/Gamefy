@@ -227,7 +227,7 @@ function DailyAnswersStoryReady({
           next.delete(cardKey);
           return next;
         });
-      }, 700);
+      }, 1200);
     };
 
     if (onSubmitAnswer && currentCard) {
