@@ -55,7 +55,7 @@ export function NotificationBell() {
     <>
       <button
         type="button"
-        className="fixed right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-full shadow-sm backdrop-blur ring-1"
+        className="relative flex h-8 w-8 items-center justify-center rounded-full shadow-sm backdrop-blur ring-1"
         style={{
           backgroundColor: "rgba(22,22,22,0.88)",
           color: DARK.text,
@@ -178,11 +178,11 @@ function NotificationPanel({
           ) : null}
 
           {state.status === "ready" && state.items.length > 0 ? (
-            <ol className="divide-y" style={{ borderColor: DARK.hair }}>
+            <ol className="space-y-1">
               {state.items.map((item) => {
                 const actor = state.users.get(item.actorUserId);
                 return (
-                  <li key={item.id} className="flex gap-3 py-3">
+                  <li key={item.id} className="flex gap-3 rounded-xl py-2.5">
                     <AvatarCircle
                       member={{
                         userId: item.actorUserId,
@@ -437,7 +437,7 @@ function lastSeenKey(userId: string) {
 
 function BellIcon() {
   return (
-    <svg viewBox="0 0 24 24" width={20} height={20} aria-hidden>
+    <svg viewBox="0 0 24 24" width={18} height={18} aria-hidden>
       <path
         d="M5.5 17.5h13M7.2 17.5V11a4.8 4.8 0 0 1 9.6 0v6.5M10.4 20.5a1.8 1.8 0 0 0 3.2 0"
         fill="none"

@@ -305,10 +305,10 @@ function CommentTextarea({
       rows={rows}
       placeholder={placeholder}
       disabled={disabled}
-      className="w-full resize-none rounded-xl border px-3 py-2 text-sm outline-none transition placeholder:text-[#6E6E73] disabled:opacity-60"
+      className="min-h-11 w-full resize-none rounded-xl border px-3.5 py-2.5 text-sm outline-none transition placeholder:text-[#6E6E73] disabled:opacity-60"
       style={{
         borderColor: DARK.hairStrong,
-        backgroundColor: DARK.elevated,
+        backgroundColor: DARK.hair,
         color: DARK.text,
       }}
       onChange={(event) => onChange(event.target.value)}
@@ -435,16 +435,16 @@ function CommentBottomSheet({
             onDragEnd={handleDragEnd}
           >
             <header
-              className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b px-4 pb-3 pt-2"
+              className="sticky top-0 z-10 flex shrink-0 items-center justify-between border-b px-4 pb-2 pt-1"
               style={{ borderColor: DARK.hair, backgroundColor: DARK.elevated }}
             >
               <button
                 type="button"
-                className="flex flex-1 cursor-grab touch-none justify-center py-2 active:cursor-grabbing"
+                className="flex flex-1 cursor-grab touch-none justify-center py-1.5 active:cursor-grabbing"
                 aria-label="Kommentare nach unten ziehen zum Schließen"
                 onPointerDown={(event) => dragControls.start(event)}
               >
-                <span className="h-1 w-11 rounded-full" style={{ backgroundColor: DARK.hairStrong }} />
+                <span className="h-0.5 w-8 rounded-full" style={{ backgroundColor: DARK.hairStrong }} />
               </button>
               <button
                 type="button"
@@ -589,14 +589,14 @@ function CommentBottomSheet({
             </div>
 
             <footer
-              className="shrink-0 border-t px-4 py-2"
+              className="shrink-0 border-t px-4 py-3"
               style={{
                 borderColor: DARK.hair,
                 backgroundColor: DARK.elevated,
                 paddingBottom: `calc(0.5rem + env(safe-area-inset-bottom) + var(--sheet-keyboard-offset))`,
               }}
             >
-              <div className="flex min-h-[52px] items-end gap-2">
+              <div className="flex min-h-[52px] items-center gap-3">
                 {currentUser ? (
                   <AvatarCircle
                     member={{
@@ -620,7 +620,7 @@ function CommentBottomSheet({
                 </div>
                 <button
                   type="button"
-                  className="mb-0.5 inline-flex size-10 shrink-0 items-center justify-center rounded-full text-white transition disabled:opacity-35"
+                  className="inline-flex size-10 shrink-0 items-center justify-center rounded-full text-white transition disabled:opacity-35"
                   style={{ backgroundColor: STORY_COLORS.daily }}
                   disabled={!currentUser || submitting || !text.trim()}
                   aria-label="Kommentar senden"
