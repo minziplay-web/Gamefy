@@ -29,17 +29,17 @@ export function ProfileHeader({
     <section className="relative overflow-hidden radius-card border border-[#2C2C2E] bg-[#161616] p-6 text-center shadow-[0_18px_42px_-28px_rgba(0,0,0,0.75)]">
       <div
         aria-hidden
-        className="absolute inset-x-0 top-0 h-24 bg-linear-to-br from-[#D860B5] via-[#9F3B83] to-[#161616]"
+        className="pointer-events-none absolute inset-x-0 top-0 h-24 bg-linear-to-br from-[#D860B5] via-[#9F3B83] to-[#161616]"
       />
       <div
         aria-hidden
-        className="absolute inset-x-0 top-14 h-20 rounded-[100%] bg-[#161616]"
+        className="pointer-events-none absolute inset-x-0 top-14 h-20 rounded-[100%] bg-[#161616]"
       />
       {isSelf ? (
         <button
           type="button"
           onClick={onToggleEditing}
-          className="absolute right-3 top-3 z-10 inline-flex size-12 items-center justify-center rounded-full border-2 border-[#161616] text-lg font-bold text-white shadow-card-raised transition hover:scale-105 active:scale-95"
+          className="absolute right-3 top-3 z-20 inline-flex size-12 items-center justify-center rounded-full border-2 border-[#161616] text-lg font-bold text-white shadow-card-raised transition hover:scale-105 active:scale-95"
           style={{ backgroundColor: PROFILE_ACCENT }}
           aria-label={isEditing ? "Bearbeiten beenden" : "Profil bearbeiten"}
         >

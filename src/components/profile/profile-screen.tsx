@@ -23,6 +23,11 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
   const { logout } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [activeEditor, setActiveEditor] = useState<"name" | "photo" | null>(null);
+  const toggleEditing = () => {
+    const next = !isEditing;
+    setIsEditing(next);
+    setActiveEditor(next ? "name" : null);
+  };
 
   if (state.status === "loading") {
     return (
@@ -71,23 +76,28 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
           user={state.user}
           isSelf={state.isSelf}
           isEditing={isEditing}
-          onToggleEditing={() => {
-            setIsEditing((prev) => {
-              const next = !prev;
-              if (!next) {
-                setActiveEditor(null);
-              } else {
-                setActiveEditor("name");
-              }
-              return next;
-            });
-          }}
+          onToggleEditing={toggleEditing}
           onEditName={() => setActiveEditor("name")}
           onEditPhoto={() => setActiveEditor("photo")}
         />
       ) : (
         <ProfileHeader user={state.user} isSelf={state.isSelf} />
       )}
+      {state.isSelf ? (
+        <button
+          type="button"
+          className="flex min-h-12 w-full items-center justify-center rounded-2xl border text-sm font-semibold transition active:translate-y-px"
+          style={{
+            backgroundColor: isEditing ? "#241320" : "#161616",
+            borderColor: isEditing ? PROFILE_ACCENT : "#2C2C2E",
+            color: isEditing ? "#FAFAFA" : PROFILE_ACCENT,
+          }}
+          aria-expanded={isEditing}
+          onClick={toggleEditing}
+        >
+          {isEditing ? "Bearbeiten beenden" : "Profil bearbeiten"}
+        </button>
+      ) : null}
       {state.isSelf && isEditing ? (
         <div className="grid grid-cols-2 gap-2 rounded-2xl border border-[#2C2C2E] bg-[#161616] p-1">
           <button
