@@ -1,8 +1,8 @@
 "use client";
 
 import { AvatarCircle } from "@/components/ui/avatar";
-import { MemeImage } from "@/components/daily/meme-image";
 import {
+  MemeCaptionCarousel,
   RevealBarChart,
   STORY_COLORS,
   type RevealOption,
@@ -364,7 +364,7 @@ function OpenTextBody({ result }: { result: OpenTextResult }) {
 }
 
 // ---------------------------------------------------------
-// Meme-Caption → Bild oben + Caption-Liste mit Vote-Counts
+// Meme-Caption → Caption-Carousel (jeder Caption ein Insta-Post)
 // ---------------------------------------------------------
 
 function MemeCaptionBody({
@@ -374,102 +374,5 @@ function MemeCaptionBody({
   result: MemeCaptionResult;
   accentColor: string;
 }) {
-  const ranked = [...result.entries]
-    .map((entry, originalIdx) => ({
-      entry,
-      originalIdx,
-      count: entry.thumbsUpCount ?? 0,
-    }))
-    .sort(
-      (a, b) =>
-        b.count - a.count
-        || a.originalIdx - b.originalIdx,
-    );
-
-  return (
-    <div className="flex flex-col gap-4">
-      <div
-        className="overflow-hidden rounded-xl"
-        style={{ backgroundColor: STORY_COLORS.hairSoft }}
-      >
-        <MemeImage
-          imagePath={result.imagePath}
-          caption={ranked[0]?.entry.text}
-          frame="standalone"
-        />
-      </div>
-
-      {ranked.length === 0 ? (
-        <p
-          className="text-[13px]"
-          style={{ color: STORY_COLORS.ink50 }}
-        >
-          Noch keine Bildunterschriften.
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {ranked.map(({ entry, count }, idx) => {
-            const isWinner = idx === 0 && count > 0;
-            return (
-              <li
-                key={`${idx}-${entry.author?.userId ?? "anon"}`}
-                className="flex items-start gap-3 border-b pb-3 last:border-b-0 last:pb-0"
-                style={{ borderColor: STORY_COLORS.hairSoft }}
-              >
-                {entry.author ? (
-                  <AvatarCircle member={entry.author} size="sm" />
-                ) : (
-                  <div
-                    className="size-8 shrink-0 rounded-full"
-                    style={{ backgroundColor: STORY_COLORS.hairSoft }}
-                  />
-                )}
-                <div className="min-w-0 flex-1">
-                  <div className="flex items-baseline gap-2">
-                    <span
-                      className="text-[13px]"
-                      style={{
-                        color: STORY_COLORS.ink,
-                        fontWeight: isWinner ? 600 : 500,
-                      }}
-                    >
-                      {entry.author?.displayName ?? "Unbekannt"}
-                    </span>
-                    {isWinner ? (
-                      <span
-                        className="text-[10px] tabular-nums"
-                        style={{
-                          color: accentColor,
-                          fontFamily: "var(--font-mono)",
-                          letterSpacing: "0.14em",
-                        }}
-                      >
-                        TOP
-                      </span>
-                    ) : null}
-                  </div>
-                  <p
-                    className="mt-1 text-[14px] leading-snug"
-                    style={{ color: STORY_COLORS.ink70 }}
-                  >
-                    {entry.text}
-                  </p>
-                </div>
-                <span
-                  className="shrink-0 text-[13px] tabular-nums"
-                  style={{
-                    color: isWinner ? accentColor : STORY_COLORS.ink50,
-                    fontFamily: "var(--font-mono)",
-                    fontWeight: 500,
-                  }}
-                >
-                  {count}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
-  );
+  return <MemeCaptionCarousel result={result} accentColor={accentColor} />;
 }

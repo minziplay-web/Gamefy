@@ -69,7 +69,7 @@ export default function PastDailyOverviewPage({
     return (
       <div className="space-y-4">
         <PastDailyHeader dateKey={dateKey} dateLabel={dateLabel} />
-        <p className="rounded-2xl bg-white p-6 text-center text-sm text-sand-600 ring-1 ring-sand-100">
+        <p className="rounded-2xl bg-[#161616] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
           Für diesen Tag wurde kein Run gefunden.
         </p>
       </div>
@@ -80,7 +80,7 @@ export default function PastDailyOverviewPage({
     return (
       <div className="space-y-4">
         <PastDailyHeader dateKey={dateKey} dateLabel={dateLabel} />
-        <p className="rounded-2xl bg-white p-6 text-center text-sm text-sand-600 ring-1 ring-sand-100">
+        <p className="rounded-2xl bg-[#161616] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
           {state.reason}
         </p>
       </div>
@@ -101,8 +101,8 @@ export default function PastDailyOverviewPage({
     return (
       <div className="space-y-4">
         <PastDailyHeader dateKey={dateKey} dateLabel={dateLabel} />
-        <div className="rounded-2xl bg-white p-6 text-center ring-1 ring-sand-100">
-          <p className="text-sm text-sand-700">
+        <div className="rounded-2xl bg-[#161616] p-6 text-center ring-1 ring-[#1F1F1F]">
+          <p className="text-sm text-[#A8A8A8]">
             Du hast dieses Daily noch nicht fertig beantwortet.
           </p>
           <Link
@@ -120,7 +120,7 @@ export default function PastDailyOverviewPage({
     return (
       <div className="space-y-4">
         <PastDailyHeader dateKey={dateKey} dateLabel={dateLabel} />
-        <p className="rounded-2xl bg-white p-6 text-center text-sm text-sand-600 ring-1 ring-sand-100">
+        <p className="rounded-2xl bg-[#161616] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
           Dieser Tag lässt sich gerade nicht mehr vollständig anzeigen.
         </p>
       </div>
@@ -168,18 +168,18 @@ function QuestionList({
   cards: RevealedCard[];
 }) {
   return (
-    <ul className="overflow-hidden rounded-2xl bg-white ring-1 ring-sand-100">
+    <ul className="overflow-hidden rounded-2xl bg-[#161616] ring-1 ring-[#1F1F1F]">
       {cards.map((card, idx) => {
         const isLast = idx === cards.length - 1;
         const answerers = extractAnswerers(card.result);
         return (
           <li
             key={`${dateKey}-${card.question.questionId}`}
-            className={isLast ? "" : "border-b border-sand-100"}
+            className={isLast ? "" : "border-b border-[#1F1F1F]"}
           >
             <Link
               href={`/past-dailies/${dateKey}/${idx}`}
-              className="flex items-start gap-4 px-4 py-3.5 transition hover:bg-sand-50"
+              className="flex items-start gap-4 px-4 py-3.5 transition hover:bg-[#0E0E0E]"
             >
               <span
                 className="shrink-0 leading-none tabular-nums"
@@ -298,7 +298,7 @@ function RowMeta({
         </span>
       ) : null}
 
-      <span aria-hidden className="block h-3 w-px bg-sand-100" />
+      <span aria-hidden className="block h-3 w-px bg-[#1F1F1F]" />
 
       <span
         className="inline-flex items-center gap-1 text-[11px] tabular-nums"

@@ -1,18 +1,26 @@
 import type { Category } from "@/lib/types/frontend";
 
 // SVG-derived brand palette — alle UI-Akzente kommen aus diesem Set
+// Dark-Mode-Tokens (User-Decision 2026-05-06): pure-black canvas, brand colors
+// als Akzente, helle Text- und dunkle Hairline-Werte.
 export const STORY_COLORS = {
+  // Brand accents — bleiben unverändert für Light/Dark
   daily: "#F39A2B", // home / today reveal
   antworten: "#C45FA0", // answer-mode tab
   archiv: "#E5594F", // archive
   profil: "#4A5699", // profile
   yellow: "#F0D043", // accent (meme winner, highlights)
   blueLight: "#6277BA", // lighter brand
-  ink: "#172031", // main text on light bg
-  ink70: "#37465A",
-  ink50: "#64768D",
-  hair: "#DBE4EF",
-  hairSoft: "#EEF2F7",
+  // Dark-mode neutrals — semantisch invertiert vs. ursprüngliche Light-Mode-Werte
+  ink: "#FAFAFA", // primary text (war #172031)
+  ink70: "#A8A8A8", // muted text (war #37465A)
+  ink50: "#6E6E73", // dim text (war #64768D)
+  hair: "#2C2C2E", // stronger divider (war #DBE4EF)
+  hairSoft: "#1F1F1F", // subtle divider / elevated bg (war #EEF2F7)
+  // Surface-Tokens (neu)
+  bg: "#000000", // page bg
+  bgElev: "#161616", // cards/sheets
+  bgSubtle: "#0E0E0E", // very subtle elevation
 } as const;
 
 // Category → primary color used as eyebrow accent in StoryShell

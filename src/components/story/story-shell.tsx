@@ -41,7 +41,8 @@ export function StoryShell({
 
   return (
     <article
-      className={`flex min-h-[600px] flex-col rounded-2xl bg-white px-5 py-5 shadow-sm ring-1 ring-sand-100 ${className}`}
+      className={`flex min-h-[600px] flex-col rounded-2xl px-5 py-5 ${className}`}
+      style={{ backgroundColor: STORY_COLORS.bgElev }}
     >
       {/* eyebrow + position */}
       <header className="flex items-center justify-between">
@@ -81,7 +82,12 @@ export function StoryShell({
 
       {/* footer slot */}
       {footer ? (
-        <footer className="mt-6 border-t border-sand-100 pt-4">{footer}</footer>
+        <footer
+          className="mt-6 pt-4"
+          style={{ borderTop: `1px solid ${STORY_COLORS.hairSoft}` }}
+        >
+          {footer}
+        </footer>
       ) : null}
     </article>
   );

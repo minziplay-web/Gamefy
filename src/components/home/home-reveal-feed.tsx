@@ -311,7 +311,8 @@ function NoDailySlide({ displayName }: { displayName: string }) {
         </h1>
       </header>
       <article
-        className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-2xl bg-white px-6 py-8 text-center shadow-sm ring-1 ring-sand-100"
+        className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-2xl px-6 py-8 text-center"
+        style={{ backgroundColor: "#161616" }}
       >
         <span
           aria-hidden

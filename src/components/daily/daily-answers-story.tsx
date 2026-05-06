@@ -591,7 +591,7 @@ function DailyLoading() {
           Antworten
         </h1>
       </header>
-      <div className="flex min-h-[420px] items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-sand-100">
+      <div className="flex min-h-[420px] items-center justify-center rounded-2xl bg-[#161616]">
         <ThreeBodyLoader size={48} label="Daily wird geladen" />
       </div>
     </div>
@@ -636,7 +636,7 @@ function DailyMessage({
           {title}
         </h1>
       </header>
-      <article className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-2xl bg-white px-6 py-8 text-center shadow-sm ring-1 ring-sand-100">
+      <article className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-2xl bg-[#161616] px-6 py-8 text-center">
         <span
           aria-hidden
           className="inline-flex size-10 items-center justify-center rounded-full text-base"

@@ -4,8 +4,15 @@
   --font-sans: var(--font-sans);
   --font-mono: var(--font-mono);
 
-  --color-page: #fbfdff;
+  --color-page: #000000;
   --color-cream: #ffffff;
+  --color-elev: #161616;
+  --color-elev-2: #0E0E0E;
+  --color-hair: #1F1F1F;
+  --color-hair-strong: #2C2C2E;
+  --color-text: #FAFAFA;
+  --color-text-muted: #A8A8A8;
+  --color-text-dim: #6E6E73;
   --color-sand-50: #f8fafc;
   --color-sand-100: #eef2f7;
   --color-sand-200: #dbe4ef;
@@ -66,7 +73,7 @@
 }
 
 :root {
-  color-scheme: light;
+  color-scheme: dark;
   --nav-height: 4.5rem;
 }
 
@@ -75,11 +82,7 @@
 }
 
 html {
-  background:
-    radial-gradient(circle at 92% 10%, rgba(98, 119, 186, 0.09), transparent 24%),
-    radial-gradient(circle at 8% 28%, rgba(196, 95, 160, 0.025), transparent 24%),
-    radial-gradient(circle at 82% 88%, rgba(96, 165, 250, 0.1), transparent 26%),
-    linear-gradient(180deg, #ffffff 0%, #fcfdff 56%, #f6f8fc 100%);
+  background: #000000;
   background-attachment: fixed;
   min-height: 100%;
 }

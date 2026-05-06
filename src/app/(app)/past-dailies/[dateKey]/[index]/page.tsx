@@ -7,11 +7,11 @@ import { motion, type PanInfo } from "motion/react";
 
 import {
   CATEGORY_COLOR,
+  MemeCaptionCarousel,
   RevealBarChart,
   STORY_COLORS,
   StoryShell,
 } from "@/components/story";
-import { MemeImage } from "@/components/daily/meme-image";
 import { InlineCommentsSection } from "@/components/story/inline-comments";
 import { AvatarCircle } from "@/components/ui/avatar";
 import { ErrorBanner } from "@/components/ui/error-banner";
@@ -88,7 +88,7 @@ export default function PastDailyStoryPage({
   if (state.status === "no_run" || state.status === "run_unplayable") {
     return (
       <PageFrame dateKey={dateKey}>
-        <p className="rounded-2xl bg-white p-6 text-center text-sm text-sand-600 ring-1 ring-sand-100">
+        <p className="rounded-2xl bg-[#161616] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
           Diese Frage ist gerade nicht verfügbar.
         </p>
       </PageFrame>
@@ -98,7 +98,7 @@ export default function PastDailyStoryPage({
   if (revealedCards.length === 0) {
     return (
       <PageFrame dateKey={dateKey}>
-        <p className="rounded-2xl bg-white p-6 text-center text-sm text-sand-600 ring-1 ring-sand-100">
+        <p className="rounded-2xl bg-[#161616] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
           Für diesen Tag liegen noch keine Reveal-Daten vor.
         </p>
       </PageFrame>
@@ -224,7 +224,7 @@ function PagerControls({
         type="button"
         onClick={() => onJump(index - 1)}
         disabled={index === 0}
-        className="inline-flex size-9 items-center justify-center rounded-full ring-1 ring-sand-100 text-sand-600 transition hover:bg-sand-50 disabled:opacity-40"
+        className="inline-flex size-9 items-center justify-center rounded-full ring-1 ring-[#1F1F1F] text-[#A8A8A8] transition hover:bg-[#0E0E0E] disabled:opacity-40"
         aria-label="Vorherige Frage"
       >
         ‹
@@ -252,7 +252,7 @@ function PagerControls({
         type="button"
         onClick={() => onJump(index + 1)}
         disabled={index === total - 1}
-        className="inline-flex size-9 items-center justify-center rounded-full ring-1 ring-sand-100 text-sand-600 transition hover:bg-sand-50 disabled:opacity-40"
+        className="inline-flex size-9 items-center justify-center rounded-full ring-1 ring-[#1F1F1F] text-[#A8A8A8] transition hover:bg-[#0E0E0E] disabled:opacity-40"
         aria-label="Nächste Frage"
       >
         ›
@@ -315,7 +315,7 @@ function OpenTextRevealBody({ result }: { result: OpenTextResult }) {
               className="mt-0.5 size-8 shrink-0"
             />
           ) : (
-            <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-sand-100 text-[11px] text-sand-500">
+            <span className="mt-0.5 inline-flex size-8 shrink-0 items-center justify-center rounded-full bg-[#1F1F1F] text-[11px] text-[#6E6E73]">
               ?
             </span>
           )}
@@ -340,86 +340,11 @@ function OpenTextRevealBody({ result }: { result: OpenTextResult }) {
 }
 
 function MemeCaptionRevealBody({ result }: { result: MemeCaptionResult }) {
-  const ranked = [...result.entries]
-    .map((entry, originalIdx) => ({
-      entry,
-      originalIdx,
-      count: entry.thumbsUpCount ?? 0,
-    }))
-    .sort((a, b) =>
-      b.count !== a.count ? b.count - a.count : a.originalIdx - b.originalIdx,
-    );
-
   return (
-    <div className="flex flex-col gap-4">
-      <MemeImage imagePath={result.imagePath} />
-      {ranked.length === 0 ? (
-        <p className="text-[13px]" style={{ color: STORY_COLORS.ink50 }}>
-          Noch keine Captions.
-        </p>
-      ) : (
-        <ul className="flex flex-col gap-3">
-          {ranked.map(({ entry, originalIdx, count }, position) => {
-            const isWinner = position === 0 && count > 0;
-            const accent = isWinner
-              ? CATEGORY_COLOR.meme_it
-              : STORY_COLORS.ink50;
-            return (
-              <li
-                key={`${entry.author?.userId ?? "anon"}-${originalIdx}`}
-                className="flex items-start gap-3"
-              >
-                <span
-                  className="mt-1 inline-flex size-6 shrink-0 items-center justify-center rounded-full text-[11px] tabular-nums"
-                  style={{
-                    backgroundColor: STORY_COLORS.hairSoft,
-                    color: STORY_COLORS.ink70,
-                    fontFamily: "var(--font-mono)",
-                    fontWeight: 600,
-                  }}
-                  aria-hidden
-                >
-                  {position + 1}
-                </span>
-                {entry.author ? (
-                  <AvatarCircle
-                    member={entry.author}
-                    size="sm"
-                    className="mt-0.5 size-8 shrink-0"
-                  />
-                ) : null}
-                <div className="min-w-0 flex-1">
-                  <p
-                    className="text-[12px] font-semibold"
-                    style={{ color: STORY_COLORS.ink70 }}
-                  >
-                    {entry.author?.displayName ?? "Anonym"}
-                  </p>
-                  <p
-                    className="mt-0.5 text-[15px] leading-snug"
-                    style={{ color: STORY_COLORS.ink }}
-                  >
-                    {entry.text}
-                  </p>
-                </div>
-                <span
-                  className="ml-2 inline-flex shrink-0 items-center gap-1 text-[12px] tabular-nums"
-                  style={{
-                    color: accent,
-                    fontFamily: "var(--font-mono)",
-                    fontWeight: 600,
-                  }}
-                  aria-label={`${count} Stimmen`}
-                >
-                  <span aria-hidden>{isWinner ? "❤" : "♡"}</span>
-                  {count}
-                </span>
-              </li>
-            );
-          })}
-        </ul>
-      )}
-    </div>
+    <MemeCaptionCarousel
+      result={result}
+      accentColor={CATEGORY_COLOR.meme_it}
+    />
   );
 }
 

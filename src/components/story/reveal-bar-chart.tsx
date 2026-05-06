@@ -35,7 +35,12 @@ export function RevealBarChart({
   totalVoters: number;
   primaryColor?: string;
 }) {
-  if (options.length === 0 || totalVoters === 0) {
+  // Filter out 0-vote options — User-Decision 2026-05-06: nur tatsächlich
+  // gevotete Optionen werden im Reveal angezeigt, keine "leeren Reihen"
+  // mit allen Mitgliedern.
+  const withVotes = options.filter((opt) => opt.votes > 0);
+
+  if (withVotes.length === 0 || totalVoters === 0) {
     return (
       <p className="text-[13px] italic" style={{ color: STORY_COLORS.ink50 }}>
         Noch keine Stimmen.
@@ -44,7 +49,7 @@ export function RevealBarChart({
   }
 
   // Sort by votes desc, ties by label
-  const sorted = [...options].sort(
+  const sorted = [...withVotes].sort(
     (a, b) => b.votes - a.votes || a.label.localeCompare(b.label),
   );
 

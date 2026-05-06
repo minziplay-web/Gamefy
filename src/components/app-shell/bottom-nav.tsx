@@ -46,7 +46,7 @@ const PROFIL: Omit<Tab, "Icon"> = {
   match: (p) => p.startsWith("/profile"),
 };
 
-const IDLE = "#64768D"; // sand-500
+const IDLE = "#A8A8A8"; // muted text on dark bg
 
 export function BottomNav() {
   const pathname = usePathname() ?? "/";
@@ -55,7 +55,11 @@ export function BottomNav() {
 
   return (
     <nav
-      className="safe-area-bottom fixed inset-x-0 bottom-0 z-30 border-t border-sand-200 bg-white"
+      className="safe-area-bottom fixed inset-x-0 bottom-0 z-30"
+      style={{
+        backgroundColor: "#000000",
+        borderTop: "1px solid #1F1F1F",
+      }}
       aria-label="Hauptnavigation"
     >
       <ul className="mx-auto grid max-w-screen-sm grid-cols-4">

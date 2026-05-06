@@ -22,8 +22,8 @@ export function HomeScreen({ state }: { state: HomeViewState }) {
     return (
       <div className="space-y-4 pt-4">
         <div className="space-y-2 px-1">
-          <div className="h-3 w-32 animate-pulse rounded-full bg-sand-100" />
-          <div className="h-9 w-48 animate-pulse rounded-2xl bg-sand-100" />
+          <div className="h-3 w-32 animate-pulse rounded-full bg-[#1F1F1F]" />
+          <div className="h-9 w-48 animate-pulse rounded-2xl bg-[#1F1F1F]" />
         </div>
         <SkeletonCard />
       </div>
