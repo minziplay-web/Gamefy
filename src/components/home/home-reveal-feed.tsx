@@ -8,7 +8,6 @@ import { LockedRevealBody } from "@/components/home/locked-reveal-body";
 import { RevealBody } from "@/components/home/reveal-renderers";
 import { InlineCommentsSection } from "@/components/story/inline-comments";
 import {
-  CATEGORY_COLOR,
   STORY_COLORS,
   StoryShell,
 } from "@/components/story";
@@ -58,7 +57,8 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
 
   const safeIndex = Math.max(0, Math.min(index, total - 1));
   const current = slides[safeIndex];
-  const accent = CATEGORY_COLOR[current.category] ?? STORY_COLORS.daily;
+  // Page-Akzent = Tab-Farbe (Daily-Orange). Kategorie-Farben sind deprecated.
+  const accent = STORY_COLORS.daily;
   const answered = isAnsweredByMe(current.result, currentUserId);
 
   const goNext = () => {
@@ -173,9 +173,9 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
           >
             <StoryShell
               position={{ current: safeIndex + 1, total }}
-              category={current.category}
               categoryLabel={CATEGORY_LABELS[current.category]}
               questionText={current.questionText}
+              accentColor={accent}
               body={
                 answered ? (
                   <RevealBody result={current.result} accentColor={accent} />

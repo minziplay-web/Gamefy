@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 
-import { CATEGORY_COLOR, STORY_COLORS } from "@/components/story/constants";
+import { STORY_COLORS } from "@/components/story/constants";
 import type { Category } from "@/lib/types/frontend";
 
 /**
@@ -17,31 +17,39 @@ import type { Category } from "@/lib/types/frontend";
  *   3. Body-Slot — Type-spezifischer Renderer (Antwort-UI ODER Reveal)
  *   4. Footer-Slot — Submit-Button (Antworten-Mode) ODER Comments (Reveal-Mode)
  *
- * NICHT enthalten: Swipe-Navigation. Pages koordinieren das selbst (z.B. via
- * motion.div drag in einem stack-pattern).
+ * Akzentfarbe: page-spezifisch via `accentColor`-Prop. User-Decision 2026-05-06
+ * Round 3: alle Slides auf Daily-Page nutzen Daily-Orange, alle auf Antworten-
+ * Page Antworten-Blau, etc. — nicht random pro Kategorie.
+ *
+ * NICHT enthalten: Swipe-Navigation. Pages koordinieren das selbst.
  */
 export function StoryShell({
   position,
-  category,
+  category: _category,
   categoryLabel,
   questionText,
+  accentColor,
   body,
   footer,
   className = "",
 }: {
   position: { current: number; total: number };
-  category: Category;
+  /** @deprecated noch akzeptiert für Aufruferskompatibilität, wird aber nicht
+   *  mehr für Farb-Auswahl verwendet — das macht jetzt accentColor. */
+  category?: Category;
   categoryLabel: string;
   questionText: string;
+  /** Tab-Akzentfarbe (Daily/Antworten/Archiv/Profil). Default Daily-Orange. */
+  accentColor?: string;
   body: ReactNode;
   footer?: ReactNode;
   className?: string;
 }) {
-  const accent = CATEGORY_COLOR[category] ?? STORY_COLORS.daily;
+  const accent = accentColor ?? STORY_COLORS.daily;
 
   return (
     <article
-      className={`flex min-h-[600px] flex-col rounded-2xl px-5 py-5 ${className}`}
+      className={`flex min-h-[600px] flex-col overflow-hidden rounded-2xl px-5 py-5 ${className}`}
       style={{ backgroundColor: STORY_COLORS.bgElev }}
     >
       {/* eyebrow + position */}

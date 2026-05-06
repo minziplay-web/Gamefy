@@ -30,7 +30,7 @@ const TABS: Tab[] = [
   {
     href: "/daily",
     label: "Antworten",
-    color: "#F0D043", // yellow — User-Decision: kein Pink/Magenta
+    color: "#4A5699", // brand blue — Round 3 Update
     match: (p) => p === "/daily" || p.startsWith("/daily/"),
     Icon: ({ active }) => <PenNavIcon active={active} />,
   },
@@ -47,7 +47,7 @@ const TABS: Tab[] = [
 const PROFIL: Omit<Tab, "Icon"> = {
   href: "/profile",
   label: "Profil",
-  color: "#4A5699",
+  color: "#D860B5", // pink — Round 3 Update (User explicit)
   match: (p) => p.startsWith("/profile"),
 };
 

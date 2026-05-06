@@ -4,14 +4,18 @@ import type { Category } from "@/lib/types/frontend";
 // Dark-Mode-Tokens (User-Decision 2026-05-06): pure-black canvas, brand colors
 // als Akzente, helle Text- und dunkle Hairline-Werte.
 export const STORY_COLORS = {
-  // Brand accents — bleiben unverändert für Light/Dark
-  daily: "#F39A2B", // home / today reveal — sunny orange
-  antworten: "#F0D043", // answer-mode tab — yellow (User-Decision 2026-05-06: KEIN Pink/Magenta)
-  archiv: "#E5594F", // archive — coral
-  profil: "#4A5699", // profile — brand blue
-  yellow: "#F0D043", // accent legacy alias
-  blueLight: "#6277BA", // lighter brand
-  orangeWarm: "#FD9E22", // alt orange for accents
+  // Brand accents — User-Decision 2026-05-06 Round 3:
+  // Tab-Farben sind die kanonischen Page-Akzente. Per-Page wird die jeweilige
+  // Tab-Farbe in StoryShell + RevealBarChart propagiert (nicht mehr pro Frage
+  // random aus CATEGORY_COLOR durchgemischt).
+  daily: "#F39A2B", // Daily-Tab — sunny orange
+  antworten: "#4A5699", // Antworten-Tab — brand blue
+  archiv: "#E5594F", // Archiv-Tab — coral
+  profil: "#D860B5", // Profil-Tab — pink (vom User explicit für Profil-Tab erlaubt)
+  // Sekundär-Akzente
+  yellow: "#F0D043",
+  blueLight: "#6277BA",
+  orangeWarm: "#FD9E22",
   // Dark-mode neutrals — semantisch invertiert vs. ursprüngliche Light-Mode-Werte
   ink: "#FAFAFA", // primary text (war #172031)
   ink70: "#A8A8A8", // muted text (war #37465A)
@@ -24,8 +28,10 @@ export const STORY_COLORS = {
   bgSubtle: "#0E0E0E", // very subtle elevation
 } as const;
 
-// Category → primary color used as eyebrow accent in StoryShell.
-// User-Decision 2026-05-06: keine Pink/Magenta-Töne mehr.
+/** @deprecated User-Decision 2026-05-06 Round 3: Slide-Eyebrows folgen jetzt
+ *  der Tab-Farbe der Page (siehe STORY_COLORS.daily/antworten/archiv/profil),
+ *  nicht der Kategorie. Map noch da für legacy-Aufrufe und falls Kategorie-
+ *  Akzente nochmal kommen. */
 export const CATEGORY_COLOR: Record<Category, string> = {
   custom: STORY_COLORS.yellow,
   hot_takes: STORY_COLORS.archiv,

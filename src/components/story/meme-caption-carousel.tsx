@@ -100,19 +100,20 @@ export function MemeCaptionCarousel({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Slide-Container mit drag + AnimatePresence-Übergang */}
-      <div className="relative overflow-hidden">
+      {/* Slide-Container mit drag + AnimatePresence-Übergang. overflow-clip
+          verhindert dass das Slide rechts/links aus dem StoryShell rausläuft. */}
+      <div className="relative overflow-clip">
         <AnimatePresence mode="wait" custom={direction} initial={false}>
           <motion.div
             key={safeIndex}
             custom={direction}
-            initial={{ x: direction * 80, opacity: 0 }}
+            initial={{ x: direction * 40, opacity: 0 }}
             animate={
               hint
-                ? { x: [-12, 0], opacity: 1, transition: { duration: 0.6, ease: "easeOut" } }
+                ? { x: [-10, 0], opacity: 1, transition: { duration: 0.6, ease: "easeOut" } }
                 : { x: 0, opacity: 1 }
             }
-            exit={{ x: direction * -80, opacity: 0 }}
+            exit={{ x: direction * -40, opacity: 0 }}
             transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
             drag={total > 1 ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
@@ -133,78 +134,42 @@ export function MemeCaptionCarousel({
               />
             </div>
 
-            {/* Author row + count */}
-            <div className="mt-3 flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-2.5">
-                {current.entry.author ? (
-                  <AvatarCircle member={current.entry.author} size="sm" />
-                ) : (
-                  <div
-                    className="size-8 shrink-0 rounded-full"
-                    style={{ backgroundColor: STORY_COLORS.hairSoft }}
-                  />
-                )}
-                <span
-                  className="truncate text-[13px]"
-                  style={{
-                    color: STORY_COLORS.ink,
-                    fontWeight: isWinner ? 600 : 500,
-                  }}
-                >
-                  {current.entry.author?.displayName ?? "Unbekannt"}
-                </span>
-                {isWinner ? (
-                  <span
-                    className="text-[10px] tabular-nums"
-                    style={{
-                      color: accentColor,
-                      fontFamily: "var(--font-mono)",
-                      letterSpacing: "0.14em",
-                    }}
-                  >
-                    TOP
-                  </span>
-                ) : null}
-              </div>
+            {/* Author row — User-Decision 2026-05-06 R3: Heart-Counter raus
+                (war Caption-Level und nicht funktional, Like ist auf Frage-Ebene
+                via InlineCommentsSection im StoryShell-Footer). */}
+            <div className="mt-3 flex items-center gap-2.5">
+              {current.entry.author ? (
+                <AvatarCircle member={current.entry.author} size="sm" />
+              ) : (
+                <div
+                  className="size-8 shrink-0 rounded-full"
+                  style={{ backgroundColor: STORY_COLORS.hairSoft }}
+                />
+              )}
               <span
-                className="shrink-0 text-[13px] tabular-nums"
+                className="truncate text-[13px]"
                 style={{
-                  color: isWinner ? accentColor : STORY_COLORS.ink50,
-                  fontFamily: "var(--font-mono)",
-                  fontWeight: 500,
+                  color: STORY_COLORS.ink,
+                  fontWeight: isWinner ? 600 : 500,
                 }}
               >
-                ❤ {current.count}
+                {current.entry.author?.displayName ?? "Unbekannt"}
               </span>
+              {isWinner ? (
+                <span
+                  className="text-[10px] tabular-nums"
+                  style={{
+                    color: accentColor,
+                    fontFamily: "var(--font-mono)",
+                    letterSpacing: "0.14em",
+                  }}
+                >
+                  TOP
+                </span>
+              ) : null}
             </div>
           </motion.div>
         </AnimatePresence>
-
-        {/* Pulsing chevron-right hint — only when more slides exist and not last */}
-        {total > 1 && safeIndex < total - 1 ? (
-          <motion.div
-            aria-hidden
-            className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 flex h-9 w-9 items-center justify-center rounded-full"
-            initial={{ opacity: 0, x: -4 }}
-            animate={{ opacity: [0, 0.85, 0.6], x: [-4, 4, -4] }}
-            transition={{ duration: 1.6, repeat: Infinity, ease: "easeInOut" }}
-            style={{
-              backgroundColor: "rgba(0,0,0,0.45)",
-              color: "#FAFAFA",
-            }}
-          >
-            <svg viewBox="0 0 24 24" width={18} height={18}>
-              <path
-                d="m9.5 6 6 6-6 6"
-                stroke="currentColor"
-                strokeWidth={1.7}
-                fill="none"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
-          </motion.div>
-        ) : null}
       </div>
 
       {/* Carousel-controls: Prev/Next + dot pager + position counter */}

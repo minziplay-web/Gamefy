@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { AnimatePresence, motion, type PanInfo } from "motion/react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { QuestionInput } from "@/components/daily/question-input";
 import { STORY_COLORS, StoryShell } from "@/components/story";
@@ -43,10 +42,10 @@ interface Props {
  * User darf nur die "current"-Frage beantworten — alle anderen Slides werden
  * als read-only Preview angezeigt (disabled QuestionInput, Status-Badge).
  *
- * Nach Submit der LETZTEN offenen Frage → Auto-Redirect zu "/" via router.push.
+ * Kein Auto-Redirect mehr (User-Decision 2026-05-06 R3): wenn alle Fragen
+ * beantwortet sind, zeigt die Page einen Empty-State mit CTA zur Home.
  */
 export function DailyAnswersStory({ state: initial, onSubmitAnswer }: Props) {
-  const router = useRouter();
   const [state, setState] = useState(initial);
   useEffect(() => {
     queueMicrotask(() => setState((prev) => mergeDailyState(prev, initial)));
@@ -91,7 +90,6 @@ export function DailyAnswersStory({ state: initial, onSubmitAnswer }: Props) {
       state={state}
       setState={setState}
       onSubmitAnswer={onSubmitAnswer}
-      onFinish={() => router.push("/")}
     />
   );
 }
@@ -100,79 +98,43 @@ function DailyAnswersStoryReady({
   state,
   setState,
   onSubmitAnswer,
-  onFinish,
 }: {
   state: ReadyState;
   setState: (updater: (prev: DailyViewState) => DailyViewState) => void;
   onSubmitAnswer?: Props["onSubmitAnswer"];
-  onFinish: () => void;
 }) {
   const { cards } = state;
-  const total = cards.length;
 
-  const initialIndex = useMemo(() => {
-    if (cards.length === 0) return 0;
-    const firstOpen = cards.findIndex(
-      (card) => card.phase === "unanswered" || card.phase === "error",
-    );
-    return firstOpen === -1 ? 0 : firstOpen;
-  }, [cards]);
+  // User-Decision 2026-05-06 R3: Antworten-Tab zeigt NUR offene Fragen
+  // (unanswered/error). Bereits beantwortete Fragen werden hier ausgeblendet —
+  // die sieht man im Daily-Tab als Reveal-Story. Kein Auto-Redirect mehr.
+  const openCards = useMemo(
+    () =>
+      cards.filter(
+        (card) => card.phase === "unanswered" || card.phase === "error",
+      ),
+    [cards],
+  );
+  const total = openCards.length;
+  const initialIndex = 0;
 
   const [index, setIndex] = useState(initialIndex);
   const [direction, setDirection] = useState<1 | -1>(1);
-  const didSeedRef = useRef(false);
-  const finishTimer = useRef<number | null>(null);
 
-  // Seed initial index once when cards arrive.
-  useEffect(() => {
-    if (cards.length === 0) {
-      didSeedRef.current = false;
-      return;
-    }
-    if (didSeedRef.current) return;
-    didSeedRef.current = true;
-    setIndex(initialIndex);
-  }, [cards, initialIndex]);
-
-  // All-answered detection → toast + auto redirect.
-  const allAnswered = useMemo(
-    () =>
-      total > 0 &&
-      cards.every(
-        (card) =>
-          card.phase === "submitted_waiting_reveal" ||
-          card.phase === "revealed",
-      ),
-    [cards, total],
-  );
-
-  useEffect(() => {
-    if (!allAnswered) return;
-    if (finishTimer.current) window.clearTimeout(finishTimer.current);
-    finishTimer.current = window.setTimeout(() => {
-      onFinish();
-    }, 1400);
-    return () => {
-      if (finishTimer.current) {
-        window.clearTimeout(finishTimer.current);
-        finishTimer.current = null;
-      }
-    };
-  }, [allAnswered, onFinish]);
-
+  // Wenn keine offenen Fragen mehr → Empty-State, kein Slide-Stack.
   if (total === 0) {
     return (
       <DailyMessage
         eyebrow="HEUTE"
-        title="Heute keine Fragen"
-        description="Aktuell sind keine spielbaren Fragen vorhanden."
-        cta={{ href: "/", label: "ZUR HOME" }}
+        title="Hier gibt es gerade keine neuen Fragen"
+        description="Wenn neue Daily-Fragen verfügbar sind, tauchen sie hier auf."
+        cta={{ href: "/", label: "ZU DEN ANTWORTEN" }}
       />
     );
   }
 
   const safeIndex = Math.max(0, Math.min(index, total - 1));
-  const current = cards[safeIndex];
+  const current = openCards[safeIndex];
 
   const goNext = () => {
     if (safeIndex < total - 1) {
@@ -226,27 +188,16 @@ function DailyAnswersStoryReady({
   };
 
   const handleSubmit = (cardKey: string, draft: DailyAnswerDraft) => {
-    const willFinish = state.cards.every(
-      (card) =>
-        getCardKey(card) === cardKey ||
-        card.phase === "submitted_waiting_reveal" ||
-        card.phase === "revealed",
-    );
-
-    const nextOpenIndex = findNextOpenQuestionIndex(state.cards, safeIndex);
-
     updateCard(cardKey, (card) => ({
       phase: "submitting",
       question: card.question,
       draft,
     }));
 
-    if (!willFinish && nextOpenIndex >= 0) {
-      window.setTimeout(() => {
-        setDirection(nextOpenIndex > safeIndex ? 1 : -1);
-        setIndex(nextOpenIndex);
-      }, 320);
-    }
+    // Nach erfolgreichem Submit verschwindet die Frage aus openCards (filter
+    // greift). Index bleibt — wenn das die letzte offene Frage war, fällt total
+    // auf 0 und der Empty-State wird gerendert. Sonst rückt automatisch die
+    // nächste offene Karte an dieselbe Index-Stelle.
 
     const currentCard = state.cards.find((c) => getCardKey(c) === cardKey);
 
@@ -284,11 +235,9 @@ function DailyAnswersStoryReady({
     }, 350);
   };
 
-  const answeredCount = state.progress.answered;
-
   return (
     <div className="flex flex-col gap-3 pb-2 pt-2">
-      {/* Header: Heute / Counter */}
+      {/* Header: Antworten / Counter */}
       <header className="flex items-center justify-between px-1 pt-1">
         <h1
           className="text-[18px] tracking-tight"
@@ -304,30 +253,9 @@ function DailyAnswersStoryReady({
             letterSpacing: "0.04em",
           }}
         >
-          {answeredCount}/{total} beantwortet
+          {total === 1 ? "1 offen" : `${total} offen`}
         </span>
       </header>
-
-      {allAnswered ? (
-        <div
-          role="status"
-          className="mx-1 flex items-center justify-between gap-3 rounded-2xl px-4 py-3 text-[13px]"
-          style={{
-            backgroundColor: STORY_COLORS.antworten,
-            color: "#FFFFFF",
-            fontWeight: 600,
-          }}
-        >
-          <span>Daily fertig — leite weiter…</span>
-          <Link
-            href="/"
-            className="text-[11px] underline-offset-2 hover:underline"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            JETZT
-          </Link>
-        </div>
-      ) : null}
 
       {state.hasIncompleteItems ? (
         <div

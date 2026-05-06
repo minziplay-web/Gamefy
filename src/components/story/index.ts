@@ -3,3 +3,4 @@ export { StoryShell } from "@/components/story/story-shell";
 export { RevealBarChart } from "@/components/story/reveal-bar-chart";
 export type { RevealOption } from "@/components/story/reveal-bar-chart";
 export { MemeCaptionCarousel } from "@/components/story/meme-caption-carousel";
+export { HeartIcon, ChatLineIcon } from "@/components/story/comment-icons";

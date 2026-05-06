@@ -6,7 +6,6 @@ import { use, useMemo } from "react";
 import { motion, type PanInfo } from "motion/react";
 
 import {
-  CATEGORY_COLOR,
   MemeCaptionCarousel,
   RevealBarChart,
   STORY_COLORS,
@@ -147,8 +146,8 @@ export default function PastDailyStoryPage({
       >
         <StoryShell
           position={{ current: clampedIndex + 1, total }}
-          category={card.question.category}
           categoryLabel={CATEGORY_LABELS[card.question.category]}
+          accentColor={STORY_COLORS.archiv}
           questionText={card.question.text}
           body={<RevealBody result={card.result} />}
           footer={
@@ -266,21 +265,19 @@ function PagerControls({
 // ----------------------------------------------------------------------------
 
 function RevealBody({ result }: { result: QuestionResult }) {
+  // Archiv-Page-Akzent = Coral (Archiv-Tab-Farbe).
+  const accent = STORY_COLORS.archiv;
+
   if (isChartableResult(result)) {
     const { options, totalVoters } = resultToRevealOptions(result);
     if (totalVoters === 0) {
       return <NoVotesPlaceholder />;
     }
-    const primary =
-      result.questionType === "either_or" ||
-      result.questionType === "duel_2v2"
-        ? STORY_COLORS.daily
-        : STORY_COLORS.daily;
     return (
       <RevealBarChart
         options={options}
         totalVoters={totalVoters}
-        primaryColor={primary}
+        primaryColor={accent}
       />
     );
   }
@@ -289,7 +286,7 @@ function RevealBody({ result }: { result: QuestionResult }) {
     return <OpenTextRevealBody result={result} />;
   }
 
-  return <MemeCaptionRevealBody result={result} />;
+  return <MemeCaptionRevealBody result={result} accentColor={accent} />;
 }
 
 function OpenTextRevealBody({ result }: { result: OpenTextResult }) {
@@ -339,13 +336,14 @@ function OpenTextRevealBody({ result }: { result: OpenTextResult }) {
   );
 }
 
-function MemeCaptionRevealBody({ result }: { result: MemeCaptionResult }) {
-  return (
-    <MemeCaptionCarousel
-      result={result}
-      accentColor={CATEGORY_COLOR.meme_it}
-    />
-  );
+function MemeCaptionRevealBody({
+  result,
+  accentColor,
+}: {
+  result: MemeCaptionResult;
+  accentColor: string;
+}) {
+  return <MemeCaptionCarousel result={result} accentColor={accentColor} />;
 }
 
 function NoVotesPlaceholder() {
