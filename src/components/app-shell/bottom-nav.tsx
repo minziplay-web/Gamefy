@@ -4,6 +4,11 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 import { AvatarCircle } from "@/components/ui/avatar";
+import {
+  HomeNavIcon,
+  LibraryNavIcon,
+  PenNavIcon,
+} from "@/components/app-shell/nav-icons";
 import { useAuth } from "@/lib/auth/auth-context";
 
 type Tab = {
@@ -11,30 +16,30 @@ type Tab = {
   label: string;
   color: string;
   match: (pathname: string) => boolean;
-  Icon: (props: { active: boolean; tone: "active" | "idle" }) => React.ReactNode;
+  Icon: (props: { active: boolean }) => React.ReactNode;
 };
 
 const TABS: Tab[] = [
   {
     href: "/",
     label: "Daily",
-    color: "#F39A2B",
+    color: "#F39A2B", // sunny orange
     match: (p) => p === "/",
-    Icon: HomeIcon,
+    Icon: ({ active }) => <HomeNavIcon active={active} />,
   },
   {
     href: "/daily",
     label: "Antworten",
-    color: "#C45FA0",
+    color: "#F0D043", // yellow — User-Decision: kein Pink/Magenta
     match: (p) => p === "/daily" || p.startsWith("/daily/"),
-    Icon: PencilIcon,
+    Icon: ({ active }) => <PenNavIcon active={active} />,
   },
   {
     href: "/past-dailies",
     label: "Archiv",
-    color: "#E5594F",
+    color: "#E5594F", // coral
     match: (p) => p.startsWith("/past-dailies"),
-    Icon: ArchiveIcon,
+    Icon: ({ active }) => <LibraryNavIcon active={active} />,
   },
   // Profil-Tab is rendered separately because the icon = current user's avatar
 ];
@@ -74,7 +79,7 @@ export function BottomNav() {
                 className="flex w-full flex-col items-center justify-center gap-1.5 py-3"
                 style={{ color }}
               >
-                <tab.Icon active={active} tone={active ? "active" : "idle"} />
+                <tab.Icon active={active} />
                 <span
                   className="text-[10px] uppercase tracking-[0.16em]"
                   style={{
@@ -150,60 +155,3 @@ function ProfilTabIcon({
   );
 }
 
-function HomeIcon({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width={24} height={24} aria-hidden>
-      <path
-        d="M3.5 11.4 12 4.5l8.5 6.9V19a1 1 0 0 1-1 1h-3.6v-5.4h-3.8V20H7.5a1 1 0 0 1-1-1v-7.6"
-        fill={active ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth={active ? 1.6 : 1.7}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function PencilIcon({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width={24} height={24} aria-hidden>
-      <path
-        d="M14.7 4.5 19.5 9.3 8.6 20.2H3.8v-4.8L14.7 4.5Z"
-        fill={active ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth={active ? 1.4 : 1.7}
-        strokeLinejoin="round"
-      />
-      <path d="M13 6.2 17.8 11" stroke="currentColor" strokeWidth={1.7} fill="none" />
-    </svg>
-  );
-}
-
-function ArchiveIcon({ active }: { active: boolean }) {
-  return (
-    <svg viewBox="0 0 24 24" width={24} height={24} aria-hidden>
-      <rect
-        x="3.5"
-        y="6.5"
-        width="17"
-        height="13"
-        rx="1.6"
-        fill={active ? "currentColor" : "none"}
-        stroke="currentColor"
-        strokeWidth={1.7}
-      />
-      <path
-        d="M3.5 10h17"
-        stroke={active ? "white" : "currentColor"}
-        strokeWidth={1.4}
-      />
-      <path
-        d="M9.5 13.5h5"
-        stroke={active ? "white" : "currentColor"}
-        strokeWidth={1.7}
-        strokeLinecap="round"
-      />
-    </svg>
-  );
-}

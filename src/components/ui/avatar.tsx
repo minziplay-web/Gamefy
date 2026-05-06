@@ -13,7 +13,7 @@ const sizeClasses: Record<Size, string> = {
 
 const INITIAL_PALETTE = [
   "#F39A2B", // daily orange
-  "#C45FA0", // antworten magenta
+  "#FD9E22", // warm orange
   "#E5594F", // archiv coral
   "#4A5699", // profil blue
   "#F0D043", // accent yellow
