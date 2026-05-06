@@ -105,16 +105,24 @@ function DailyAnswersStoryReady({
 }) {
   const { cards } = state;
 
-  // User-Decision 2026-05-06 R3: Antworten-Tab zeigt NUR offene Fragen
-  // (unanswered/error). Bereits beantwortete Fragen werden hier ausgeblendet —
-  // die sieht man im Daily-Tab als Reveal-Story. Kein Auto-Redirect mehr.
+  // User-Decision 2026-05-06 R3: Antworten-Tab zeigt NUR offene Fragen.
+  // Submitting-Phase bleibt drin damit der Submit-Button-State sichtbar
+  // bleibt während der Server-Roundtrip + GESPEICHERT-Flash läuft.
   const openCards = useMemo(
     () =>
       cards.filter(
-        (card) => card.phase === "unanswered" || card.phase === "error",
+        (card) =>
+          card.phase === "unanswered" ||
+          card.phase === "error" ||
+          card.phase === "submitting",
       ),
     [cards],
   );
+
+  // recentlySaved trackt Cards die gerade gespeichert wurden — während dieser
+  // 700ms zeigt der Submit-Button "GESPEICHERT ✓" als Feedback bevor die Card
+  // aus openCards rausfliegt.
+  const [recentlySaved, setRecentlySaved] = useState<Set<string>>(new Set());
   const total = openCards.length;
   const initialIndex = 0;
 
@@ -201,14 +209,31 @@ function DailyAnswersStoryReady({
 
     const currentCard = state.cards.find((c) => getCardKey(c) === cardKey);
 
+    const flashSavedThenAdvance = () => {
+      // GESPEICHERT-Flash für 700ms, dann Card ausblenden (filter greift)
+      setRecentlySaved((prev) => {
+        const next = new Set(prev);
+        next.add(cardKey);
+        return next;
+      });
+      window.setTimeout(() => {
+        updateCard(cardKey, (card) => ({
+          phase: "submitted_waiting_reveal",
+          question: card.question,
+          myAnswer: draft,
+        }));
+        setRecentlySaved((prev) => {
+          const next = new Set(prev);
+          next.delete(cardKey);
+          return next;
+        });
+      }, 700);
+    };
+
     if (onSubmitAnswer && currentCard) {
       void onSubmitAnswer(draft, currentCard)
         .then(() => {
-          updateCard(cardKey, (card) => ({
-            phase: "submitted_waiting_reveal",
-            question: card.question,
-            myAnswer: draft,
-          }));
+          flashSavedThenAdvance();
         })
         .catch((error) => {
           const message =
@@ -226,13 +251,7 @@ function DailyAnswersStoryReady({
     }
 
     // Mock fallback when no submit handler is wired up.
-    window.setTimeout(() => {
-      updateCard(cardKey, (card) => ({
-        phase: "submitted_waiting_reveal",
-        question: card.question,
-        myAnswer: draft,
-      }));
-    }, 350);
+    window.setTimeout(flashSavedThenAdvance, 350);
   };
 
   return (
@@ -309,6 +328,7 @@ function DailyAnswersStoryReady({
               }
               onSubmit={(draft) => handleSubmit(getCardKey(current), draft)}
               position={{ current: safeIndex + 1, total }}
+              saved={recentlySaved.has(getCardKey(current))}
             />
           </motion.div>
         </AnimatePresence>
@@ -383,11 +403,13 @@ function AnswerSlide({
   onDraftChange,
   onSubmit,
   position,
+  saved = false,
 }: {
   card: DailyQuestionCardState;
   onDraftChange: (next: DailyAnswerDraft) => void;
   onSubmit: (draft: DailyAnswerDraft) => void;
   position: { current: number; total: number };
+  saved?: boolean;
 }) {
   const { question } = card;
   const submitting = card.phase === "submitting";
@@ -461,8 +483,9 @@ function AnswerSlide({
           </p>
         ) : (
           <SubmitButton
-            disabled={!draftReady || submitting}
-            loading={submitting}
+            disabled={!draftReady || submitting || saved}
+            loading={submitting && !saved}
+            saved={saved}
             label={
               question.type === "meme_caption"
                 ? "MEME ABSCHICKEN"
@@ -483,11 +506,13 @@ function AnswerSlide({
 function SubmitButton({
   disabled,
   loading,
+  saved = false,
   label,
   onClick,
 }: {
   disabled: boolean;
   loading: boolean;
+  saved?: boolean;
   label: string;
   onClick: () => void;
 }) {
@@ -498,14 +523,19 @@ function SubmitButton({
       onClick={onClick}
       className="flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3 text-[13px] transition disabled:opacity-40"
       style={{
-        backgroundColor: STORY_COLORS.antworten,
+        backgroundColor: saved ? "#1F8B5A" : STORY_COLORS.antworten,
         color: "#FFFFFF",
         fontFamily: "var(--font-mono)",
         letterSpacing: "0.08em",
         fontWeight: 600,
       }}
     >
-      {loading ? (
+      {saved ? (
+        <>
+          <span aria-hidden>✓</span>
+          GESPEICHERT
+        </>
+      ) : loading ? (
         <>
           <ThreeBodyLoader size={14} color="#FFFFFF" label="Wird gesendet" />
           WIRD GESENDET
