@@ -89,6 +89,16 @@ export function dailyCommentDoc(commentId: string) {
   return db ? doc(db, "dailyComments", commentId) : null;
 }
 
+export function dailyQuestionLikesCollection() {
+  const { db } = getFirebaseServices();
+  return db ? collection(db, "dailyQuestionLikes") : null;
+}
+
+export function dailyQuestionLikeDoc(likeId: string) {
+  const { db } = getFirebaseServices();
+  return db ? doc(db, "dailyQuestionLikes", likeId) : null;
+}
+
 export function liveSessionsCollection() {
   const { db } = getFirebaseServices();
   return db ? collection(db, "liveSessions") : null;

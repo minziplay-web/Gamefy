@@ -144,6 +144,14 @@ export interface DailyCommentDoc {
   editedAt?: unknown;
 }
 
+export interface DailyQuestionLikeDoc {
+  dateKey: string;
+  runId: string;
+  questionId: string;
+  userId: string;
+  createdAt?: unknown;
+}
+
 export interface UserStatsDoc {
   userId: string;
   daily?: {

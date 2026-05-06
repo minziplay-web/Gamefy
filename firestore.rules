@@ -189,6 +189,26 @@ service cloud.firestore {
         && request.resource.data.text.size() <= 1000;
     }
 
+    function hasOnlyDailyQuestionLikeFields(data) {
+      return data.keys().hasOnly([
+        "dateKey",
+        "runId",
+        "questionId",
+        "userId",
+        "createdAt",
+      ]);
+    }
+
+    function hasValidDailyQuestionLikeCreate(likeId, data) {
+      return hasOnlyDailyQuestionLikeFields(data)
+        && data.dateKey is string
+        && data.runId is string
+        && data.questionId is string
+        && data.userId == request.auth.uid
+        && likeId == data.runId + "_" + data.questionId + "_" + data.userId
+        && questionInDailyRun(data.runId, data.questionId);
+    }
+
     function hasValidEitherOrCounts(data) {
       return !("counts" in data)
         || data.counts.keys().hasOnly(["option_0", "option_1"]);
@@ -802,6 +822,15 @@ service cloud.firestore {
       allow update: if isActiveMember()
         && resource.data.userId == request.auth.uid
         && hasValidDailyCommentUpdate();
+      allow delete: if isAdmin()
+        || (isActiveMember() && resource.data.userId == request.auth.uid);
+    }
+
+    match /dailyQuestionLikes/{likeId} {
+      allow read: if isActiveMember();
+      allow create: if isActiveMember()
+        && hasValidDailyQuestionLikeCreate(likeId, request.resource.data);
+      allow update: if false;
       allow delete: if isAdmin()
         || (isActiveMember() && resource.data.userId == request.auth.uid);
     }

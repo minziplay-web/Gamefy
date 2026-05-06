@@ -19,6 +19,15 @@ import { mapActivityEventsToFeedItems } from "@/lib/mapping/activity";
 import type { ActivityEvent } from "@/lib/firebase/daily-activity";
 import type { DailyPrivateAnswerDoc, DailyRunDoc, UserDoc } from "@/lib/types/firestore";
 
+const DARK = {
+  elevated: "#161616",
+  text: "#FAFAFA",
+  muted: "#A8A8A8",
+  dim: "#6E6E73",
+  hair: "#1F1F1F",
+  hairStrong: "#2C2C2E",
+};
+
 type NotificationPanelState =
   | {
       status: "loading";
@@ -46,7 +55,12 @@ export function NotificationBell() {
     <>
       <button
         type="button"
-        className="fixed right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-full bg-white/90 text-sand-900 shadow-sm backdrop-blur ring-1 ring-sand-200/60"
+        className="fixed right-3 top-3 z-30 flex h-10 w-10 items-center justify-center rounded-full shadow-sm backdrop-blur ring-1"
+        style={{
+          backgroundColor: "rgba(22,22,22,0.88)",
+          color: DARK.text,
+          borderColor: DARK.hairStrong,
+        }}
         aria-label="Tageslog"
         aria-expanded={open}
         onClick={() => setOpen(true)}
@@ -57,7 +71,7 @@ export function NotificationBell() {
             className="absolute right-1.5 top-1.5 block h-2 w-2 rounded-full"
             style={{
               backgroundColor: STORY_COLORS.archiv,
-              boxShadow: "0 0 0 2px #FFFFFF",
+              boxShadow: "0 0 0 2px #161616",
             }}
           />
         ) : null}
@@ -99,25 +113,30 @@ function NotificationPanel({
     <div className="fixed inset-0 z-40" role="dialog" aria-modal="true" aria-label="Tageslog">
       <button
         type="button"
-        className="absolute inset-0 h-full w-full bg-sand-950/25 backdrop-blur-[2px]"
+        className="absolute inset-0 h-full w-full backdrop-blur-[2px]"
+        style={{ backgroundColor: "rgba(0,0,0,0.58)" }}
         aria-label="Tageslog schließen"
         onClick={onClose}
       />
 
-      <section className="absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden rounded-t-2xl border-t border-sand-200 bg-white shadow-[0_-18px_54px_-30px_rgba(23,32,49,0.42)] sm:inset-x-auto sm:bottom-auto sm:right-3 sm:top-14 sm:w-[360px] sm:max-w-[calc(100vw-24px)] sm:rounded-2xl sm:border sm:shadow-[0_20px_70px_-38px_rgba(23,32,49,0.5)]">
-        <header className="flex items-center justify-between border-b border-sand-200 px-4 py-3">
+      <section
+        className="absolute inset-x-0 bottom-0 max-h-[82dvh] overflow-hidden rounded-t-2xl border-t shadow-[0_-18px_54px_-30px_rgba(0,0,0,0.8)] sm:inset-x-auto sm:bottom-auto sm:right-3 sm:top-14 sm:w-[360px] sm:max-w-[calc(100vw-24px)] sm:rounded-2xl sm:border sm:shadow-[0_20px_70px_-38px_rgba(0,0,0,0.9)]"
+        style={{ backgroundColor: DARK.elevated, borderColor: DARK.hairStrong }}
+      >
+        <header className="flex items-center justify-between border-b px-4 py-3" style={{ borderColor: DARK.hair }}>
           <div>
             <p
-              className="text-[10px] font-semibold uppercase tracking-[0.18em] text-sand-500"
-              style={{ fontFamily: "var(--font-mono)" }}
+              className="text-[10px] font-semibold uppercase tracking-[0.18em]"
+              style={{ color: DARK.dim, fontFamily: "var(--font-mono)" }}
             >
               Heute
             </p>
-            <h2 className="text-base font-semibold text-sand-950">Tageslog</h2>
+            <h2 className="text-base font-semibold" style={{ color: DARK.text }}>Tageslog</h2>
           </div>
           <button
             type="button"
-            className="flex size-8 items-center justify-center rounded-full text-sand-500 transition hover:bg-sand-100 hover:text-sand-950"
+            className="flex size-8 items-center justify-center rounded-full transition"
+            style={{ color: DARK.muted }}
             aria-label="Tageslog schließen"
             onClick={onClose}
           >
@@ -159,7 +178,7 @@ function NotificationPanel({
           ) : null}
 
           {state.status === "ready" && state.items.length > 0 ? (
-            <ol className="divide-y divide-sand-200">
+            <ol className="divide-y" style={{ borderColor: DARK.hair }}>
               {state.items.map((item) => {
                 const actor = state.users.get(item.actorUserId);
                 return (
@@ -173,19 +192,19 @@ function NotificationPanel({
                       size="sm"
                     />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm leading-5 text-sand-900">
+                      <p className="text-sm leading-5" style={{ color: DARK.text }}>
                         <span className="font-semibold">{item.actorDisplayName}</span>{" "}
                         <span>{activityActionText(item)}</span>
                       </p>
                       {item.payload?.commentPreview ? (
-                        <p className="mt-1 truncate text-xs text-sand-500">
+                        <p className="mt-1 truncate text-xs" style={{ color: DARK.muted }}>
                           &quot;{item.payload.commentPreview}&quot;
                         </p>
                       ) : null}
                     </div>
                     <time
-                      className="shrink-0 pt-0.5 text-[10px] uppercase tracking-[0.12em] text-sand-400"
-                      style={{ fontFamily: "var(--font-mono)" }}
+                      className="shrink-0 pt-0.5 text-[10px] uppercase tracking-[0.12em]"
+                      style={{ color: DARK.dim, fontFamily: "var(--font-mono)" }}
                     >
                       {item.timeLabel}
                     </time>
@@ -384,8 +403,12 @@ function activityActionText(item: ReturnType<typeof mapActivityEventsToFeedItems
 function PanelMessage({ title, detail }: { title: string; detail?: string }) {
   return (
     <div className="py-10 text-center">
-      <p className="text-sm font-semibold text-sand-800">{title}</p>
-      {detail ? <p className="mx-auto mt-2 max-w-64 text-xs leading-5 text-sand-500">{detail}</p> : null}
+      <p className="text-sm font-semibold" style={{ color: DARK.text }}>{title}</p>
+      {detail ? (
+        <p className="mx-auto mt-2 max-w-64 text-xs leading-5" style={{ color: DARK.muted }}>
+          {detail}
+        </p>
+      ) : null}
     </div>
   );
 }
