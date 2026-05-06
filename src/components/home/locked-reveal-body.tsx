@@ -15,7 +15,7 @@ export function LockedRevealBody({
   hint?: string;
 }) {
   return (
-    <div className="flex flex-col items-center gap-3 px-2 py-6 text-center">
+    <div className="flex flex-col items-center gap-3 px-2 pt-10 pb-10 text-center">
       <span
         className="inline-flex size-10 items-center justify-center rounded-full text-base"
         style={{

@@ -105,24 +105,30 @@ function DailyAnswersStoryReady({
 }) {
   const { cards } = state;
 
-  // User-Decision 2026-05-06 R3: Antworten-Tab zeigt NUR offene Fragen.
-  // Submitting-Phase bleibt drin damit der Submit-Button-State sichtbar
-  // bleibt während der Server-Roundtrip + GESPEICHERT-Flash läuft.
-  const openCards = useMemo(
-    () =>
-      cards.filter(
-        (card) =>
-          card.phase === "unanswered" ||
-          card.phase === "error" ||
-          card.phase === "submitting",
-      ),
-    [cards],
-  );
-
   // recentlySaved trackt Cards die gerade gespeichert wurden — während dieser
-  // 700ms zeigt der Submit-Button "GESPEICHERT ✓" als Feedback bevor die Card
+  // 1200ms zeigt der Submit-Button "GESPEICHERT ✓" als Feedback bevor die Card
   // aus openCards rausfliegt.
   const [recentlySaved, setRecentlySaved] = useState<Set<string>>(new Set());
+
+  // User-Decision 2026-05-06 R3: Antworten-Tab zeigt NUR offene Fragen.
+  // Submitting bleibt drin damit Loading-State sichtbar ist. recentlySaved
+  // hält die Card auch nach Server-Snapshot kurz drin damit GESPEICHERT-
+  // Flash sichtbar bleibt (Snapshot würde sonst sofort auf submitted_*-
+  // Phase wechseln und Filter würde Card rauswerfen).
+  const openCards = useMemo(
+    () =>
+      cards.filter((card) => {
+        if (
+          card.phase === "unanswered" ||
+          card.phase === "error" ||
+          card.phase === "submitting"
+        ) {
+          return true;
+        }
+        return recentlySaved.has(getCardKey(card));
+      }),
+    [cards, recentlySaved],
+  );
   const total = openCards.length;
   const initialIndex = 0;
 
@@ -413,8 +419,12 @@ function AnswerSlide({
 }) {
   const { question } = card;
   const submitting = card.phase === "submitting";
+  // Wenn `saved` aktiv ist (GESPEICHERT-Flash), behandle die Card noch nicht
+  // als "alreadyAnswered" — sonst würde die Submit-Button-Section vom
+  // Pill-Hinweis ersetzt und der Flash wäre nicht mehr sichtbar.
   const alreadyAnswered =
-    card.phase === "submitted_waiting_reveal" || card.phase === "revealed";
+    !saved &&
+    (card.phase === "submitted_waiting_reveal" || card.phase === "revealed");
 
   const draft =
     card.phase === "unanswered"
