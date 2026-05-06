@@ -637,16 +637,15 @@ function DailyMessage({
         </h1>
       </header>
       <article className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-2xl bg-[#161616] px-6 py-8 text-center">
-        <span
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src={variant === "error" ? "/accents/target.svg" : "/accents/inspiration.svg"}
+          alt=""
           aria-hidden
-          className="inline-flex size-10 items-center justify-center rounded-full text-base"
-          style={{
-            backgroundColor: STORY_COLORS.hairSoft,
-            color: accent,
-          }}
-        >
-          ✶
-        </span>
+          width={64}
+          height={64}
+          className="opacity-90"
+        />
         {description ? (
           <p
             className="max-w-[28ch] text-[13px] leading-snug"

@@ -314,16 +314,15 @@ function NoDailySlide({ displayName }: { displayName: string }) {
         className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-2xl px-6 py-8 text-center"
         style={{ backgroundColor: "#161616" }}
       >
-        <span
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          src="/accents/game.svg"
+          alt=""
           aria-hidden
-          className="inline-flex size-10 items-center justify-center rounded-full text-base"
-          style={{
-            backgroundColor: STORY_COLORS.hairSoft,
-            color: STORY_COLORS.ink70,
-          }}
-        >
-          ✶
-        </span>
+          width={64}
+          height={64}
+          className="opacity-90"
+        />
         <p
           className="text-[15px] leading-snug"
           style={{ color: STORY_COLORS.ink, fontWeight: 600 }}
