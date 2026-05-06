@@ -77,16 +77,25 @@ export function StoryShell({
         </span>
       </header>
 
-      {/* question text */}
-      <h2
-        className="mt-5 text-[18px] font-medium leading-snug tracking-tight"
-        style={{ color: STORY_COLORS.ink }}
+      {/* question text — mit sanftem Hintergrund-Block der die Frage vom
+          Voting-Block visuell trennt. text-balance für schönere Zeilen. */}
+      <div
+        className="mt-5 rounded-xl px-4 py-3.5"
+        style={{ backgroundColor: STORY_COLORS.bgSubtle }}
       >
-        {questionText}
-      </h2>
+        <h2
+          className="text-[17px] font-medium leading-snug tracking-tight"
+          style={{
+            color: STORY_COLORS.ink,
+            textWrap: "balance",
+          }}
+        >
+          {questionText}
+        </h2>
+      </div>
 
       {/* body slot */}
-      <div className="mt-6 flex-1">{body}</div>
+      <div className="mt-5 flex-1">{body}</div>
 
       {/* footer slot */}
       {footer ? (

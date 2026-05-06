@@ -36,7 +36,6 @@ export function MemeCaptionCarousel({
     );
 
   const [index, setIndex] = useState(0);
-  const [direction, setDirection] = useState<1 | -1>(1);
   const total = ranked.length;
   const showedHintRef = useRef(false);
 
@@ -58,7 +57,6 @@ export function MemeCaptionCarousel({
   const goTo = (next: number) => {
     const target = Math.max(0, Math.min(total - 1, next));
     if (target === index) return;
-    setDirection(target > index ? 1 : -1);
     setIndex(target);
   };
 
@@ -100,21 +98,21 @@ export function MemeCaptionCarousel({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* Slide-Container mit drag + AnimatePresence-Übergang. overflow-clip
-          verhindert dass das Slide rechts/links aus dem StoryShell rausläuft. */}
+      {/* Slide-Container — overflow-clip verhindert horizontales Rausgleiten.
+          Slide-Übergang ist opacity-only (kein x-Translate, der das Bild
+          rechts/links aus dem StoryShell hat clippen lassen). */}
       <div className="relative overflow-clip">
-        <AnimatePresence mode="wait" custom={direction} initial={false}>
+        <AnimatePresence mode="wait" initial={false}>
           <motion.div
             key={safeIndex}
-            custom={direction}
-            initial={{ x: direction * 40, opacity: 0 }}
+            initial={{ opacity: 0 }}
             animate={
               hint
                 ? { x: [-10, 0], opacity: 1, transition: { duration: 0.6, ease: "easeOut" } }
-                : { x: 0, opacity: 1 }
+                : { opacity: 1 }
             }
-            exit={{ x: direction * -40, opacity: 0 }}
-            transition={{ duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.18, ease: "easeOut" }}
             drag={total > 1 ? "x" : false}
             dragConstraints={{ left: 0, right: 0 }}
             dragElastic={0.18}

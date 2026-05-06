@@ -126,8 +126,8 @@ function DailyAnswersStoryReady({
     return (
       <DailyMessage
         eyebrow="HEUTE"
-        title="Hier gibt es gerade keine neuen Fragen"
-        description="Wenn neue Daily-Fragen verfügbar sind, tauchen sie hier auf."
+        title="Keine offenen Fragen"
+        description="Sobald neue Daily-Fragen da sind, tauchen sie hier auf."
         cta={{ href: "/", label: "ZU DEN ANTWORTEN" }}
       />
     );
