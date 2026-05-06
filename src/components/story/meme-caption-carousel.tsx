@@ -213,6 +213,7 @@ export function MemeCaptionCarousel({
               <WinnerHero
                 imagePath={result.imagePath}
                 winnerName={winner?.entry.author?.displayName ?? null}
+                winnerCaption={winner?.entry.text ?? ""}
               />
             </div>
           ) : null}
@@ -325,16 +326,22 @@ function CaptionImage({
 function WinnerHero({
   imagePath,
   winnerName,
+  winnerCaption,
 }: {
   imagePath: string;
   winnerName: string | null;
+  winnerCaption: string;
 }) {
   return (
     <div
       className="relative overflow-hidden rounded-xl"
       style={{ backgroundColor: STORY_COLORS.hairSoft }}
     >
-      <MemeImage imagePath={imagePath} frame="standalone" />
+      <MemeImage
+        imagePath={imagePath}
+        caption={winnerCaption}
+        frame="standalone"
+      />
       {winnerName ? (
         <>
           <div
@@ -344,8 +351,16 @@ function WinnerHero({
                 "linear-gradient(180deg, rgba(0,0,0,0.62) 0%, rgba(0,0,0,0) 100%)",
             }}
           />
-          <div className="pointer-events-none absolute inset-x-0 top-3 flex flex-col items-center gap-1">
-            <span className="anim-crown-bob text-[28px] leading-none">👑</span>
+          <div className="pointer-events-none absolute inset-x-0 top-3 flex flex-col items-center gap-1.5">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src="/accents/honor.svg"
+              alt=""
+              aria-hidden
+              width={40}
+              height={40}
+              className="drop-shadow-[0_2px_4px_rgba(0,0,0,0.5)]"
+            />
             <span
               className="text-[15px] font-semibold tracking-tight"
               style={{
