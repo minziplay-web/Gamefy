@@ -289,14 +289,12 @@ function DailyAnswersStoryReady({
           <motion.div
             key={getCardKey(current)}
             custom={direction}
-            initial={{ x: direction * 60, opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: -direction * 60, opacity: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{
-              type: "spring",
-              stiffness: 380,
-              damping: 32,
-              mass: 0.6,
+              duration: 0.18,
+              ease: "easeOut",
             }}
             drag="x"
             dragElastic={0.2}
