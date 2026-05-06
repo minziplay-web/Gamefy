@@ -45,8 +45,6 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
       slides.filter((item) => isAnsweredByMe(item.result, currentUserId)).length,
     [slides, currentUserId],
   );
-  const openCount = Math.max(0, total - answeredCount);
-  const allAnswered = total > 0 && openCount === 0;
 
   const [index, setIndex] = useState(0);
   const [direction, setDirection] = useState<1 | -1>(1);
@@ -87,50 +85,9 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
 
   return (
     <div className="flex flex-col gap-3 pb-2 pt-2">
-      {/* Sticky CTA bei offenen Fragen */}
-      {!allAnswered ? (
-        <Link
-          href="/daily"
-          className="sticky top-2 z-10 flex items-center justify-between gap-3 rounded-full px-4 py-2.5 shadow-sm transition hover:opacity-95"
-          style={{
-            backgroundColor: STORY_COLORS.ink,
-            color: "#FFFFFF",
-          }}
-        >
-          <span className="flex items-center gap-2">
-            <span
-              aria-hidden
-              className="block size-1.5 rounded-full"
-              style={{ backgroundColor: STORY_COLORS.daily }}
-            />
-            <span
-              className="text-[10px] tabular-nums"
-              style={{
-                fontFamily: "var(--font-mono)",
-                letterSpacing: "0.16em",
-                fontWeight: 600,
-              }}
-            >
-              DAILY HEUTE
-            </span>
-          </span>
-          <span
-            className="text-[13px]"
-            style={{ fontWeight: 600 }}
-          >
-            {openCount} {openCount === 1 ? "Frage offen" : "Fragen offen"}
-          </span>
-          <span
-            aria-hidden
-            className="text-[14px]"
-            style={{ fontFamily: "var(--font-mono)" }}
-          >
-            ›
-          </span>
-        </Link>
-      ) : null}
-
-      {/* Page-Header — eyebrow + title in Daily-Tab-Akzent (orange) */}
+      {/* Page-Header — eyebrow + title in Daily-Tab-Akzent (orange).
+          Sticky-CTA entfernt (User-Decision 2026-05-06): Bell zeigt eh den
+          Tageslog mit offenen Fragen, Sticky-CTA war redundant. */}
       <header className="flex items-end justify-between gap-3 px-1 pt-1">
         <div>
           <p
