@@ -12,7 +12,7 @@ import type { Category } from "@/lib/types/frontend";
  * Stage 5 fügt InlineComments im footer-Slot ein.
  *
  * Aufbau (von oben nach unten):
- *   1. Eyebrow-Header: Kategorie-Pill links, Position-Counter "03 / 05" rechts
+ *   1. Eyebrow-Header: Kategorie-Pill links
  *   2. Frage-Text als Geist-Sans 18-20px (kein Italic, kein Magazine)
  *   3. Body-Slot — Type-spezifischer Renderer (Antwort-UI ODER Reveal)
  *   4. Footer-Slot — Submit-Button (Antworten-Mode) ODER Comments (Reveal-Mode)
@@ -24,7 +24,6 @@ import type { Category } from "@/lib/types/frontend";
  * NICHT enthalten: Swipe-Navigation. Pages koordinieren das selbst.
  */
 export function StoryShell({
-  position,
   categoryLabel,
   questionText,
   accentColor,
@@ -63,16 +62,6 @@ export function StoryShell({
             style={{ backgroundColor: accent }}
           />
           {categoryLabel}
-        </span>
-        <span
-          className="text-[11px] tabular-nums"
-          style={{
-            color: STORY_COLORS.ink50,
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.02em",
-          }}
-        >
-          {String(position.current).padStart(2, "0")} / {String(position.total).padStart(2, "0")}
         </span>
       </header>
 

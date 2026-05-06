@@ -232,7 +232,7 @@ export function MemeCaptionCarousel({
 
       {/* META-ROW — outside track damit der Like-Button sicher tappable ist. */}
       {isRankingSlide ? (
-        <RankingList ranked={ranked} accentColor={accentColor} totalLikes={totalLikes} />
+        <RankingList ranked={ranked} totalLikes={totalLikes} />
       ) : (
         <CaptionMeta
           current={current}
@@ -245,64 +245,31 @@ export function MemeCaptionCarousel({
       )}
 
       {totalSlides > 1 ? (
-        <div className="mt-1 flex flex-col gap-2">
-          <div
-            className="flex items-center justify-between text-[11px] tabular-nums"
-            style={{
-              color: STORY_COLORS.ink50,
-              fontFamily: "var(--font-mono)",
-            }}
+        <div
+          className="mt-1 flex items-center justify-between text-[11px] tabular-nums"
+          style={{
+            color: STORY_COLORS.ink50,
+            fontFamily: "var(--font-mono)",
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => goTo(safeIndex - 1)}
+            disabled={safeIndex === 0}
+            className="transition disabled:opacity-30"
+            aria-label="Vorheriger Meme-Post"
           >
-            <button
-              type="button"
-              onClick={() => goTo(safeIndex - 1)}
-              disabled={safeIndex === 0}
-              className="transition disabled:opacity-30"
-              aria-label="Vorheriger Meme-Post"
-            >
-              ← VORHER
-            </button>
-            <span>
-              {isRankingSlide
-                ? "RANKING"
-                : `${String(safeIndex + 1).padStart(2, "0")} / ${String(
-                    totalCaptions,
-                  ).padStart(2, "0")}`}
-            </span>
-            <button
-              type="button"
-              onClick={() => goTo(safeIndex + 1)}
-              disabled={safeIndex === totalSlides - 1}
-              className="transition disabled:opacity-30"
-              aria-label="Nächster Meme-Post"
-            >
-              WEITER →
-            </button>
-          </div>
-          <div className="flex items-center justify-center gap-1.5">
-            {Array.from({ length: totalSlides }).map((_, i) => {
-              const isRankingDot = hasRankingSlide && i === totalCaptions;
-              return (
-                <button
-                  key={i}
-                  type="button"
-                  onClick={() => goTo(i)}
-                  aria-label={
-                    isRankingDot ? "Ranking-Übersicht" : `Meme-Post ${i + 1}`
-                  }
-                  className="block rounded-full transition-all"
-                  style={{
-                    width: i === safeIndex ? 18 : 6,
-                    height: 6,
-                    backgroundColor:
-                      i === safeIndex ? accentColor : STORY_COLORS.hair,
-                    outline: isRankingDot ? `1px solid ${accentColor}` : "none",
-                    outlineOffset: isRankingDot ? "1px" : undefined,
-                  }}
-                />
-              );
-            })}
-          </div>
+            ← VORHER
+          </button>
+          <button
+            type="button"
+            onClick={() => goTo(safeIndex + 1)}
+            disabled={safeIndex === totalSlides - 1}
+            className="transition disabled:opacity-30"
+            aria-label="Nächster Meme-Post"
+          >
+            WEITER →
+          </button>
         </div>
       ) : null}
     </div>
@@ -478,24 +445,15 @@ function CaptionMeta({
 
 function RankingList({
   ranked,
-  accentColor,
   totalLikes,
 }: {
   ranked: RankedCaption[];
-  accentColor: string;
   totalLikes: number;
 }) {
   return (
     <div className="flex flex-col gap-2">
       <ol className="flex flex-col">
         {ranked.map((row, idx) => {
-          let rank = idx + 1;
-          for (let i = idx - 1; i >= 0; i -= 1) {
-            if (ranked[i].count === row.count) {
-              rank = i + 1;
-              break;
-            }
-          }
           const isLeader = idx === 0 && row.count > 0;
           return (
             <li
@@ -503,16 +461,6 @@ function RankingList({
               className="flex items-center gap-3 border-b py-2.5 last:border-b-0"
               style={{ borderColor: STORY_COLORS.hairSoft }}
             >
-              <span
-                className="w-6 shrink-0 text-[12px] tabular-nums"
-                style={{
-                  color: isLeader ? accentColor : STORY_COLORS.ink50,
-                  fontFamily: "var(--font-mono)",
-                  fontWeight: isLeader ? 600 : 400,
-                }}
-              >
-                {String(rank).padStart(2, "0")}
-              </span>
               {row.entry.author ? (
                 <AvatarCircle member={row.entry.author} size="sm" />
               ) : (

@@ -385,8 +385,8 @@ function DailyAnswersStoryReady({
         </motion.div>
       </div>
 
-      {/* Pagination dots + buttons */}
-      <nav className="flex items-center justify-between gap-3 px-1">
+      {/* Navigation buttons */}
+      <nav className="flex items-center justify-between px-1">
         <button
           type="button"
           onClick={goPrev}
@@ -400,35 +400,6 @@ function DailyAnswersStoryReady({
         >
           ‹
         </button>
-
-        <div className="flex flex-1 items-center justify-center gap-1.5">
-          {openCards.map((card, i) => {
-            const isCurrent = i === safeIndex;
-            const slideAnswered =
-              card.phase === "submitted_waiting_reveal" ||
-              card.phase === "revealed";
-            return (
-              <button
-                key={getCardKey(card)}
-                type="button"
-                onClick={() => {
-                  setIndex(i);
-                }}
-                aria-label={`Slide ${i + 1}`}
-                aria-current={isCurrent ? "step" : undefined}
-                className="block h-1 rounded-full transition-all"
-                style={{
-                  width: isCurrent ? 18 : 6,
-                  backgroundColor: isCurrent
-                    ? STORY_COLORS.antworten
-                    : slideAnswered
-                      ? STORY_COLORS.ink50
-                      : STORY_COLORS.hair,
-                }}
-              />
-            );
-          })}
-        </div>
 
         <button
           type="button"

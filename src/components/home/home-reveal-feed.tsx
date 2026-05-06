@@ -211,8 +211,8 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
         </motion.div>
       </div>
 
-      {/* Pagination dots + buttons */}
-      <nav className="flex items-center justify-between gap-3 px-1">
+      {/* Navigation buttons */}
+      <nav className="flex items-center justify-between px-1">
         <button
           type="button"
           onClick={goPrev}
@@ -226,31 +226,6 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
         >
           ‹
         </button>
-
-        <div className="flex flex-1 items-center justify-center gap-1.5">
-          {slides.map((slide, i) => {
-            const isCurrent = i === safeIndex;
-            const slideAnswered = isAnsweredByMe(slide.result, currentUserId);
-            return (
-              <button
-                key={`${slide.runId ?? slide.dateKey}:${slide.questionId}:${i}`}
-                type="button"
-                onClick={() => setIndex(i)}
-                aria-label={`Slide ${i + 1}`}
-                aria-current={isCurrent ? "step" : undefined}
-                className="block h-1 rounded-full transition-all"
-                style={{
-                  width: isCurrent ? 18 : 6,
-                  backgroundColor: isCurrent
-                    ? STORY_COLORS.ink
-                    : slideAnswered
-                      ? STORY_COLORS.ink50
-                      : STORY_COLORS.hair,
-                }}
-              />
-            );
-          })}
-        </div>
 
         <button
           type="button"
