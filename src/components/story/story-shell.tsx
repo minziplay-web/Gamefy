@@ -25,7 +25,6 @@ import type { Category } from "@/lib/types/frontend";
  */
 export function StoryShell({
   position,
-  category: _category,
   categoryLabel,
   questionText,
   accentColor,
@@ -49,7 +48,7 @@ export function StoryShell({
 
   return (
     <article
-      className={`flex flex-col overflow-hidden rounded-2xl px-4 py-4 ${className}`}
+      className={`flex flex-col overflow-visible rounded-2xl px-4 py-4 ${className}`}
       style={{ backgroundColor: STORY_COLORS.bgElev }}
     >
       {/* eyebrow + position */}

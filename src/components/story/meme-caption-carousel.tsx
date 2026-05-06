@@ -7,13 +7,14 @@ import { AvatarCircle } from "@/components/ui/avatar";
 import { MemeImage } from "@/components/daily/meme-image";
 import { STORY_COLORS } from "@/components/story/constants";
 import { HeartIcon } from "@/components/story/comment-icons";
+import { SlideProgressBar } from "@/components/story/slide-progress-bar";
 import { submitMemeCaptionVote } from "@/lib/firebase/daily-actions";
 import type { MemeCaptionResult } from "@/lib/types/frontend";
 
 // iOS-Photo-Album-Easing — smooth deceleration ohne Bounce
 const SLIDE_TRANSITION = {
   type: "tween",
-  duration: 0.32,
+  duration: 0.28,
   ease: [0.22, 0.61, 0.36, 1],
 } as const;
 
@@ -175,12 +176,21 @@ export function MemeCaptionCarousel({
 
   return (
     <div className="flex flex-col gap-3">
+      <SlideProgressBar
+        current={safeIndex + 1}
+        total={totalSlides}
+        accentColor={accentColor}
+        label={isRankingSlide ? "Ranking" : "Memes"}
+        sticky
+        className="-mx-1"
+      />
+
       {/* TRACK — alle Slides side-by-side, x folgt dem Finger.
           Buttons & Like-Aktion liegen UNTER dem Track damit Drag sie nicht
           verschluckt. */}
       <div ref={containerRef} className="relative overflow-hidden">
         <motion.div
-          className="flex"
+          className="flex touch-pan-y"
           style={{
             x,
             width: width * totalSlides || undefined,
@@ -191,7 +201,7 @@ export function MemeCaptionCarousel({
             left: -(totalSlides - 1) * width,
             right: 0,
           }}
-          dragElastic={0.18}
+          dragElastic={0.12}
           dragMomentum={false}
           onDragEnd={handleDragEnd}
         >

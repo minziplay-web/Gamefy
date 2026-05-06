@@ -1,11 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion, type PanInfo } from "motion/react";
-import { useEffect, useMemo, useState } from "react";
+import { animate, motion, useMotionValue, type PanInfo } from "motion/react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { QuestionInput } from "@/components/daily/question-input";
-import { STORY_COLORS, StoryShell } from "@/components/story";
+import { SlideProgressBar, STORY_COLORS, StoryShell } from "@/components/story";
 import { ThreeBodyLoader } from "@/components/ui/loader";
 import { CATEGORY_LABELS } from "@/lib/mapping/categories";
 import { mergeDailyState } from "@/lib/mapping/state-merge";
@@ -17,6 +17,11 @@ import type {
 
 const SWIPE_DISTANCE = 80;
 const SWIPE_VELOCITY = 500;
+const SLIDE_TRANSITION = {
+  type: "tween",
+  duration: 0.28,
+  ease: [0.22, 0.61, 0.36, 1],
+} as const;
 
 type ReadyState = Extract<DailyViewState, { status: "ready" }>;
 
@@ -133,7 +138,26 @@ function DailyAnswersStoryReady({
   const initialIndex = 0;
 
   const [index, setIndex] = useState(initialIndex);
-  const [direction, setDirection] = useState<1 | -1>(1);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    const update = () => setWidth(node.clientWidth);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const safeIndex = Math.max(0, Math.min(index, Math.max(0, total - 1)));
+  const x = useMotionValue(0);
+  useEffect(() => {
+    if (width === 0 || total === 0) return;
+    const controls = animate(x, -safeIndex * width, SLIDE_TRANSITION);
+    return () => controls.stop();
+  }, [safeIndex, width, x, total]);
 
   // Wenn keine offenen Fragen mehr → Empty-State, kein Slide-Stack.
   if (total === 0) {
@@ -147,18 +171,13 @@ function DailyAnswersStoryReady({
     );
   }
 
-  const safeIndex = Math.max(0, Math.min(index, total - 1));
-  const current = openCards[safeIndex];
-
   const goNext = () => {
     if (safeIndex < total - 1) {
-      setDirection(1);
       setIndex(safeIndex + 1);
     }
   };
   const goPrev = () => {
     if (safeIndex > 0) {
-      setDirection(-1);
       setIndex(safeIndex - 1);
     }
   };
@@ -166,10 +185,17 @@ function DailyAnswersStoryReady({
   const handleDragEnd = (_: unknown, info: PanInfo) => {
     const distance = info.offset.x;
     const velocity = info.velocity.x;
+    let nextIndex = safeIndex;
     if (distance < -SWIPE_DISTANCE || velocity < -SWIPE_VELOCITY) {
-      goNext();
+      nextIndex = safeIndex + 1;
     } else if (distance > SWIPE_DISTANCE || velocity > SWIPE_VELOCITY) {
-      goPrev();
+      nextIndex = safeIndex - 1;
+    }
+    const clamped = Math.max(0, Math.min(total - 1, nextIndex));
+    if (clamped === safeIndex) {
+      animate(x, -safeIndex * width, SLIDE_TRANSITION);
+    } else {
+      setIndex(clamped);
     }
   };
 
@@ -315,36 +341,48 @@ function DailyAnswersStoryReady({
         </div>
       ) : null}
 
+      <SlideProgressBar
+        current={safeIndex + 1}
+        total={total}
+        accentColor={STORY_COLORS.antworten}
+        label="Fragen"
+        sticky
+      />
+
       {/* Slide-Stack */}
-      <div className="relative overflow-hidden">
-        <AnimatePresence mode="wait" custom={direction} initial={false}>
-          <motion.div
-            key={getCardKey(current)}
-            custom={direction}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: 0.18,
-              ease: "easeOut",
-            }}
-            drag="x"
-            dragElastic={0.2}
-            dragConstraints={{ left: 0, right: 0 }}
-            onDragEnd={handleDragEnd}
-            className="touch-pan-y"
-          >
-            <AnswerSlide
-              card={current}
-              onDraftChange={(draft) =>
-                handleDraftChange(getCardKey(current), draft)
-              }
-              onSubmit={(draft) => handleSubmit(getCardKey(current), draft)}
-              position={{ current: safeIndex + 1, total }}
-              saved={recentlySaved.has(getCardKey(current))}
-            />
-          </motion.div>
-        </AnimatePresence>
+      <div ref={containerRef} className="relative overflow-hidden">
+        <motion.div
+          className="flex touch-pan-y"
+          style={{
+            x,
+            width: width * total || undefined,
+            willChange: "transform",
+          }}
+          drag={total > 1 ? "x" : false}
+          dragConstraints={{ left: -(total - 1) * width, right: 0 }}
+          dragElastic={0.12}
+          dragMomentum={false}
+          onDragEnd={handleDragEnd}
+        >
+          {openCards.map((card, slideIdx) => {
+            const cardKey = getCardKey(card);
+            return (
+              <div
+                key={cardKey}
+                className="shrink-0"
+                style={{ width: width || "100%" }}
+              >
+                <AnswerSlide
+                  card={card}
+                  onDraftChange={(draft) => handleDraftChange(cardKey, draft)}
+                  onSubmit={(draft) => handleSubmit(cardKey, draft)}
+                  position={{ current: slideIdx + 1, total }}
+                  saved={recentlySaved.has(cardKey)}
+                />
+              </div>
+            );
+          })}
+        </motion.div>
       </div>
 
       {/* Pagination dots + buttons */}
@@ -364,7 +402,7 @@ function DailyAnswersStoryReady({
         </button>
 
         <div className="flex flex-1 items-center justify-center gap-1.5">
-          {cards.map((card, i) => {
+          {openCards.map((card, i) => {
             const isCurrent = i === safeIndex;
             const slideAnswered =
               card.phase === "submitted_waiting_reveal" ||
@@ -374,7 +412,6 @@ function DailyAnswersStoryReady({
                 key={getCardKey(card)}
                 type="button"
                 onClick={() => {
-                  setDirection(i > safeIndex ? 1 : -1);
                   setIndex(i);
                 }}
                 aria-label={`Slide ${i + 1}`}
@@ -600,8 +637,6 @@ function DailyMessage({
   cta?: { href: string; label: string };
   variant?: "info" | "error";
 }) {
-  const accent =
-    variant === "error" ? "#B0353A" : STORY_COLORS.antworten;
   return (
     <div className="flex flex-col gap-3 pb-2 pt-2">
       <header className="px-1 pt-1">
@@ -667,20 +702,6 @@ function getCardKey(card: DailyQuestionCardState) {
   return `${card.question.runId ?? "daily"}:${card.question.questionId}`;
 }
 
-function findNextOpenQuestionIndex(
-  cards: DailyQuestionCardState[],
-  currentIndex: number,
-) {
-  for (let offset = 1; offset < cards.length; offset += 1) {
-    const idx = (currentIndex + offset) % cards.length;
-    const card = cards[idx];
-    if (card.phase === "unanswered" || card.phase === "error") {
-      return idx;
-    }
-  }
-  return -1;
-}
-
 function draftIsComplete(
   draft: DailyAnswerDraft | undefined,
 ): draft is DailyAnswerDraft {
@@ -702,4 +723,3 @@ function draftIsComplete(
       return draft.textAnswer.trim().length > 0;
   }
 }
-

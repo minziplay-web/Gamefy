@@ -8,6 +8,7 @@ import { LockedRevealBody } from "@/components/home/locked-reveal-body";
 import { RevealBody } from "@/components/home/reveal-renderers";
 import { InlineCommentsSection } from "@/components/story/inline-comments";
 import {
+  SlideProgressBar,
   STORY_COLORS,
   StoryShell,
 } from "@/components/story";
@@ -19,7 +20,7 @@ const SWIPE_DISTANCE = 80;
 const SWIPE_VELOCITY = 360;
 const SLIDE_TRANSITION = {
   type: "tween",
-  duration: 0.32,
+  duration: 0.28,
   ease: [0.22, 0.61, 0.36, 1],
 } as const;
 
@@ -141,11 +142,19 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
         </span>
       </header>
 
+      <SlideProgressBar
+        current={safeIndex + 1}
+        total={total}
+        accentColor={accent}
+        label="Daily"
+        sticky
+      />
+
       {/* Slide-Track — alle Slides side-by-side, x folgt dem Finger.
           Photo-gallery feel: drag → translate, drop → spring snap to nearest. */}
       <div ref={containerRef} className="relative overflow-hidden">
         <motion.div
-          className="flex"
+          className="flex touch-pan-y"
           style={{
             x,
             width: width * total || undefined,
@@ -153,7 +162,7 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
           }}
           drag={total > 1 ? "x" : false}
           dragConstraints={{ left: -(total - 1) * width, right: 0 }}
-          dragElastic={0.18}
+          dragElastic={0.12}
           dragMomentum={false}
           onDragEnd={handleDragEnd}
         >
