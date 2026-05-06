@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
-import { AnimatePresence, motion, type PanInfo } from "motion/react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
+import { motion, type PanInfo } from "motion/react";
 
 import { AvatarCircle } from "@/components/ui/avatar";
 import { MemeImage } from "@/components/daily/meme-image";
@@ -11,11 +11,10 @@ import { submitMemeCaptionVote } from "@/lib/firebase/daily-actions";
 import type { MemeCaptionResult } from "@/lib/types/frontend";
 
 /**
- * MemeCaptionCarousel — jedes erstellte Meme als eigenständiger "Insta-Post".
- *
- * User-Decision 2026-05-06: pro Caption ein eigener Slide. Plus pro Slide ein
- * Like-Button (HeartIcon, calls submitMemeCaptionVote). Letzter Slide ist die
- * Ranking-Übersicht: Top-Liste sortiert nach Likes.
+ * MemeCaptionCarousel — pro Caption ein Insta-Post als Slide. Track-basierter
+ * Swipe (alle Slides side-by-side im flex-Track, x folgt dem Finger). Meta-Row
+ * (Author + Like) liegt AUSSERHALB der Track damit Tap-Targets nicht von der
+ * Drag-Geste verschluckt werden. Ranking-Slide hängt am Ende.
  */
 export function MemeCaptionCarousel({
   result,
@@ -32,8 +31,6 @@ export function MemeCaptionCarousel({
   questionId?: string;
   currentUserId?: string;
 }) {
-  // Optimistic-State pro authorUserId — überschreibt server thumbsUpCount/iVoted
-  // sofort beim Klick. State wird beim nächsten snapshot vom Server überschrieben.
   type LocalVote = { iVoted: boolean; count: number };
   const [localVotes, setLocalVotes] = useState<Record<string, LocalVote>>({});
 
@@ -49,29 +46,29 @@ export function MemeCaptionCarousel({
       .sort((a, b) => b.count - a.count || a.originalIdx - b.originalIdx);
   }, [result.entries, localVotes]);
 
-  const [index, setIndex] = useState(0);
   const totalCaptions = ranked.length;
-  // Ranking-Slide nur wenn überhaupt mehr als eine Caption existiert.
   const hasRankingSlide = totalCaptions > 1;
   const totalSlides = hasRankingSlide ? totalCaptions + 1 : totalCaptions;
-  const showedHintRef = useRef(false);
 
-  const [hint, setHint] = useState(false);
-  useEffect(() => {
-    if (showedHintRef.current) return;
-    if (totalSlides <= 1) return;
-    showedHintRef.current = true;
-    const t = setTimeout(() => setHint(true), 350);
-    const t2 = setTimeout(() => setHint(false), 1300);
-    return () => {
-      clearTimeout(t);
-      clearTimeout(t2);
-    };
-  }, [totalSlides]);
+  const [index, setIndex] = useState(0);
+  const safeIndex = Math.min(Math.max(index, 0), Math.max(0, totalSlides - 1));
+  const isRankingSlide = hasRankingSlide && safeIndex === totalCaptions;
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    const update = () => setWidth(node.clientWidth);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   const goTo = (next: number) => {
     const target = Math.max(0, Math.min(totalSlides - 1, next));
-    if (target === index) return;
+    if (target === safeIndex) return;
     setIndex(target);
   };
 
@@ -81,13 +78,11 @@ export function MemeCaptionCarousel({
     _e: MouseEvent | TouchEvent | PointerEvent,
     info: PanInfo,
   ) => {
-    if (info.offset.x < -SWIPE_DISTANCE || info.velocity.x < -SWIPE_VELOCITY) {
-      goTo(index + 1);
-    } else if (
-      info.offset.x > SWIPE_DISTANCE ||
-      info.velocity.x > SWIPE_VELOCITY
-    ) {
-      goTo(index - 1);
+    const { offset, velocity } = info;
+    if (offset.x < -SWIPE_DISTANCE || velocity.x < -SWIPE_VELOCITY) {
+      goTo(safeIndex + 1);
+    } else if (offset.x > SWIPE_DISTANCE || velocity.x > SWIPE_VELOCITY) {
+      goTo(safeIndex - 1);
     }
   };
 
@@ -149,54 +144,66 @@ export function MemeCaptionCarousel({
     );
   }
 
-  const safeIndex = Math.min(Math.max(index, 0), totalSlides - 1);
-  const isRankingSlide = hasRankingSlide && safeIndex === totalCaptions;
+  const winnerCount = ranked[0]?.count ?? 0;
+  const winner = winnerCount > 0 ? ranked[0] : null;
+  const totalLikes = ranked.reduce((sum, r) => sum + r.count, 0);
+  const current = ranked[Math.min(safeIndex, totalCaptions - 1)];
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="relative overflow-clip">
-        <AnimatePresence mode="wait" initial={false}>
-          <motion.div
-            key={isRankingSlide ? "ranking" : safeIndex}
-            initial={{ opacity: 0 }}
-            animate={
-              hint
-                ? {
-                    x: [-10, 0],
-                    opacity: 1,
-                    transition: { duration: 0.6, ease: "easeOut" },
-                  }
-                : { opacity: 1 }
-            }
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.18, ease: "easeOut" }}
-            drag={totalSlides > 1 ? "x" : false}
-            dragConstraints={{ left: 0, right: 0 }}
-            dragElastic={0.18}
-            dragMomentum={false}
-            onDragEnd={handleDragEnd}
-            className="touch-pan-y"
-          >
-            {isRankingSlide ? (
-              <RankingSlide
-                ranked={ranked}
-                accentColor={accentColor}
+      {/* TRACK — alle Slides side-by-side, x folgt dem Finger.
+          Buttons & Like-Aktion liegen UNTER dem Track damit Drag sie nicht
+          verschluckt. */}
+      <div ref={containerRef} className="relative overflow-hidden">
+        <motion.div
+          className="flex"
+          style={{ width: width * totalSlides || undefined }}
+          animate={{ x: -safeIndex * width }}
+          transition={{ type: "spring", stiffness: 320, damping: 34, mass: 0.9 }}
+          drag={totalSlides > 1 ? "x" : false}
+          dragConstraints={{
+            left: -(totalSlides - 1) * width,
+            right: 0,
+          }}
+          dragElastic={0.18}
+          dragMomentum={false}
+          onDragEnd={handleDragEnd}
+        >
+          {ranked.map((row) => (
+            <div
+              key={row.entry.author?.userId ?? `cap-${row.originalIdx}`}
+              className="shrink-0"
+              style={{ width: width || "100%" }}
+            >
+              <CaptionImage imagePath={result.imagePath} text={row.entry.text} />
+            </div>
+          ))}
+          {hasRankingSlide ? (
+            <div className="shrink-0" style={{ width: width || "100%" }}>
+              <RankingCover
                 imagePath={result.imagePath}
-              />
-            ) : (
-              <CaptionSlide
-                ranked={ranked}
-                safeIndex={safeIndex}
                 accentColor={accentColor}
-                imagePath={result.imagePath}
-                canVote={canVote}
-                currentUserId={currentUserId}
-                onToggleLike={toggleLike}
+                winner={winner}
+                winnerCount={winnerCount}
               />
-            )}
-          </motion.div>
-        </AnimatePresence>
+            </div>
+          ) : null}
+        </motion.div>
       </div>
+
+      {/* META-ROW — outside track damit der Like-Button sicher tappable ist. */}
+      {isRankingSlide ? (
+        <RankingList ranked={ranked} accentColor={accentColor} totalLikes={totalLikes} />
+      ) : (
+        <CaptionMeta
+          current={current}
+          accentColor={accentColor}
+          isWinner={safeIndex === 0 && current.count > 0}
+          canVote={canVote}
+          currentUserId={currentUserId}
+          onToggleLike={toggleLike}
+        />
+      )}
 
       {totalSlides > 1 ? (
         <div className="mt-1 flex flex-col gap-2">
@@ -270,176 +277,186 @@ type RankedCaption = {
   iVoted: boolean;
 };
 
-function CaptionSlide({
-  ranked,
-  safeIndex,
-  accentColor,
+function CaptionImage({
   imagePath,
+  text,
+}: {
+  imagePath: string;
+  text: string;
+}) {
+  return (
+    <div
+      className="overflow-hidden rounded-xl"
+      style={{ backgroundColor: STORY_COLORS.hairSoft }}
+    >
+      <MemeImage imagePath={imagePath} caption={text} frame="standalone" />
+    </div>
+  );
+}
+
+function CaptionMeta({
+  current,
+  accentColor,
+  isWinner,
   canVote,
   currentUserId,
   onToggleLike,
 }: {
-  ranked: RankedCaption[];
-  safeIndex: number;
+  current: RankedCaption;
   accentColor: string;
-  imagePath: string;
+  isWinner: boolean;
   canVote: boolean;
   currentUserId?: string;
   onToggleLike: (authorUserId: string, currentlyVoted: boolean) => void;
 }) {
-  const current = ranked[safeIndex];
-  const isWinner = safeIndex === 0 && current.count > 0;
   const authorUserId = current.entry.author?.userId;
-  const isOwnCaption = Boolean(authorUserId && authorUserId === currentUserId);
+  const isOwnCaption = Boolean(
+    authorUserId && authorUserId === currentUserId,
+  );
   const likeDisabled = !canVote || !authorUserId || isOwnCaption;
 
   return (
-    <>
-      <div
-        className="overflow-hidden rounded-xl"
-        style={{ backgroundColor: STORY_COLORS.hairSoft }}
-      >
-        <MemeImage
-          imagePath={imagePath}
-          caption={current.entry.text}
-          frame="standalone"
+    <div className="flex items-center gap-2.5">
+      {current.entry.author ? (
+        <AvatarCircle member={current.entry.author} size="sm" />
+      ) : (
+        <div
+          className="size-8 shrink-0 rounded-full"
+          style={{ backgroundColor: STORY_COLORS.hairSoft }}
         />
-      </div>
-
-      <div className="mt-3 flex items-center gap-2.5">
-        {current.entry.author ? (
-          <AvatarCircle member={current.entry.author} size="sm" />
-        ) : (
-          <div
-            className="size-8 shrink-0 rounded-full"
-            style={{ backgroundColor: STORY_COLORS.hairSoft }}
-          />
-        )}
+      )}
+      <span
+        className="truncate text-[13px]"
+        style={{
+          color: STORY_COLORS.ink,
+          fontWeight: isWinner ? 600 : 500,
+        }}
+      >
+        {current.entry.author?.displayName ?? "Unbekannt"}
+      </span>
+      {isWinner ? (
         <span
-          className="truncate text-[13px]"
+          className="text-[10px] tabular-nums"
           style={{
-            color: STORY_COLORS.ink,
-            fontWeight: isWinner ? 600 : 500,
+            color: accentColor,
+            fontFamily: "var(--font-mono)",
+            letterSpacing: "0.14em",
           }}
         >
-          {current.entry.author?.displayName ?? "Unbekannt"}
+          TOP
         </span>
-        {isWinner ? (
-          <span
-            className="text-[10px] tabular-nums"
-            style={{
-              color: accentColor,
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.14em",
-            }}
-          >
-            TOP
-          </span>
-        ) : null}
+      ) : null}
 
-        <div className="ml-auto flex items-center gap-1.5">
-          <button
-            type="button"
-            onClick={() =>
-              authorUserId && onToggleLike(authorUserId, current.iVoted)
-            }
-            disabled={likeDisabled}
-            aria-label={current.iVoted ? "Like entfernen" : "Liken"}
-            aria-pressed={current.iVoted}
-            className="inline-flex items-center justify-center rounded-full p-1 transition active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
-            style={{
-              color: current.iVoted ? "#E5594F" : STORY_COLORS.ink70,
-            }}
-            title={
-              isOwnCaption
-                ? "Eigene Captions kannst du nicht liken"
-                : undefined
-            }
-          >
-            <HeartIcon size={20} filled={current.iVoted} />
-          </button>
-          <span
-            className="text-[12px] tabular-nums"
-            style={{
-              color: current.count > 0 ? STORY_COLORS.ink : STORY_COLORS.ink50,
-              fontFamily: "var(--font-mono)",
-              minWidth: "1.25ch",
-            }}
-          >
-            {current.count}
-          </span>
-        </div>
+      <div className="ml-auto flex items-center gap-1.5">
+        <button
+          type="button"
+          onClick={() =>
+            authorUserId && onToggleLike(authorUserId, current.iVoted)
+          }
+          disabled={likeDisabled}
+          aria-label={current.iVoted ? "Like entfernen" : "Liken"}
+          aria-pressed={current.iVoted}
+          className="inline-flex items-center justify-center rounded-full p-1 transition active:scale-90 disabled:cursor-not-allowed disabled:opacity-40"
+          style={{
+            color: current.iVoted ? "#E5594F" : STORY_COLORS.ink70,
+          }}
+          title={
+            isOwnCaption
+              ? "Eigene Captions kannst du nicht liken"
+              : undefined
+          }
+        >
+          <HeartIcon size={20} filled={current.iVoted} />
+        </button>
+        <span
+          className="text-[12px] tabular-nums"
+          style={{
+            color: current.count > 0 ? STORY_COLORS.ink : STORY_COLORS.ink50,
+            fontFamily: "var(--font-mono)",
+            minWidth: "1.25ch",
+          }}
+        >
+          {current.count}
+        </span>
       </div>
-    </>
+    </div>
   );
 }
 
-function RankingSlide({
+function RankingCover({
+  imagePath,
+  accentColor,
+  winner,
+  winnerCount,
+}: {
+  imagePath: string;
+  accentColor: string;
+  winner: RankedCaption | null;
+  winnerCount: number;
+}) {
+  return (
+    <div
+      className="relative overflow-hidden rounded-xl"
+      style={{ backgroundColor: STORY_COLORS.hairSoft }}
+    >
+      <MemeImage imagePath={imagePath} frame="standalone" />
+      <div
+        className="pointer-events-none absolute inset-0"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.85) 100%)",
+        }}
+      />
+      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
+        <span
+          className="text-[10px] tabular-nums"
+          style={{
+            color: accentColor,
+            fontFamily: "var(--font-mono)",
+            letterSpacing: "0.22em",
+          }}
+        >
+          ENDSTAND
+        </span>
+        <h3
+          className="text-[22px] font-semibold leading-tight"
+          style={{ color: "#FFFFFF", textWrap: "balance" }}
+        >
+          {winner ? winner.entry.author?.displayName ?? "Unbekannt" : "Noch keine Likes"}
+        </h3>
+        {winner ? (
+          <p
+            className="text-[12px]"
+            style={{ color: "rgba(255,255,255,0.78)" }}
+          >
+            {winnerCount === 1 ? "1 Like" : `${winnerCount} Likes`} · gewinnt diese Runde
+          </p>
+        ) : (
+          <p
+            className="text-[12px]"
+            style={{ color: "rgba(255,255,255,0.78)" }}
+          >
+            Niemand hat bisher geliked.
+          </p>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function RankingList({
   ranked,
   accentColor,
-  imagePath,
+  totalLikes,
 }: {
   ranked: RankedCaption[];
   accentColor: string;
-  imagePath: string;
+  totalLikes: number;
 }) {
-  const totalLikes = ranked.reduce((sum, r) => sum + r.count, 0);
-  const winnerCount = ranked[0]?.count ?? 0;
-  const winner = winnerCount > 0 ? ranked[0] : null;
-
   return (
-    <div className="flex flex-col gap-4">
-      <div
-        className="relative overflow-hidden rounded-xl"
-        style={{ backgroundColor: STORY_COLORS.hairSoft }}
-      >
-        <MemeImage imagePath={imagePath} frame="standalone" />
-        <div
-          className="absolute inset-0"
-          style={{
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.85) 100%)",
-          }}
-        />
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
-          <span
-            className="text-[10px] tabular-nums"
-            style={{
-              color: accentColor,
-              fontFamily: "var(--font-mono)",
-              letterSpacing: "0.22em",
-            }}
-          >
-            ENDSTAND
-          </span>
-          <h3
-            className="text-[22px] font-semibold leading-tight"
-            style={{ color: "#FFFFFF", textWrap: "balance" }}
-          >
-            {winner ? `${winner.entry.author?.displayName ?? "Unbekannt"}` : "Noch keine Likes"}
-          </h3>
-          {winner ? (
-            <p
-              className="text-[12px]"
-              style={{ color: "rgba(255,255,255,0.78)" }}
-            >
-              {winnerCount === 1 ? "1 Like" : `${winnerCount} Likes`} ·{" "}
-              gewinnt diese Runde
-            </p>
-          ) : (
-            <p
-              className="text-[12px]"
-              style={{ color: "rgba(255,255,255,0.78)" }}
-            >
-              Niemand hat bisher geliked.
-            </p>
-          )}
-        </div>
-      </div>
-
+    <div className="flex flex-col gap-2">
       <ol className="flex flex-col">
         {ranked.map((row, idx) => {
-          // Standard-Ranking mit Lücken bei Gleichstand: 1, 2, 2, 4 …
           let rank = idx + 1;
           for (let i = idx - 1; i >= 0; i -= 1) {
             if (ranked[i].count === row.count) {
@@ -506,7 +523,6 @@ function RankingSlide({
           );
         })}
       </ol>
-
       <p
         className="text-[11px] tabular-nums"
         style={{

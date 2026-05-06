@@ -167,6 +167,7 @@ export default function PastDailyStoryPage({
               dateKey={dateKey}
               runId={card.question.runId ?? dateKey}
               questionId={card.question.questionId}
+              hideLike={card.result.questionType === "meme_caption"}
             />
           }
         />

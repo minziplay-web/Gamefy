@@ -1,8 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { AnimatePresence, motion, type PanInfo } from "motion/react";
-import { useMemo, useState } from "react";
+import { motion, type PanInfo } from "motion/react";
+import { useLayoutEffect, useMemo, useRef, useState } from "react";
 
 import { LockedRevealBody } from "@/components/home/locked-reveal-body";
 import { RevealBody } from "@/components/home/reveal-renderers";
@@ -47,29 +47,32 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
   );
 
   const [index, setIndex] = useState(0);
-  const [direction, setDirection] = useState<1 | -1>(1);
+
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(0);
+  useLayoutEffect(() => {
+    const node = containerRef.current;
+    if (!node) return;
+    const update = () => setWidth(node.clientWidth);
+    update();
+    const observer = new ResizeObserver(update);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
 
   if (total === 0) {
     return <NoDailySlide displayName={state.greeting.displayName} />;
   }
 
   const safeIndex = Math.max(0, Math.min(index, total - 1));
-  const current = slides[safeIndex];
   // Page-Akzent = Tab-Farbe (Daily-Orange). Kategorie-Farben sind deprecated.
   const accent = STORY_COLORS.daily;
-  const answered = isAnsweredByMe(current.result, currentUserId);
 
   const goNext = () => {
-    if (safeIndex < total - 1) {
-      setDirection(1);
-      setIndex(safeIndex + 1);
-    }
+    if (safeIndex < total - 1) setIndex(safeIndex + 1);
   };
   const goPrev = () => {
-    if (safeIndex > 0) {
-      setDirection(-1);
-      setIndex(safeIndex - 1);
-    }
+    if (safeIndex > 0) setIndex(safeIndex - 1);
   };
 
   const handleDragEnd = (_: unknown, info: PanInfo) => {
@@ -118,56 +121,63 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
         </span>
       </header>
 
-      {/* Slide-Stack */}
-      <div className="relative overflow-hidden">
-        <AnimatePresence mode="wait" custom={direction} initial={false}>
-          <motion.div
-            key={`${current.runId ?? current.dateKey}:${current.questionId}`}
-            custom={direction}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{
-              duration: 0.18,
-              ease: "easeOut",
-            }}
-            drag="x"
-            dragElastic={0.2}
-            dragConstraints={{ left: 0, right: 0 }}
-            onDragEnd={handleDragEnd}
-            className="touch-pan-y"
-          >
-            <StoryShell
-              position={{ current: safeIndex + 1, total }}
-              categoryLabel={CATEGORY_LABELS[current.category]}
-              questionText={current.questionText}
-              accentColor={accent}
-              body={
-                answered ? (
-                  <RevealBody
-                    result={current.result}
-                    accentColor={accent}
-                    runId={current.runId ?? current.dateKey}
-                    dateKey={current.dateKey}
-                    questionId={current.questionId}
-                    currentUserId={currentUserId}
-                  />
-                ) : (
-                  <LockedRevealBody />
-                )
-              }
-              footer={
-                answered ? (
-                  <InlineCommentsSection
-                    dateKey={current.dateKey}
-                    runId={current.runId ?? current.dateKey}
-                    questionId={current.questionId}
-                  />
-                ) : undefined
-              }
-            />
-          </motion.div>
-        </AnimatePresence>
+      {/* Slide-Track — alle Slides side-by-side, x folgt dem Finger.
+          Photo-gallery feel: drag → translate, drop → spring snap to nearest. */}
+      <div ref={containerRef} className="relative overflow-hidden">
+        <motion.div
+          className="flex"
+          style={{ width: width * total || undefined }}
+          animate={{ x: -safeIndex * width }}
+          transition={{ type: "spring", stiffness: 320, damping: 34, mass: 0.9 }}
+          drag={total > 1 ? "x" : false}
+          dragConstraints={{ left: -(total - 1) * width, right: 0 }}
+          dragElastic={0.18}
+          dragMomentum={false}
+          onDragEnd={handleDragEnd}
+        >
+          {slides.map((slide, slideIdx) => {
+            const slideAnswered = isAnsweredByMe(slide.result, currentUserId);
+            const slideRunId = slide.runId ?? slide.dateKey;
+            return (
+              <div
+                key={`${slideRunId}:${slide.questionId}`}
+                className="shrink-0"
+                style={{ width: width || "100%" }}
+              >
+                <StoryShell
+                  position={{ current: slideIdx + 1, total }}
+                  categoryLabel={CATEGORY_LABELS[slide.category]}
+                  questionText={slide.questionText}
+                  accentColor={accent}
+                  body={
+                    slideAnswered ? (
+                      <RevealBody
+                        result={slide.result}
+                        accentColor={accent}
+                        runId={slideRunId}
+                        dateKey={slide.dateKey}
+                        questionId={slide.questionId}
+                        currentUserId={currentUserId}
+                      />
+                    ) : (
+                      <LockedRevealBody />
+                    )
+                  }
+                  footer={
+                    slideAnswered ? (
+                      <InlineCommentsSection
+                        dateKey={slide.dateKey}
+                        runId={slideRunId}
+                        questionId={slide.questionId}
+                        hideLike={slide.result.questionType === "meme_caption"}
+                      />
+                    ) : undefined
+                  }
+                />
+              </div>
+            );
+          })}
+        </motion.div>
       </div>
 
       {/* Pagination dots + buttons */}
@@ -194,10 +204,7 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
               <button
                 key={`${slide.runId ?? slide.dateKey}:${slide.questionId}:${i}`}
                 type="button"
-                onClick={() => {
-                  setDirection(i > safeIndex ? 1 : -1);
-                  setIndex(i);
-                }}
+                onClick={() => setIndex(i)}
                 aria-label={`Slide ${i + 1}`}
                 aria-current={isCurrent ? "step" : undefined}
                 className="block h-1 rounded-full transition-all"

@@ -38,10 +38,13 @@ export function InlineCommentsSection({
   dateKey,
   runId,
   questionId,
+  hideLike = false,
 }: {
   dateKey: string;
   runId?: string;
   questionId: string;
+  /** Bei meme_caption werden Likes pro Caption gegeben — Frage-Level-Like ausblenden. */
+  hideLike?: boolean;
 }) {
   const { authState } = useAuth();
   const [comments, setComments] = useState<DailyComment[]>([]);
@@ -72,11 +75,13 @@ export function InlineCommentsSection({
       },
       (listenerError) => setError(formatListenerError("Kommentare", listenerError)),
     );
-    const unsubscribeLikes = subscribeDailyQuestionLikes(
-      { runId: resolvedRunId, questionId, userId: currentUser?.userId },
-      setLikeState,
-      (listenerError) => setError(formatListenerError("Likes", listenerError)),
-    );
+    const unsubscribeLikes = hideLike
+      ? () => undefined
+      : subscribeDailyQuestionLikes(
+          { runId: resolvedRunId, questionId, userId: currentUser?.userId },
+          setLikeState,
+          (listenerError) => setError(formatListenerError("Likes", listenerError)),
+        );
     const unsubscribeUsers = onSnapshot(
       query(usersRef, where("isActive", "==", true)),
       (snapshot) => {
@@ -97,7 +102,7 @@ export function InlineCommentsSection({
       unsubscribeLikes();
       unsubscribeUsers();
     };
-  }, [currentUser?.userId, questionId, resolvedRunId]);
+  }, [currentUser?.userId, hideLike, questionId, resolvedRunId]);
 
   const sortedComments = useMemo(
     () =>
@@ -193,23 +198,25 @@ export function InlineCommentsSection({
   return (
     <section className="space-y-3" aria-label="Kommentare und Likes">
       <div className="flex items-center gap-4">
-        <button
-          type="button"
-          className="inline-flex items-center gap-1.5 text-sm font-semibold transition disabled:opacity-40"
-          style={{ color: likeState.likedByMe ? STORY_COLORS.archiv : DARK.muted }}
-          disabled={!currentUser || likeBusy}
-          aria-pressed={likeState.likedByMe}
-          aria-label={likeState.likedByMe ? "Like entfernen" : "Frage liken"}
-          onClick={() => void toggleLike()}
-        >
-          <HeartIcon size={20} filled={likeState.likedByMe} />
-          <span
-            className="text-[11px] tabular-nums"
-            style={{ fontFamily: "var(--font-mono)" }}
+        {hideLike ? null : (
+          <button
+            type="button"
+            className="inline-flex items-center gap-1.5 text-sm font-semibold transition disabled:opacity-40"
+            style={{ color: likeState.likedByMe ? STORY_COLORS.archiv : DARK.muted }}
+            disabled={!currentUser || likeBusy}
+            aria-pressed={likeState.likedByMe}
+            aria-label={likeState.likedByMe ? "Like entfernen" : "Frage liken"}
+            onClick={() => void toggleLike()}
           >
-            {likeState.count}
-          </span>
-        </button>
+            <HeartIcon size={20} filled={likeState.likedByMe} />
+            <span
+              className="text-[11px] tabular-nums"
+              style={{ fontFamily: "var(--font-mono)" }}
+            >
+              {likeState.count}
+            </span>
+          </button>
+        )}
 
         <button
           type="button"
