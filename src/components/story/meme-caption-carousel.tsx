@@ -144,8 +144,7 @@ export function MemeCaptionCarousel({
     );
   }
 
-  const winnerCount = ranked[0]?.count ?? 0;
-  const winner = winnerCount > 0 ? ranked[0] : null;
+  const winner = (ranked[0]?.count ?? 0) > 0 ? ranked[0] : null;
   const totalLikes = ranked.reduce((sum, r) => sum + r.count, 0);
   const current = ranked[Math.min(safeIndex, totalCaptions - 1)];
 
@@ -157,9 +156,12 @@ export function MemeCaptionCarousel({
       <div ref={containerRef} className="relative overflow-hidden">
         <motion.div
           className="flex"
-          style={{ width: width * totalSlides || undefined }}
+          style={{
+            width: width * totalSlides || undefined,
+            willChange: "transform",
+          }}
           animate={{ x: -safeIndex * width }}
-          transition={{ type: "spring", stiffness: 320, damping: 34, mass: 0.9 }}
+          transition={{ type: "tween", duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
           drag={totalSlides > 1 ? "x" : false}
           dragConstraints={{
             left: -(totalSlides - 1) * width,
@@ -179,12 +181,14 @@ export function MemeCaptionCarousel({
             </div>
           ))}
           {hasRankingSlide ? (
-            <div className="shrink-0" style={{ width: width || "100%" }}>
-              <RankingCover
+            <div
+              key="ranking-slide"
+              className="shrink-0"
+              style={{ width: width || "100%" }}
+            >
+              <CaptionImage
                 imagePath={result.imagePath}
-                accentColor={accentColor}
-                winner={winner}
-                winnerCount={winnerCount}
+                text={winner?.entry.text ?? ""}
               />
             </div>
           ) : null}
@@ -378,67 +382,6 @@ function CaptionMeta({
         >
           {current.count}
         </span>
-      </div>
-    </div>
-  );
-}
-
-function RankingCover({
-  imagePath,
-  accentColor,
-  winner,
-  winnerCount,
-}: {
-  imagePath: string;
-  accentColor: string;
-  winner: RankedCaption | null;
-  winnerCount: number;
-}) {
-  return (
-    <div
-      className="relative overflow-hidden rounded-xl"
-      style={{ backgroundColor: STORY_COLORS.hairSoft }}
-    >
-      <MemeImage imagePath={imagePath} frame="standalone" />
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.65) 0%, rgba(0,0,0,0.35) 40%, rgba(0,0,0,0.85) 100%)",
-        }}
-      />
-      <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 px-4 text-center">
-        <span
-          className="text-[10px] tabular-nums"
-          style={{
-            color: accentColor,
-            fontFamily: "var(--font-mono)",
-            letterSpacing: "0.22em",
-          }}
-        >
-          ENDSTAND
-        </span>
-        <h3
-          className="text-[22px] font-semibold leading-tight"
-          style={{ color: "#FFFFFF", textWrap: "balance" }}
-        >
-          {winner ? winner.entry.author?.displayName ?? "Unbekannt" : "Noch keine Likes"}
-        </h3>
-        {winner ? (
-          <p
-            className="text-[12px]"
-            style={{ color: "rgba(255,255,255,0.78)" }}
-          >
-            {winnerCount === 1 ? "1 Like" : `${winnerCount} Likes`} · gewinnt diese Runde
-          </p>
-        ) : (
-          <p
-            className="text-[12px]"
-            style={{ color: "rgba(255,255,255,0.78)" }}
-          >
-            Niemand hat bisher geliked.
-          </p>
-        )}
       </div>
     </div>
   );

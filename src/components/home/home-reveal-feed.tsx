@@ -126,9 +126,12 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
       <div ref={containerRef} className="relative overflow-hidden">
         <motion.div
           className="flex"
-          style={{ width: width * total || undefined }}
+          style={{
+            width: width * total || undefined,
+            willChange: "transform",
+          }}
           animate={{ x: -safeIndex * width }}
-          transition={{ type: "spring", stiffness: 320, damping: 34, mass: 0.9 }}
+          transition={{ type: "tween", duration: 0.28, ease: [0.32, 0.72, 0, 1] }}
           drag={total > 1 ? "x" : false}
           dragConstraints={{ left: -(total - 1) * width, right: 0 }}
           dragElastic={0.18}
