@@ -36,7 +36,7 @@ function optionClasses(active: boolean) {
 
 function optionStyle(active: boolean): React.CSSProperties {
   return {
-    backgroundColor: active ? `${ACCENT}33` : "#161616",
+    backgroundColor: active ? `${ACCENT}33` : "#1A1A1A",
     borderColor: active ? ACCENT : "#2C2C2E",
     fontWeight: active ? 600 : 500,
   };

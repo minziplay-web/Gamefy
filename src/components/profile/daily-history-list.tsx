@@ -23,7 +23,7 @@ export function DailyHistoryList({ entries }: { entries: DailyHistoryEntry[] }) 
         return (
           <li
             key={entry.runId ?? entry.dateKey}
-            className="flex flex-col gap-2 rounded-2xl border border-[#1F1F1F] bg-[#161616] px-4 py-3 shadow-card-flat sm:flex-row sm:items-center sm:justify-between"
+            className="flex flex-col gap-2 rounded-2xl border border-[#1F1F1F] bg-[#1A1A1A] px-4 py-3 shadow-card-flat sm:flex-row sm:items-center sm:justify-between"
           >
             <div className="space-y-0.5">
               <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-[#FAFAFA]">

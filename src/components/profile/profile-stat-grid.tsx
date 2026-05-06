@@ -28,7 +28,7 @@ export function ProfileStatGrid({ stats }: { stats: ProfileStats }) {
           }}
         >
           <div
-            className="flex min-h-[7.7rem] flex-col rounded-[1.18rem] border border-[#1F1F1F] bg-[#161616] p-3 transition sm:p-4"
+            className="flex min-h-[7.7rem] flex-col rounded-[1.18rem] border border-[#1F1F1F] bg-[#1A1A1A] p-3 transition sm:p-4"
           >
             <div className="flex items-start justify-between gap-2">
               <p className="text-[9px] font-semibold uppercase tracking-[0.14em] text-[#A8A8A8] min-[380px]:text-[10px]">

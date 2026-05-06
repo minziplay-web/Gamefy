@@ -50,7 +50,7 @@ export function ProfileNameEditor({ user }: { user: AppUser }) {
   };
 
   return (
-    <section className="space-y-3 rounded-3xl border border-[#2C2C2E] bg-[#161616] p-4 shadow-card-flat">
+    <section className="space-y-3 rounded-3xl border border-[#2C2C2E] bg-[#1A1A1A] p-4 shadow-card-flat">
       <div className="space-y-1">
         <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#A8A8A8]">
           Anzeigename
@@ -73,9 +73,9 @@ export function ProfileNameEditor({ user }: { user: AppUser }) {
           placeholder="z. B. Leon"
           maxLength={24}
           error={nameError}
-          className="border-[#2C2C2E] bg-[#161616] text-[#FAFAFA] placeholder:text-[#6E6E73] focus:border-[#D860B5] focus:ring-[#D860B5]/25"
+          className="border-[#2C2C2E] bg-[#1A1A1A] text-[#FAFAFA] placeholder:text-[#6E6E73] focus:border-[#D860B5] focus:ring-[#D860B5]/25"
           style={{
-            backgroundColor: "#161616",
+            backgroundColor: "#1A1A1A",
             borderColor: "#2C2C2E",
             color: "#FAFAFA",
           }}

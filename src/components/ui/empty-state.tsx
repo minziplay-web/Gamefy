@@ -28,7 +28,7 @@ export function EmptyState({
   return (
     <div
       className="flex flex-col items-center gap-4 rounded-2xl px-6 py-10 text-center"
-      style={{ backgroundColor: "#161616" }}
+      style={{ backgroundColor: "#1A1A1A" }}
     >
       {icon ? (
         <div

@@ -17,7 +17,7 @@ export function AppShell({
       {isTestFirebaseProject() ? (
         <div className="mx-auto w-full max-w-screen-sm px-4 pt-2">
           <div
-            className="rounded-full border border-brand-light/40 bg-[#161616] px-3 py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-light"
+            className="rounded-full border border-brand-light/40 bg-[#1A1A1A] px-3 py-1.5 text-center text-[10px] font-semibold uppercase tracking-[0.18em] text-brand-light"
             style={{ fontFamily: "var(--font-mono)" }}
           >
             Testsystem · mijija-test

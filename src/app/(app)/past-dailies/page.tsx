@@ -64,7 +64,7 @@ export default function PastDailiesPage() {
 
 function PastDailiesList({ entries }: { entries: HomePastDailyReview[] }) {
   return (
-    <ul className="overflow-hidden rounded-2xl bg-[#161616] ring-1 ring-[#1F1F1F]">
+    <ul className="overflow-hidden rounded-2xl bg-[#1A1A1A] ring-1 ring-[#1F1F1F]">
       {entries.map((entry, idx) => {
         const isLast = idx === entries.length - 1;
         const dateLabel = formatBerlinDateLabel(entry.dateKey);

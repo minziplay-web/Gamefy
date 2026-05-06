@@ -26,7 +26,7 @@ export function MemberRail({
                 className={`relative flex min-h-21 w-20 flex-col items-center gap-2 rounded-2xl border px-2 py-3 shadow-card-flat transition ${
                   active
                     ? "border-[#D860B5]/60 bg-[#241320]"
-                    : "border-[#1F1F1F] bg-[#161616] hover:border-[#D860B5]/35 hover:bg-[#1F1F1F]"
+                    : "border-[#1F1F1F] bg-[#1A1A1A] hover:border-[#D860B5]/35 hover:bg-[#1F1F1F]"
                 }`}
               >
                 <AvatarCircle member={m} size="md" />

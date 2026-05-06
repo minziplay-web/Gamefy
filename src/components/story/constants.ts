@@ -22,10 +22,10 @@ export const STORY_COLORS = {
   ink50: "#6E6E73", // dim text (war #64768D)
   hair: "#2C2C2E", // stronger divider (war #DBE4EF)
   hairSoft: "#1F1F1F", // subtle divider / elevated bg (war #EEF2F7)
-  // Surface-Tokens (neu)
+  // Surface-Tokens
   bg: "#000000", // page bg
-  bgElev: "#161616", // cards/sheets
-  bgSubtle: "#0E0E0E", // very subtle elevation
+  bgElev: "#1A1A1A", // cards/sheets
+  bgSubtle: "#232323", // raised inner blocks (z.B. Frage-Block) — heller als bgElev
 } as const;
 
 /** @deprecated User-Decision 2026-05-06 Round 3: Slide-Eyebrows folgen jetzt

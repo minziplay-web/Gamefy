@@ -26,7 +26,7 @@ import type { UserDoc } from "@/lib/types/firestore";
 
 const MAX_COMMENT_LENGTH = 1000;
 const DARK = {
-  elevated: "#161616",
+  elevated: "#1A1A1A",
   text: "#FAFAFA",
   muted: "#A8A8A8",
   dim: "#6E6E73",

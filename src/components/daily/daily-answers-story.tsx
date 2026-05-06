@@ -580,7 +580,7 @@ function DailyLoading() {
           Antworten
         </h1>
       </header>
-      <div className="flex min-h-[420px] items-center justify-center rounded-2xl bg-[#161616]">
+      <div className="flex min-h-[420px] items-center justify-center rounded-2xl bg-[#1A1A1A]">
         <ThreeBodyLoader size={48} label="Daily wird geladen" />
       </div>
     </div>
@@ -625,7 +625,7 @@ function DailyMessage({
           {title}
         </h1>
       </header>
-      <article className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-2xl bg-[#161616] px-6 py-8 text-center">
+      <article className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-2xl bg-[#1A1A1A] px-6 py-8 text-center">
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={variant === "error" ? "/accents/target.svg" : "/accents/inspiration.svg"}

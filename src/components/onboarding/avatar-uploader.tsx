@@ -25,7 +25,7 @@ export function AvatarUploader({
       <button
         type="button"
         onClick={() => inputRef.current?.click()}
-        className="relative flex size-28 items-center justify-center overflow-hidden rounded-full bg-[#161616] text-3xl font-semibold text-[#FAFAFA] ring-4 ring-[#2C2C2E]"
+        className="relative flex size-28 items-center justify-center overflow-hidden rounded-full bg-[#1A1A1A] text-3xl font-semibold text-[#FAFAFA] ring-4 ring-[#2C2C2E]"
       >
         {previewUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

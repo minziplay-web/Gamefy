@@ -278,7 +278,7 @@ function NoDailySlide({ displayName }: { displayName: string }) {
       </header>
       <article
         className="flex min-h-[280px] flex-col items-center justify-center gap-3 rounded-2xl px-6 py-8 text-center"
-        style={{ backgroundColor: "#161616" }}
+        style={{ backgroundColor: "#1A1A1A" }}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

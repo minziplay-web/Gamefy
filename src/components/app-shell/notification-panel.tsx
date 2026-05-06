@@ -22,7 +22,7 @@ import type { ActivityEvent } from "@/lib/firebase/daily-activity";
 import type { DailyPrivateAnswerDoc, DailyRunDoc, UserDoc } from "@/lib/types/firestore";
 
 const DARK = {
-  elevated: "#161616",
+  elevated: "#1A1A1A",
   text: "#FAFAFA",
   muted: "#A8A8A8",
   dim: "#6E6E73",
@@ -74,7 +74,7 @@ export function NotificationBell() {
             className="absolute right-1.5 top-1.5 block h-2 w-2 rounded-full"
             style={{
               backgroundColor: STORY_COLORS.archiv,
-              boxShadow: "0 0 0 2px #161616",
+              boxShadow: "0 0 0 2px #1A1A1A",
             }}
           />
         ) : null}

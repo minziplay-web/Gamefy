@@ -88,7 +88,7 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
           type="button"
           className="flex min-h-12 w-full items-center justify-center rounded-2xl border text-sm font-semibold transition active:translate-y-px"
           style={{
-            backgroundColor: isEditing ? "#241320" : "#161616",
+            backgroundColor: isEditing ? "#241320" : "#1A1A1A",
             borderColor: isEditing ? PROFILE_ACCENT : "#2C2C2E",
             color: isEditing ? "#FAFAFA" : PROFILE_ACCENT,
           }}
@@ -99,7 +99,7 @@ export function ProfileScreen({ state }: { state: ProfileViewState }) {
         </button>
       ) : null}
       {state.isSelf && isEditing ? (
-        <div className="grid grid-cols-2 gap-2 rounded-2xl border border-[#2C2C2E] bg-[#161616] p-1">
+        <div className="grid grid-cols-2 gap-2 rounded-2xl border border-[#2C2C2E] bg-[#1A1A1A] p-1">
           <button
             type="button"
             className="min-h-10 rounded-xl text-sm font-semibold transition"

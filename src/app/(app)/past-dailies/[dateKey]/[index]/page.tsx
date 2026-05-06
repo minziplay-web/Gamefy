@@ -87,7 +87,7 @@ export default function PastDailyStoryPage({
   if (state.status === "no_run" || state.status === "run_unplayable") {
     return (
       <PageFrame dateKey={dateKey}>
-        <p className="rounded-2xl bg-[#161616] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
+        <p className="rounded-2xl bg-[#1A1A1A] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
           Diese Frage ist gerade nicht verfügbar.
         </p>
       </PageFrame>
@@ -97,7 +97,7 @@ export default function PastDailyStoryPage({
   if (revealedCards.length === 0) {
     return (
       <PageFrame dateKey={dateKey}>
-        <p className="rounded-2xl bg-[#161616] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
+        <p className="rounded-2xl bg-[#1A1A1A] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
           Für diesen Tag liegen noch keine Reveal-Daten vor.
         </p>
       </PageFrame>

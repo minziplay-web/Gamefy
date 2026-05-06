@@ -69,7 +69,7 @@ export default function PastDailyOverviewPage({
     return (
       <div className="space-y-4">
         <PastDailyHeader dateKey={dateKey} dateLabel={dateLabel} />
-        <p className="rounded-2xl bg-[#161616] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
+        <p className="rounded-2xl bg-[#1A1A1A] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
           Für diesen Tag wurde kein Run gefunden.
         </p>
       </div>
@@ -80,7 +80,7 @@ export default function PastDailyOverviewPage({
     return (
       <div className="space-y-4">
         <PastDailyHeader dateKey={dateKey} dateLabel={dateLabel} />
-        <p className="rounded-2xl bg-[#161616] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
+        <p className="rounded-2xl bg-[#1A1A1A] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
           {state.reason}
         </p>
       </div>
@@ -101,7 +101,7 @@ export default function PastDailyOverviewPage({
     return (
       <div className="space-y-4">
         <PastDailyHeader dateKey={dateKey} dateLabel={dateLabel} />
-        <div className="rounded-2xl bg-[#161616] p-6 text-center ring-1 ring-[#1F1F1F]">
+        <div className="rounded-2xl bg-[#1A1A1A] p-6 text-center ring-1 ring-[#1F1F1F]">
           <p className="text-sm text-[#A8A8A8]">
             Du hast dieses Daily noch nicht fertig beantwortet.
           </p>
@@ -120,7 +120,7 @@ export default function PastDailyOverviewPage({
     return (
       <div className="space-y-4">
         <PastDailyHeader dateKey={dateKey} dateLabel={dateLabel} />
-        <p className="rounded-2xl bg-[#161616] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
+        <p className="rounded-2xl bg-[#1A1A1A] p-6 text-center text-sm text-[#A8A8A8] ring-1 ring-[#1F1F1F]">
           Dieser Tag lässt sich gerade nicht mehr vollständig anzeigen.
         </p>
       </div>
@@ -168,7 +168,7 @@ function QuestionList({
   cards: RevealedCard[];
 }) {
   return (
-    <ul className="overflow-hidden rounded-2xl bg-[#161616] ring-1 ring-[#1F1F1F]">
+    <ul className="overflow-hidden rounded-2xl bg-[#1A1A1A] ring-1 ring-[#1F1F1F]">
       {cards.map((card, idx) => {
         const isLast = idx === cards.length - 1;
         const answerers = extractAnswerers(card.result);
