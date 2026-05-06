@@ -29,7 +29,7 @@ const TABS: Tab[] = [
   },
   {
     href: "/daily",
-    label: "Antworten",
+    label: "Fragen",
     color: "#4A5699", // brand blue — Round 3 Update
     match: (p) => p === "/daily" || p.startsWith("/daily/"),
     Icon: ({ active }) => <PenNavIcon active={active} />,

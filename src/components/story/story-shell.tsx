@@ -49,7 +49,7 @@ export function StoryShell({
 
   return (
     <article
-      className={`flex min-h-[600px] flex-col overflow-hidden rounded-2xl px-5 py-5 ${className}`}
+      className={`flex flex-col overflow-hidden rounded-2xl px-4 py-4 ${className}`}
       style={{ backgroundColor: STORY_COLORS.bgElev }}
     >
       {/* eyebrow + position */}
@@ -77,14 +77,13 @@ export function StoryShell({
         </span>
       </header>
 
-      {/* question text — mit sanftem Hintergrund-Block der die Frage vom
-          Voting-Block visuell trennt. text-balance für schönere Zeilen. */}
+      {/* question text — sanfter Hintergrund-Block, text-balance */}
       <div
-        className="mt-5 rounded-xl px-4 py-3.5"
+        className="mt-4 rounded-xl px-3.5 py-3"
         style={{ backgroundColor: STORY_COLORS.bgSubtle }}
       >
         <h2
-          className="text-[17px] font-medium leading-snug tracking-tight"
+          className="text-[16px] font-medium leading-snug tracking-tight"
           style={{
             color: STORY_COLORS.ink,
             textWrap: "balance",
@@ -94,13 +93,13 @@ export function StoryShell({
         </h2>
       </div>
 
-      {/* body slot */}
-      <div className="mt-5 flex-1">{body}</div>
+      {/* body slot — kein flex-1 mehr, Slide passt sich an Inhalt an */}
+      <div className="mt-4">{body}</div>
 
       {/* footer slot */}
       {footer ? (
         <footer
-          className="mt-6 pt-4"
+          className="mt-4 pt-3"
           style={{ borderTop: `1px solid ${STORY_COLORS.hairSoft}` }}
         >
           {footer}

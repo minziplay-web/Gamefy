@@ -80,8 +80,8 @@ export function LockedRevealBody({
           href="/daily"
           className="mt-1 inline-flex items-center justify-center rounded-full px-4 py-2 text-[12px] tabular-nums transition hover:opacity-90"
           style={{
-            backgroundColor: STORY_COLORS.ink,
-            color: "#FFFFFF",
+            backgroundColor: STORY_COLORS.daily,
+            color: "#000000",
             fontFamily: "var(--font-mono)",
             fontWeight: 600,
             letterSpacing: "0.06em",

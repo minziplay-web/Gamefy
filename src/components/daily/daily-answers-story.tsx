@@ -237,16 +237,27 @@ function DailyAnswersStoryReady({
 
   return (
     <div className="flex flex-col gap-3 pb-2 pt-2">
-      {/* Header: Antworten / Counter */}
-      <header className="flex items-center justify-between px-1 pt-1">
-        <h1
-          className="text-[18px] tracking-tight"
-          style={{ color: STORY_COLORS.ink, fontWeight: 600 }}
-        >
-          Antworten
-        </h1>
+      {/* Page-Header — eyebrow + title in Antworten-Tab-Akzent (brand blue) */}
+      <header className="flex items-end justify-between gap-3 px-1 pt-1">
+        <div>
+          <p
+            className="text-[10px] font-semibold uppercase tracking-[0.22em]"
+            style={{
+              color: STORY_COLORS.antworten,
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            FRAGEN AUF DIESER SEITE
+          </p>
+          <h1
+            className="mt-0.5 text-[26px] font-semibold leading-[1.1] tracking-tight"
+            style={{ color: STORY_COLORS.ink }}
+          >
+            Fragen
+          </h1>
+        </div>
         <span
-          className="text-[11px] tabular-nums"
+          className="pb-1 text-[11px] tabular-nums"
           style={{
             color: STORY_COLORS.ink50,
             fontFamily: "var(--font-mono)",

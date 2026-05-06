@@ -130,16 +130,27 @@ export function HomeRevealFeed({ state }: { state: ReadyState }) {
         </Link>
       ) : null}
 
-      {/* Eyebrow / Counter */}
-      <header className="flex items-center justify-between px-1 pt-1">
-        <h1
-          className="text-[18px] tracking-tight"
-          style={{ color: STORY_COLORS.ink, fontWeight: 600 }}
-        >
-          Heute
-        </h1>
+      {/* Page-Header — eyebrow + title in Daily-Tab-Akzent (orange) */}
+      <header className="flex items-end justify-between gap-3 px-1 pt-1">
+        <div>
+          <p
+            className="text-[10px] font-semibold uppercase tracking-[0.22em]"
+            style={{
+              color: STORY_COLORS.daily,
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            HEUTE
+          </p>
+          <h1
+            className="mt-0.5 text-[26px] font-semibold leading-[1.1] tracking-tight"
+            style={{ color: STORY_COLORS.ink }}
+          >
+            Daily
+          </h1>
+        </div>
         <span
-          className="text-[11px] tabular-nums"
+          className="pb-1 text-[11px] tabular-nums"
           style={{
             color: STORY_COLORS.ink50,
             fontFamily: "var(--font-mono)",
