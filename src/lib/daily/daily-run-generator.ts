@@ -196,18 +196,12 @@ export function buildDailyRunItem(
     ...(question.imagePath ? { imagePath: question.imagePath } : {}),
   };
 
-  return pairing
-    ? {
-        questionId: question.questionId,
-        type: question.type,
-        questionSnapshot,
-        pairing,
-      }
-    : {
-        questionId: question.questionId,
-        type: question.type,
-        questionSnapshot,
-      };
+  return {
+    questionId: question.questionId,
+    type: question.type,
+    questionSnapshot,
+    ...(pairing ? { pairing } : {}),
+  };
 }
 
 function buildPairing(type: QuestionType, userIds: string[]) {

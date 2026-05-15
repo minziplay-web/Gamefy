@@ -461,6 +461,8 @@ export function mapDailyQuestion(params: {
         teamB: [teamB0, teamB1],
       };
     }
+    default:
+      return null;
   }
 }
 

@@ -26,7 +26,6 @@ import {
   shuffle,
 } from "@/lib/daily/daily-run-generator";
 import { isUserTrophyQuestion } from "@/lib/daily/custom-daily-questions";
-import { DEFAULT_PROFILE_PHOTO_URL } from "@/lib/constants/avatar";
 import {
   appConfigDoc,
   dailyAnswersCollection,
@@ -41,11 +40,16 @@ import {
   livePrivateAnswersCollection,
   liveSessionsCollection,
   questionsCollection,
-  userDoc,
   userStatsDoc,
   usersCollection,
 } from "@/lib/firebase/collections";
+export { saveAdminConfig } from "@/lib/firebase/admin-config-actions";
 import { withAdminLog } from "@/lib/firebase/admin-log";
+export {
+  deactivateUser,
+  grantBonusTrophy,
+  resetUserProfilePhoto,
+} from "@/lib/firebase/admin-member-actions";
 import { berlinDateKey, shiftDateKey } from "@/lib/mapping/date";
 import { assertValidDailyRunPayload } from "@/lib/mapping/payload-guards";
 import type {
@@ -104,34 +108,6 @@ const KNOWN_QUESTION_TYPES: QuestionType[] = [
 ];
 
 const KNOWN_TARGET_MODES: TargetMode[] = ["daily"];
-
-export async function saveAdminConfig(draft: AdminConfigDraft) {
-  const target = appConfigDoc();
-
-  if (!target) {
-    throw new Error("Firestore ist nicht verfügbar.");
-  }
-
-  await setDoc(
-    target,
-    {
-      timezone: "Europe/Berlin",
-      dailyQuestionCount: Math.min(draft.dailyQuestionCount, 12),
-      dailyRevealPolicy: draft.dailyRevealPolicy,
-      onboardingEnabled: draft.onboardingEnabled,
-      dailyAutoCreateEnabled: draft.dailyAutoCreateEnabled,
-      dailyIncludedCategories:
-        draft.dailyIncludedCategories.length > 0
-          ? draft.dailyIncludedCategories
-          : DEFAULT_DAILY_CATEGORIES,
-      dailyForcedCategories: draft.dailyForcedCategories.filter((category) =>
-        draft.dailyIncludedCategories.includes(category),
-      ),
-      updatedAt: serverTimestamp(),
-    },
-    { merge: true },
-  );
-}
 
 export async function toggleQuestionActive(questionId: string, active: boolean) {
   const questionsRef = questionsCollection();
@@ -473,78 +449,6 @@ export async function bulkDeleteQuestions(questionIds: string[]) {
     }
     await batch.commit();
   }
-}
-
-export async function deactivateUser(params: {
-  userId: string;
-  actingUserId: string;
-}) {
-  const targetRef = userDoc(params.userId);
-
-  if (!targetRef) {
-    throw new Error("Firestore ist nicht verfügbar.");
-  }
-
-  if (params.userId === params.actingUserId) {
-    throw new Error("Du kannst dich nicht selbst entfernen.");
-  }
-
-  const snapshot = await getDoc(targetRef);
-
-  if (!snapshot.exists()) {
-    throw new Error("Der Benutzer wurde nicht gefunden.");
-  }
-
-  const user = snapshot.data() as UserDoc;
-
-  if (user.role === "admin") {
-    throw new Error("Admins können hier nicht entfernt werden.");
-  }
-
-  if (user.isActive === false) {
-    return;
-  }
-
-  await updateDoc(targetRef, {
-    isActive: false,
-    updatedAt: serverTimestamp(),
-  });
-}
-
-export async function grantBonusTrophy(userId: string) {
-  const targetRef = userDoc(userId);
-
-  if (!targetRef) {
-    throw new Error("Firestore ist nicht verfügbar.");
-  }
-
-  const snapshot = await getDoc(targetRef);
-  if (!snapshot.exists()) {
-    throw new Error("Der Benutzer wurde nicht gefunden.");
-  }
-
-  const user = snapshot.data() as UserDoc;
-  if (!user.isActive) {
-    throw new Error("Inaktive Mitglieder können keine Trophy bekommen.");
-  }
-
-  await updateDoc(targetRef, {
-    bonusTrophyCount: increment(1),
-    updatedAt: serverTimestamp(),
-  });
-}
-
-export async function resetUserProfilePhoto(userId: string) {
-  const targetRef = userDoc(userId);
-
-  if (!targetRef) {
-    throw new Error("Firestore ist nicht verfügbar.");
-  }
-
-  await updateDoc(targetRef, {
-    photoURL: DEFAULT_PROFILE_PHOTO_URL,
-    updatedAt: serverTimestamp(),
-  });
 }
 
 export async function createDailyRun(params: {
