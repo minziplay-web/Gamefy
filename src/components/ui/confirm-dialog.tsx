@@ -2,7 +2,8 @@
 
 import { useEffect } from "react";
 
-import { Button } from "@/components/ui/button";
+const ADMIN_ACCENT = "#4A5699";
+const DANGER = "#E5594F";
 
 export function ConfirmDialog({
   open,
@@ -36,36 +37,91 @@ export function ConfirmDialog({
 
   if (!open) return null;
 
+  const isDestructive = tone === "destructive";
+  const accent = isDestructive ? DANGER : ADMIN_ACCENT;
+
   return (
     <div
       role="dialog"
       aria-modal="true"
-      className="fixed inset-0 z-50 flex items-end justify-center bg-sand-900/45 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 backdrop-blur-sm sm:items-center"
       onClick={onCancel}
     >
       <div
-        className="safe-area-bottom w-full max-w-sm space-y-5 rounded-t-[28px] border border-white/70 bg-white p-6 shadow-xl sm:radius-card"
+        className="safe-area-bottom w-full max-w-sm space-y-5 rounded-t-[28px] bg-[#1A1A1A] p-6 ring-1 ring-[#1F1F1F] sm:rounded-2xl"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="space-y-2">
-          <h2 className="text-lg font-semibold text-sand-900">{title}</h2>
-          <p className="text-sm leading-relaxed text-sand-700">{description}</p>
+          <p
+            className="text-[10px] font-semibold uppercase tracking-[0.22em]"
+            style={{ color: accent, fontFamily: "var(--font-mono)" }}
+          >
+            {isDestructive ? "Achtung" : "Bestätigung"}
+          </p>
+          <h2
+            className="text-[18px] font-semibold leading-tight"
+            style={{ color: "#FAFAFA", textWrap: "balance" }}
+          >
+            {title}
+          </h2>
+          <p
+            className="text-[13px] leading-relaxed"
+            style={{ color: "#A8A8A8", textWrap: "pretty" }}
+          >
+            {description}
+          </p>
         </div>
-        <div className="flex gap-3">
-          <Button variant="ghost" className="flex-1" onClick={onCancel} disabled={loading}>
+        <div className="flex gap-2">
+          <DialogButton variant="subtle" onClick={onCancel} disabled={loading}>
             {cancelLabel}
-          </Button>
-          <Button
-            className="flex-1"
-            variant={tone === "destructive" ? "destructive" : "primary"}
+          </DialogButton>
+          <DialogButton
+            variant={isDestructive ? "danger" : "primary"}
             onClick={onConfirm}
             disabled={loading}
           >
             {loading ? "Bitte warten..." : confirmLabel}
-          </Button>
+          </DialogButton>
         </div>
       </div>
     </div>
   );
 }
 
+function DialogButton({
+  children,
+  variant,
+  onClick,
+  disabled,
+}: {
+  children: React.ReactNode;
+  variant: "primary" | "subtle" | "danger";
+  onClick: () => void;
+  disabled?: boolean;
+}) {
+  const styles =
+    variant === "primary"
+      ? { backgroundColor: ADMIN_ACCENT, color: "#FAFAFA" }
+      : variant === "danger"
+        ? {
+            backgroundColor: "rgba(229, 89, 79, 0.14)",
+            color: DANGER,
+            boxShadow: "inset 0 0 0 1px rgba(229, 89, 79, 0.4)",
+          }
+        : {
+            backgroundColor: "#0E0E0E",
+            color: "#FAFAFA",
+            boxShadow: "inset 0 0 0 1px #1F1F1F",
+          };
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="inline-flex min-h-11 flex-1 items-center justify-center rounded-xl px-3 text-[12px] font-semibold uppercase tracking-[0.14em] transition disabled:cursor-not-allowed disabled:opacity-40"
+      style={{ ...styles, fontFamily: "var(--font-mono)" }}
+    >
+      {children}
+    </button>
+  );
+}
