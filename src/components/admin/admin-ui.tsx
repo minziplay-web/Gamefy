@@ -220,6 +220,175 @@ export function DarkSelect<T extends string>({
   );
 }
 
+export function DarkSegmented<T extends string>({
+  options,
+  value,
+  onChange,
+  accent = ADMIN_ACCENT,
+}: {
+  options: Array<{ value: T; label: string }>;
+  value: T;
+  onChange: (next: T) => void;
+  accent?: string;
+}) {
+  return (
+    <div
+      className="inline-flex w-full items-center gap-1 rounded-xl bg-[#0E0E0E] p-1 ring-1 ring-[#1F1F1F]"
+      role="tablist"
+    >
+      {options.map((opt) => {
+        const active = opt.value === value;
+        return (
+          <button
+            key={opt.value}
+            role="tab"
+            aria-selected={active}
+            type="button"
+            onClick={() => onChange(opt.value)}
+            className="min-h-10 flex-1 rounded-lg px-2 text-[11px] font-semibold uppercase tracking-[0.12em] transition"
+            style={{
+              backgroundColor: active ? accent : "transparent",
+              color: active ? "#FAFAFA" : "#A8A8A8",
+              fontFamily: "var(--font-mono)",
+            }}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function DarkSwitch({
+  checked,
+  onChange,
+  label,
+  disabled = false,
+  accent = ADMIN_ACCENT,
+}: {
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  label: string;
+  disabled?: boolean;
+  accent?: string;
+}) {
+  return (
+    <button
+      type="button"
+      role="switch"
+      aria-checked={checked}
+      aria-label={label}
+      disabled={disabled}
+      onClick={() => onChange(!checked)}
+      className="relative inline-flex h-7 w-12 shrink-0 items-center rounded-full transition disabled:opacity-50"
+      style={{ backgroundColor: checked ? accent : "#2C2C2E" }}
+    >
+      <span
+        className="absolute top-0.5 size-6 rounded-full bg-[#FAFAFA] shadow-sm transition"
+        style={{ left: checked ? "1.375rem" : "0.125rem" }}
+      />
+    </button>
+  );
+}
+
+export function DarkStepper({
+  label,
+  value,
+  min,
+  max,
+  step = 1,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  min: number;
+  max: number;
+  step?: number;
+  onChange: (next: number) => void;
+}) {
+  const dec = () => onChange(Math.max(min, value - step));
+  const inc = () => onChange(Math.min(max, value + step));
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-[#0E0E0E] px-3 py-2.5 ring-1 ring-[#1F1F1F]">
+      <span className="text-[13px] font-semibold text-[#FAFAFA]">{label}</span>
+      <div className="flex items-center gap-1.5">
+        <StepperBtn label={`${label} verringern`} onClick={dec} disabled={value <= min}>
+          −
+        </StepperBtn>
+        <span
+          className="w-10 text-center text-[15px] font-semibold tabular-nums text-[#FAFAFA]"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          {value}
+        </span>
+        <StepperBtn label={`${label} erhöhen`} onClick={inc} disabled={value >= max}>
+          +
+        </StepperBtn>
+      </div>
+    </div>
+  );
+}
+
+function StepperBtn({
+  children,
+  onClick,
+  disabled,
+  label,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  disabled?: boolean;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      aria-label={label}
+      className="flex size-9 items-center justify-center rounded-full text-[18px] font-semibold text-[#FAFAFA] ring-1 ring-[#1F1F1F] transition hover:bg-[#1A1A1A] disabled:cursor-not-allowed disabled:opacity-30"
+      style={{ backgroundColor: "#1A1A1A" }}
+    >
+      {children}
+    </button>
+  );
+}
+
+export function ToggleRow({
+  title,
+  description,
+  checked,
+  onChange,
+  disabled = false,
+  accent = ADMIN_ACCENT,
+}: {
+  title: string;
+  description?: string;
+  checked: boolean;
+  onChange: (next: boolean) => void;
+  disabled?: boolean;
+  accent?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl bg-[#0E0E0E] px-3 py-2.5 ring-1 ring-[#1F1F1F]">
+      <div className="min-w-0 space-y-0.5">
+        <p className="text-[13px] font-semibold text-[#FAFAFA]">{title}</p>
+        {description ? (
+          <p className="text-[11px] leading-relaxed text-[#A8A8A8]">{description}</p>
+        ) : null}
+      </div>
+      <DarkSwitch
+        checked={checked}
+        onChange={onChange}
+        label={title}
+        disabled={disabled}
+        accent={accent}
+      />
+    </div>
+  );
+}
+
 export function Checkbox({
   checked,
   onChange,
