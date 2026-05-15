@@ -7,8 +7,20 @@ export function shouldReveal(params: {
   dateKey: DateKey;
   hasOwnAnswer: boolean;
   now?: Date;
+  bypassReveal?: boolean;
 }): boolean {
-  const { revealPolicy, runStatus, dateKey, hasOwnAnswer, now = new Date() } = params;
+  const {
+    revealPolicy,
+    runStatus,
+    dateKey,
+    hasOwnAnswer,
+    now = new Date(),
+    bypassReveal = false,
+  } = params;
+
+  if (bypassReveal) {
+    return true;
+  }
 
   if (runStatus === "closed") {
     return true;

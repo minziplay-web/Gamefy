@@ -3,6 +3,7 @@
 import { onSnapshot, query, where } from "firebase/firestore";
 import { useEffect, useState } from "react";
 
+import { useAdminSpy } from "@/lib/admin/admin-spy-context";
 import { useAuth } from "@/lib/auth/auth-context";
 import { shouldHideUserTrophyQuestionForUser } from "@/lib/daily/custom-daily-questions";
 import {
@@ -48,6 +49,11 @@ type DailyRunWithMeta = DailyRunDoc & {
 
 export function useDailyViewState(targetDateKey?: string): DailyViewState {
   const { authState, isMockMode } = useAuth();
+  const { spyEnabled } = useAdminSpy();
+  const bypassReveal =
+    spyEnabled &&
+    authState.status === "authenticated" &&
+    authState.user.role === "admin";
   const [state, setState] = useState<DailyViewState>(
     isMockMode ? mockDaily : { status: "loading" },
   );
@@ -124,6 +130,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
         ).length;
         const isCatchUpMode = dateKey < todayDateKey;
         const holdResultsUntilFinished =
+          !bypassReveal &&
           (status === "active" || isCatchUpMode) &&
           answeredPlayableCount < visibleItems.length;
 
@@ -180,6 +187,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
               runStatus: status,
               dateKey: run.dateKey,
               hasOwnAnswer: Boolean(myAnswer),
+              bypassReveal,
             });
 
         if (!myAnswer && reveal) {
@@ -367,7 +375,7 @@ export function useDailyViewState(targetDateKey?: string): DailyViewState {
         unsubscribe();
       }
     };
-  }, [authState, isMockMode, targetDateKey]);
+  }, [authState, isMockMode, targetDateKey, bypassReveal]);
 
   return state;
 }

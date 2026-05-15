@@ -10,6 +10,7 @@ import { AdminJsonImport } from "@/components/admin/admin-json-import";
 import { AdminMemberList } from "@/components/admin/admin-member-list";
 import { AdminQuestionFilterBar } from "@/components/admin/admin-question-filter-bar";
 import { AdminQuestionList } from "@/components/admin/admin-question-list";
+import { AdminSpyToggle } from "@/components/admin/admin-spy-toggle";
 import { AdminTabs } from "@/components/admin/admin-tabs";
 import { ConfirmDialog } from "@/components/ui/confirm-dialog";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -600,6 +601,7 @@ export function AdminScreen({
         subtitle="Fragen, Dailys und App-Konfiguration."
       />
       <AdminDiagnostics daily={state.diagnostics.todayDaily} />
+      <AdminSpyToggle />
       <AdminTabs value={state.activeTab} onChange={setTab} />
 
       {state.activeTab === "questions" ? (
