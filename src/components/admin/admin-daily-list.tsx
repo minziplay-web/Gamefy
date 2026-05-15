@@ -2,11 +2,25 @@
 
 import { useState } from "react";
 
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { CategoryBadge } from "@/components/ui/category-badge";
+import {
+  ADMIN_ACCENT,
+  CategoryChip,
+  DAILY_ACCENT,
+  DangerButton,
+  DarkSelect,
+  Eyebrow,
+  MonoMetaLabel,
+  PrimaryButton,
+  StatusBanner,
+  SubtleButton,
+  SUCCESS,
+} from "@/components/admin/admin-ui";
+import {
+  QuestionEditPanel,
+  normalizeEitherOrOptions,
+} from "@/components/admin/admin-question-list";
 import { EmptyState } from "@/components/ui/empty-state";
-import { CATEGORY_LABELS } from "@/lib/mapping/categories";
+import { CATEGORY_EMOJI, CATEGORY_LABELS } from "@/lib/mapping/categories";
 import { formatBerlinDateLabel } from "@/lib/mapping/date";
 import type {
   AdminDailyQuestionAddResult,
@@ -18,20 +32,16 @@ import type {
   QuestionType,
 } from "@/lib/types/frontend";
 
-import {
-  QuestionEditPanel,
-  normalizeEitherOrOptions,
-} from "@/components/admin/admin-question-list";
+const STATUS_LABEL: Record<AdminDailyRunRow["status"], string> = {
+  scheduled: "Geplant",
+  active: "Aktiv",
+  closed: "Abgeschlossen",
+};
 
-type BadgeTone = "neutral" | "dark" | "accent" | "success" | "warning" | "danger";
-
-const STATUS_TONE: Record<
-  AdminDailyRunRow["status"],
-  { label: string; tone: BadgeTone }
-> = {
-  scheduled: { label: "Geplant", tone: "neutral" },
-  active: { label: "Aktiv", tone: "success" },
-  closed: { label: "Abgeschlossen", tone: "neutral" },
+const STATUS_COLOR: Record<AdminDailyRunRow["status"], string> = {
+  scheduled: "#A8A8A8",
+  active: SUCCESS,
+  closed: "#6E6E73",
 };
 
 const TYPE_LABELS: Record<QuestionType, string> = {
@@ -251,520 +261,758 @@ export function AdminDailyList({
     }
   };
 
+  const actionRunning = runActionStatus === "running";
+
   return (
     <div className="space-y-3">
       {todayRun ? (
-        <div className="overflow-hidden rounded-2xl border border-daily-primary/30 bg-white shadow-card-flat">
-          <button
-            type="button"
-            onClick={() => setTodayOpen((v) => !v)}
-            aria-expanded={todayOpen}
-            className="flex w-full items-center justify-between gap-3 p-3 text-left transition hover:bg-daily-soft/40"
-          >
-            <div className="min-w-0">
-              <p className="text-xs font-bold uppercase tracking-[0.14em] text-[#9A4C13]">
-                Heute
-              </p>
-              <p className="truncate text-sm font-bold text-sand-900">
-                {todayRun.questionCount} Fragen
-              </p>
-            </div>
-            <div className="flex shrink-0 items-center gap-2">
-              <Badge tone="warning" size="sm">Heute</Badge>
-              <span
-                aria-hidden
-                className={`text-sm text-sand-400 transition-transform duration-200 ${todayOpen ? "rotate-90" : ""}`}
-              >
-                ›
-              </span>
-            </div>
-          </button>
-
-          {todayOpen ? (
-            <div className="space-y-3 border-t border-daily-primary/15 p-3">
-              {todayRun.items && todayRun.items.length > 0 ? (
-                <div className="space-y-2">
-                  <p className="px-1 text-xs font-bold uppercase tracking-[0.14em] text-sand-500">
-                    Heutige Fragen
-                  </p>
-                  <ul className="space-y-2">
-                    {(todayRun.items ?? []).map((item, index) => (
-                      <li
-                        key={`${todayRun.runId}_${item.questionId}`}
-                        className="space-y-3 rounded-2xl border border-sand-200 bg-sand-50/70 px-3 py-3"
-                      >
-                        <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-                          {item.type === "meme_caption" && item.imagePath ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={item.imagePath}
-                              alt=""
-                              className="h-24 w-full rounded-2xl object-cover sm:h-20 sm:w-28"
-                            />
-                          ) : null}
-                          <div className="min-w-0 flex-1 space-y-1">
-                            <div className="flex flex-wrap items-center gap-2">
-                              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-sand-500">
-                                Frage {index + 1}
-                              </p>
-                              <CategoryBadge category={item.category} size="sm" />
-                              <Badge tone="neutral" size="sm">
-                                {TYPE_LABELS[item.type]}
-                              </Badge>
-                            </div>
-                            <p className="text-sm font-medium leading-6 text-sand-900">
-                              {item.text}
-                            </p>
-                          </div>
-                          <div className="grid w-full shrink-0 grid-cols-3 gap-2 sm:w-auto sm:grid-cols-1">
-                            <Button
-                              variant="ghost"
-                              className="rounded-xl px-3 text-[12px] text-admin-primary"
-                              onClick={() => startEditing(item)}
-                              disabled={runActionStatus === "running" || !onUpdateQuestion}
-                            >
-                              Bearbeiten
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              className="rounded-xl px-3 text-[12px] text-brand-primary"
-                              onClick={() =>
-                                onRerollQuestion?.(
-                                  todayRun.dateKey,
-                                  todayRun.runId,
-                                  item.questionId,
-                                  item.text,
-                                )
-                              }
-                              disabled={runActionStatus === "running" || !onRerollQuestion}
-                            >
-                              Neu würfeln
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              className="rounded-xl px-3 text-[12px] text-danger-text"
-                              onClick={() =>
-                                onRemoveQuestion?.(
-                                  todayRun.dateKey,
-                                  todayRun.runId,
-                                  item.questionId,
-                                  item.text,
-                                )
-                              }
-                              disabled={runActionStatus === "running" || !onRemoveQuestion}
-                            >
-                              Entfernen
-                            </Button>
-                          </div>
-                        </div>
-                        {editingId === item.questionId && editDraft ? (
-                          <QuestionEditPanel
-                            draft={editDraft}
-                            status={editStatus}
-                            message={editMessage}
-                            onChange={updateDraft}
-                            onTypeChange={changeDraftType}
-                            onSave={saveEdit}
-                            onCancel={cancelEditing}
-                          />
-                        ) : null}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              ) : null}
-              <div className="grid grid-cols-1 gap-2 min-[430px]:grid-cols-3">
-                <Button
-                  className="w-full rounded-xl text-[12px]"
-                  variant="secondary"
-                  onClick={onAddSpecificQuestion ? openAddModal : onCreate}
-                  disabled={runActionStatus === "running" || addStatus === "saving"}
-                >
-                  Frage hinzufügen
-                </Button>
-                <Button
-                  className="w-full rounded-xl text-[12px]"
-                  variant="ghost"
-                  onClick={onReplaceToday}
-                  disabled={runActionStatus === "running" || !onReplaceToday}
-                >
-                  {runActionStatus === "running" ? "Rerollt..." : "Daily rerollen"}
-                </Button>
-                <Button
-                  className="w-full rounded-xl text-[12px]"
-                  variant="ghost"
-                  onClick={onResetToday}
-                  disabled={runActionStatus === "running" || !onResetToday}
-                >
-                  {runActionStatus === "running" ? "Setzt zurück..." : "Antworten resetten"}
-                </Button>
-              </div>
-              <Button
-                className="w-full rounded-xl text-[12px]"
-                variant="destructive"
-                onClick={() => onDeleteRunComplete?.(todayRun.dateKey)}
-                disabled={runActionStatus === "running" || !onDeleteRunComplete}
-              >
-                Daily löschen
-              </Button>
-            </div>
-          ) : null}
-        </div>
+        <TodayCard
+          run={todayRun}
+          open={todayOpen}
+          onToggle={() => setTodayOpen((v) => !v)}
+          actionRunning={actionRunning}
+          editingId={editingId}
+          editDraft={editDraft}
+          editStatus={editStatus}
+          editMessage={editMessage}
+          onStartEdit={startEditing}
+          onCancelEdit={cancelEditing}
+          onSaveEdit={saveEdit}
+          onUpdateDraft={updateDraft}
+          onChangeDraftType={changeDraftType}
+          updateQuestionAvailable={Boolean(onUpdateQuestion)}
+          onAddSpecificQuestion={
+            onAddSpecificQuestion ? openAddModal : onCreate
+          }
+          onReplaceToday={onReplaceToday}
+          onResetToday={onResetToday}
+          onDeleteRunComplete={
+            onDeleteRunComplete
+              ? () => onDeleteRunComplete(todayRun.dateKey)
+              : undefined
+          }
+          onRerollQuestion={onRerollQuestion}
+          onRemoveQuestion={onRemoveQuestion}
+        />
       ) : (
-        <Button className="w-full" onClick={onCreate} disabled={runActionStatus === "running"}>
-          {runActionStatus === "running" ? "Erzeugt..." : "Neuen Run erzeugen"}
-        </Button>
+        <PrimaryButton onClick={onCreate} disabled={actionRunning} fullWidth accent={DAILY_ACCENT}>
+          {actionRunning ? "Erzeugt..." : "Neuen Run erzeugen"}
+        </PrimaryButton>
       )}
 
       {runActionMessage ? (
-        <p
-          className={`rounded-xl px-3 py-2 text-sm ${
-            runActionStatus === "error"
-              ? "bg-danger-soft text-danger-text"
-              : runActionStatus === "success"
-                ? "bg-success-soft text-success-text"
-                : "bg-sand-50 text-sand-700"
-          }`}
-        >
-          {runActionMessage}
-        </p>
+        <StatusBanner status={runActionStatus} message={runActionMessage} />
       ) : null}
 
-      {visibleRuns.length === 0 ? (
-        <EmptyState
-          title="Noch keine Runs"
-          description="Erzeuge einen Run für heute oder morgen."
-        />
-      ) : (
-        <ul className="space-y-2">
-          {visibleRuns.map((run) => {
-            const tone = STATUS_TONE[run.status];
-            const isToday = run.dateKey === todayDateKey;
-            return (
-              <li
+      <section className="space-y-2">
+        <Eyebrow>Vergangene Runs</Eyebrow>
+        {visibleRuns.length === 0 ? (
+          <EmptyState
+            icon="📅"
+            title="Noch keine Runs"
+            description="Erzeuge einen Run für heute oder morgen."
+          />
+        ) : (
+          <ul className="overflow-hidden rounded-2xl bg-[#1A1A1A] ring-1 ring-[#1F1F1F]">
+            {visibleRuns.map((run, idx) => (
+              <RunRow
                 key={run.runId}
-                className={`flex flex-col gap-3 rounded-2xl border px-4 py-3 sm:flex-row sm:items-center sm:justify-between ${
-                  isToday
-                    ? "border-daily-primary/35 bg-white"
-                    : "border-sand-200/80 bg-white"
-                }`}
-              >
-                <div className="w-full min-w-0 space-y-1 sm:w-auto">
-                  <p className="flex flex-wrap items-center gap-2 text-sm font-semibold text-sand-900">
-                    {formatBerlinDateLabel(run.dateKey)}
-                    {run.runNumber > 1 ? (
-                      <Badge tone="warning" size="sm">
-                        {run.runLabel}
-                      </Badge>
-                    ) : null}
-                    {isToday ? (
-                      <Badge tone="warning" size="sm">
-                        heute
-                      </Badge>
-                    ) : null}
-                  </p>
-                  <p className="text-xs text-sand-500">
-                    {run.questionCount} Fragen · {run.createdByDisplayName}
-                  </p>
-                </div>
-                <div className="flex w-full flex-wrap items-center justify-between gap-2 sm:w-auto sm:justify-end">
-                  {!isToday ? (
-                    <Button
-                      variant="ghost"
-                      className="px-3 text-danger-text"
-                      onClick={() => onDeleteRun?.(run.dateKey)}
-                      disabled={runActionStatus === "running" || !onDeleteRun}
-                    >
-                      Löschen
-                    </Button>
-                  ) : null}
-                  <Badge tone={tone.tone} size="sm">
-                    {tone.label}
-                  </Badge>
-                </div>
-              </li>
-            );
-          })}
-        </ul>
-      )}
+                run={run}
+                isLast={idx === visibleRuns.length - 1}
+                isToday={run.dateKey === todayDateKey}
+                onDelete={onDeleteRun}
+                actionRunning={actionRunning}
+              />
+            ))}
+          </ul>
+        )}
+      </section>
 
       {addModalOpen ? (
-        <div
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/40 p-3 sm:items-center"
-          role="dialog"
-          aria-modal="true"
+        <AddQuestionModal
+          step={addStep}
+          mode={addMode}
+          randomScope={addRandomScope}
+          category={addCategory}
+          selected={addSelected}
+          pickedVia={addPickedVia}
+          status={addStatus}
+          message={addMessage}
+          eligiblePool={eligiblePool}
+          filteredPool={filteredPool}
+          onClose={closeAddModal}
+          onSetMode={(mode) => {
+            setAddMode(mode);
+            setAddRandomScope("all");
+            setAddCategory("all");
+          }}
+          onBackToChoose={() => {
+            setAddMode(null);
+            setAddRandomScope("all");
+            setAddCategory("all");
+            setAddStatus("idle");
+            setAddMessage(undefined);
+          }}
+          onBackToList={() => {
+            setAddStep("choose");
+            setAddSelected(null);
+            setAddPickedVia(null);
+            setAddStatus("idle");
+            setAddMessage(undefined);
+          }}
+          onSetRandomScope={setAddRandomScope}
+          onSetCategory={setAddCategory}
+          onPickRandom={pickRandom}
+          onPickFromCategory={pickFromCategory}
+          onConfirm={confirmAdd}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+function TodayCard({
+  run,
+  open,
+  onToggle,
+  actionRunning,
+  editingId,
+  editDraft,
+  editStatus,
+  editMessage,
+  onStartEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onUpdateDraft,
+  onChangeDraftType,
+  updateQuestionAvailable,
+  onAddSpecificQuestion,
+  onReplaceToday,
+  onResetToday,
+  onDeleteRunComplete,
+  onRerollQuestion,
+  onRemoveQuestion,
+}: {
+  run: AdminDailyRunRow;
+  open: boolean;
+  onToggle: () => void;
+  actionRunning: boolean;
+  editingId: string | null;
+  editDraft: AdminQuestionEditInput | null;
+  editStatus: "idle" | "saving" | "error" | "success";
+  editMessage?: string;
+  onStartEdit: (item: NonNullable<AdminDailyRunRow["items"]>[number]) => void;
+  onCancelEdit: () => void;
+  onSaveEdit: () => Promise<void>;
+  onUpdateDraft: (patch: Partial<AdminQuestionEditInput>) => void;
+  onChangeDraftType: (type: QuestionType) => void;
+  updateQuestionAvailable: boolean;
+  onAddSpecificQuestion: () => void;
+  onReplaceToday?: () => void;
+  onResetToday?: () => void;
+  onDeleteRunComplete?: () => void;
+  onRerollQuestion?: (dateKey: DateKey, runId: string, questionId: string, text: string) => void;
+  onRemoveQuestion?: (dateKey: DateKey, runId: string, questionId: string, text: string) => void;
+}) {
+  return (
+    <section
+      className="overflow-hidden rounded-2xl bg-[#1A1A1A]"
+      style={{ boxShadow: `inset 0 0 0 1px ${DAILY_ACCENT}40` }}
+    >
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-full items-center justify-between gap-3 p-4 text-left transition hover:bg-[#0E0E0E]"
+      >
+        <div className="min-w-0 space-y-0.5">
+          <Eyebrow accent={DAILY_ACCENT}>Heutige Daily</Eyebrow>
+          <p
+            className="text-[15px] font-semibold tabular-nums text-[#FAFAFA]"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            {run.questionCount}{" "}
+            <span className="text-[#A8A8A8]">
+              {run.questionCount === 1 ? "Frage" : "Fragen"}
+            </span>
+          </p>
+        </div>
+        <span
+          className="shrink-0 text-[14px] text-[#6E6E73] transition-transform"
+          style={{
+            transform: open ? "rotate(90deg)" : "rotate(0)",
+            fontFamily: "var(--font-mono)",
+          }}
+          aria-hidden
         >
-          <div className="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-3xl bg-white shadow-card-raised">
-            <div className="flex items-center justify-between gap-3 border-b border-sand-100 px-4 py-3">
-              <p className="text-sm font-bold text-sand-900">
-                {addStep === "choose" ? "Frage zum Daily hinzufügen" : "Vorschau"}
-              </p>
-              <button
-                type="button"
-                onClick={closeAddModal}
-                className="text-sand-400 hover:text-sand-700"
-                aria-label="Schließen"
-              >
-                ✕
-              </button>
-            </div>
+          ▸
+        </span>
+      </button>
 
-            <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
-              {addStep === "choose" ? (
-                addMode === null ? (
-                  <div className="space-y-2">
-                    <Button
-                      className="w-full rounded-xl"
-                      variant="secondary"
-                      onClick={() => {
-                        setAddMode("random");
-                        setAddRandomScope("all");
-                        setAddCategory("all");
-                      }}
-                      disabled={eligiblePool.length === 0}
-                    >
-                      🎲 Würfeln
-                    </Button>
-                    <Button
-                      className="w-full rounded-xl"
-                      variant="secondary"
-                      onClick={() => {
-                        setAddMode("manual");
-                        setAddCategory("all");
-                      }}
-                      disabled={eligiblePool.length === 0}
-                    >
-                      📋 Aus Liste wählen
-                    </Button>
-                  </div>
-                ) : addMode === "random" ? (
-                  <div className="space-y-3">
-                    <div className="space-y-1.5">
-                      <span className="text-xs font-bold uppercase tracking-[0.18em] text-sand-500">
-                        Pool für den Wurf
-                      </span>
-                      <div className="grid grid-cols-2 gap-2">
-                        <Button
-                          variant={addRandomScope === "all" ? "primary" : "ghost"}
-                          onClick={() => {
-                            setAddRandomScope("all");
-                            setAddCategory("all");
-                          }}
-                        >
-                          Alle Kategorien
-                        </Button>
-                        <Button
-                          variant={addRandomScope === "category" ? "primary" : "ghost"}
-                          onClick={() => setAddRandomScope("category")}
-                        >
-                          Einzelne Kategorie
-                        </Button>
-                      </div>
-                    </div>
+      {open ? (
+        <div className="space-y-3 border-t border-[#1F1F1F] p-4">
+          {run.items && run.items.length > 0 ? (
+            <ul className="space-y-2">
+              {run.items.map((item, index) => (
+                <DailyItemRow
+                  key={`${run.runId}_${item.questionId}`}
+                  item={item}
+                  index={index}
+                  actionRunning={actionRunning}
+                  isEditing={editingId === item.questionId}
+                  editDraft={editDraft}
+                  editStatus={editStatus}
+                  editMessage={editMessage}
+                  onEdit={() => onStartEdit(item)}
+                  onCancelEdit={onCancelEdit}
+                  onSaveEdit={onSaveEdit}
+                  onUpdateDraft={onUpdateDraft}
+                  onChangeDraftType={onChangeDraftType}
+                  editAvailable={updateQuestionAvailable}
+                  onReroll={
+                    onRerollQuestion
+                      ? () =>
+                          onRerollQuestion(run.dateKey, run.runId, item.questionId, item.text)
+                      : undefined
+                  }
+                  onRemove={
+                    onRemoveQuestion
+                      ? () =>
+                          onRemoveQuestion(run.dateKey, run.runId, item.questionId, item.text)
+                      : undefined
+                  }
+                />
+              ))}
+            </ul>
+          ) : null}
 
-                    {addRandomScope === "category" ? (
-                      <label className="space-y-1.5">
-                        <span className="text-xs font-bold uppercase tracking-[0.18em] text-sand-500">
-                          Kategorie
-                        </span>
-                        <select
-                          value={addCategory === "all" ? "" : addCategory}
-                          onChange={(event) =>
-                            setAddCategory(event.target.value as Category)
-                          }
-                          className="w-full rounded-2xl border border-sand-200 bg-white px-3 py-2 text-sm font-semibold text-sand-900 outline-none transition focus:border-admin-primary focus:ring-2 focus:ring-admin-primary/20"
-                        >
-                          <option value="" disabled>
-                            Bitte wählen…
-                          </option>
-                          {(Object.keys(CATEGORY_LABELS) as Category[]).map((category) => (
-                            <option key={category} value={category}>
-                              {CATEGORY_LABELS[category]}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    ) : null}
-
-                    <Button
-                      className="w-full rounded-xl"
-                      variant="primary"
-                      onClick={() => pickRandom(addRandomScope)}
-                      disabled={
-                        eligiblePool.length === 0 ||
-                        (addRandomScope === "category" &&
-                          (addCategory === "all" || filteredPool.length === 0))
-                      }
-                    >
-                      🎲 Würfeln
-                    </Button>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    <label className="space-y-1.5">
-                      <span className="text-xs font-bold uppercase tracking-[0.18em] text-sand-500">
-                        Aus Kategorie wählen
-                      </span>
-                      <select
-                        value={addCategory}
-                        onChange={(event) =>
-                          setAddCategory(event.target.value as Category | "all")
-                        }
-                        className="w-full rounded-2xl border border-sand-200 bg-white px-3 py-2 text-sm font-semibold text-sand-900 outline-none transition focus:border-admin-primary focus:ring-2 focus:ring-admin-primary/20"
-                      >
-                        <option value="all">Alle Kategorien</option>
-                        {(Object.keys(CATEGORY_LABELS) as Category[]).map((category) => (
-                          <option key={category} value={category}>
-                            {CATEGORY_LABELS[category]}
-                          </option>
-                        ))}
-                      </select>
-                    </label>
-
-                    {filteredPool.length === 0 ? (
-                      <p className="rounded-xl bg-sand-50 px-3 py-2 text-xs text-sand-600">
-                        Keine eligible Fragen in dieser Kategorie.
-                      </p>
-                    ) : (
-                      <ul className="max-h-[40vh] space-y-1 overflow-y-auto rounded-xl border border-sand-100 bg-sand-50/50 p-2">
-                        {filteredPool.map((row) => (
-                          <li key={row.questionId}>
-                            <button
-                              type="button"
-                              onClick={() => pickFromCategory(row)}
-                              className="flex w-full flex-col gap-1 rounded-lg bg-white px-3 py-2 text-left text-xs transition hover:bg-admin-primary/5"
-                            >
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <CategoryBadge category={row.category} size="sm" />
-                                <Badge tone="neutral" size="sm">
-                                  {TYPE_LABELS[row.type]}
-                                </Badge>
-                              </div>
-                              <p className="text-sm font-medium text-sand-900">{row.text}</p>
-                            </button>
-                          </li>
-                        ))}
-                      </ul>
-                    )}
-                  </div>
-                )
-              ) : addSelected ? (
-                <div className="space-y-3">
-                  <p className="text-xs font-semibold uppercase tracking-[0.14em] text-sand-500">
-                    Diese Frage ins Daily pushen?
-                  </p>
-                  <div className="space-y-2 rounded-2xl border border-sand-200 bg-sand-50/70 p-3">
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <CategoryBadge category={addSelected.category} size="sm" />
-                      <Badge tone="neutral" size="sm">
-                        {TYPE_LABELS[addSelected.type]}
-                      </Badge>
-                    </div>
-                    <p className="text-sm font-medium leading-6 text-sand-900">
-                      {addSelected.text}
-                    </p>
-                    {addSelected.type === "either_or" && addSelected.options ? (
-                      <ul className="list-disc space-y-0.5 pl-5 text-xs text-sand-700">
-                        {addSelected.options.map((opt, i) => (
-                          <li key={i}>{opt}</li>
-                        ))}
-                      </ul>
-                    ) : null}
-                    {addSelected.type === "meme_caption" && addSelected.imagePath ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={addSelected.imagePath}
-                        alt=""
-                        className="h-32 w-full rounded-xl object-cover"
-                      />
-                    ) : null}
-                  </div>
-                </div>
-              ) : null}
-
-              {addMessage ? (
-                <p
-                  className={`rounded-xl px-3 py-2 text-xs font-semibold ${
-                    addStatus === "error"
-                      ? "bg-danger-soft text-danger-text"
-                      : "bg-sand-50 text-sand-700"
-                  }`}
-                >
-                  {addMessage}
-                </p>
-              ) : null}
-            </div>
-
-            <div className="flex items-center justify-end gap-2 border-t border-sand-100 px-4 py-3">
-              {addStep === "preview" ? (
-                <>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setAddStep("choose");
-                      setAddSelected(null);
-                      setAddPickedVia(null);
-                      setAddStatus("idle");
-                      setAddMessage(undefined);
-                    }}
-                    disabled={addStatus === "saving"}
-                  >
-                    Zurück
-                  </Button>
-                  {addPickedVia === "random" ? (
-                    <Button
-                      variant="ghost"
-                      onClick={() => pickRandom(addRandomScope)}
-                      disabled={
-                        addStatus === "saving" ||
-                        (addRandomScope === "category"
-                          ? eligiblePool.filter((row) => row.category === addCategory)
-                              .length <= 1
-                          : eligiblePool.length <= 1)
-                      }
-                    >
-                      {addRandomScope === "category"
-                        ? `🎲 Erneut würfeln (${
-                            addCategory !== "all" ? CATEGORY_LABELS[addCategory] : ""
-                          })`
-                        : "🎲 Erneut würfeln"}
-                    </Button>
-                  ) : null}
-                  <Button
-                    variant="primary"
-                    onClick={confirmAdd}
-                    disabled={addStatus === "saving"}
-                  >
-                    {addStatus === "saving" ? "Pushe..." : "Ins Daily pushen"}
-                  </Button>
-                </>
-              ) : addMode !== null ? (
-                <>
-                  <Button
-                    variant="ghost"
-                    onClick={() => {
-                      setAddMode(null);
-                      setAddRandomScope("all");
-                      setAddCategory("all");
-                      setAddStatus("idle");
-                      setAddMessage(undefined);
-                    }}
-                  >
-                    Zurück
-                  </Button>
-                  <Button variant="ghost" onClick={closeAddModal}>
-                    Abbrechen
-                  </Button>
-                </>
-              ) : (
-                <Button variant="ghost" onClick={closeAddModal}>
-                  Abbrechen
-                </Button>
-              )}
-            </div>
+          <div className="grid grid-cols-1 gap-2 min-[430px]:grid-cols-3">
+            <SubtleButton
+              onClick={onAddSpecificQuestion}
+              disabled={actionRunning}
+              fullWidth
+              accent={DAILY_ACCENT}
+            >
+              + Frage
+            </SubtleButton>
+            <SubtleButton
+              onClick={onReplaceToday}
+              disabled={actionRunning || !onReplaceToday}
+              fullWidth
+            >
+              {actionRunning ? "..." : "Rerollen"}
+            </SubtleButton>
+            <SubtleButton
+              onClick={onResetToday}
+              disabled={actionRunning || !onResetToday}
+              fullWidth
+            >
+              {actionRunning ? "..." : "Reset Antworten"}
+            </SubtleButton>
           </div>
+          <DangerButton
+            onClick={onDeleteRunComplete}
+            disabled={actionRunning || !onDeleteRunComplete}
+            fullWidth
+          >
+            Daily löschen
+          </DangerButton>
         </div>
       ) : null}
+    </section>
+  );
+}
+
+function DailyItemRow({
+  item,
+  index,
+  actionRunning,
+  isEditing,
+  editDraft,
+  editStatus,
+  editMessage,
+  onEdit,
+  onCancelEdit,
+  onSaveEdit,
+  onUpdateDraft,
+  onChangeDraftType,
+  editAvailable,
+  onReroll,
+  onRemove,
+}: {
+  item: NonNullable<AdminDailyRunRow["items"]>[number];
+  index: number;
+  actionRunning: boolean;
+  isEditing: boolean;
+  editDraft: AdminQuestionEditInput | null;
+  editStatus: "idle" | "saving" | "error" | "success";
+  editMessage?: string;
+  onEdit: () => void;
+  onCancelEdit: () => void;
+  onSaveEdit: () => Promise<void>;
+  onUpdateDraft: (patch: Partial<AdminQuestionEditInput>) => void;
+  onChangeDraftType: (type: QuestionType) => void;
+  editAvailable: boolean;
+  onReroll?: () => void;
+  onRemove?: () => void;
+}) {
+  return (
+    <li className="space-y-3 rounded-xl bg-[#0E0E0E] p-3 ring-1 ring-[#1F1F1F]">
+      <div className="flex gap-3">
+        <span
+          className="shrink-0 text-[18px] font-semibold tabular-nums text-[#6E6E73]"
+          style={{ fontFamily: "var(--font-mono)" }}
+        >
+          {String(index + 1).padStart(2, "0")}
+        </span>
+        <div className="min-w-0 flex-1 space-y-2">
+          {item.type === "meme_caption" && item.imagePath ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={item.imagePath}
+              alt=""
+              className="h-28 w-full rounded-xl object-cover ring-1 ring-[#1F1F1F]"
+            />
+          ) : null}
+          <p className="text-[14px] leading-snug text-[#FAFAFA]">{item.text}</p>
+          <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <CategoryChip
+              emoji={CATEGORY_EMOJI[item.category]}
+              label={CATEGORY_LABELS[item.category]}
+            />
+            <MonoMetaLabel>{TYPE_LABELS[item.type]}</MonoMetaLabel>
+          </div>
+        </div>
+      </div>
+
+      {isEditing && editDraft ? (
+        <QuestionEditPanel
+          draft={editDraft}
+          status={editStatus}
+          message={editMessage}
+          onChange={onUpdateDraft}
+          onTypeChange={onChangeDraftType}
+          onSave={onSaveEdit}
+          onCancel={onCancelEdit}
+        />
+      ) : (
+        <div className="grid grid-cols-3 gap-1.5">
+          <SubtleButton onClick={onEdit} disabled={actionRunning || !editAvailable}>
+            Bearbeiten
+          </SubtleButton>
+          <SubtleButton onClick={onReroll} disabled={actionRunning || !onReroll}>
+            Neu würfeln
+          </SubtleButton>
+          <DangerButton onClick={onRemove} disabled={actionRunning || !onRemove}>
+            Entfernen
+          </DangerButton>
+        </div>
+      )}
+    </li>
+  );
+}
+
+function RunRow({
+  run,
+  isLast,
+  isToday,
+  onDelete,
+  actionRunning,
+}: {
+  run: AdminDailyRunRow;
+  isLast: boolean;
+  isToday: boolean;
+  onDelete?: (dateKey: DateKey) => void;
+  actionRunning: boolean;
+}) {
+  const statusColor = STATUS_COLOR[run.status];
+  const dayNumber = run.dateKey.slice(8, 10);
+  return (
+    <li className={isLast ? "" : "border-b border-[#1F1F1F]"}>
+      <div className="flex items-center gap-4 px-4 py-3">
+        <span
+          className="shrink-0 leading-none tabular-nums"
+          style={{
+            fontFamily: "var(--font-mono)",
+            fontSize: 22,
+            color: "#6E6E73",
+            fontWeight: 500,
+            width: 28,
+          }}
+          aria-hidden
+        >
+          {dayNumber}
+        </span>
+        <div className="min-w-0 flex-1">
+          <p
+            className="text-[10px] font-semibold uppercase tracking-[0.18em]"
+            style={{ color: "#6E6E73", fontFamily: "var(--font-mono)" }}
+          >
+            {run.dateKey}
+            {run.runNumber > 1 ? ` · ${run.runLabel}` : ""}
+          </p>
+          <p className="mt-1 text-[14px] font-semibold text-[#FAFAFA]">
+            {formatBerlinDateLabel(run.dateKey)}
+          </p>
+          <p
+            className="mt-1 text-[11px] tabular-nums text-[#A8A8A8]"
+            style={{ fontFamily: "var(--font-mono)" }}
+          >
+            {run.questionCount} Fragen · von {run.createdByDisplayName}
+          </p>
+        </div>
+        <span
+          className="inline-flex shrink-0 items-center gap-1.5 text-[10px] font-semibold tabular-nums"
+          style={{ color: statusColor, fontFamily: "var(--font-mono)" }}
+        >
+          <span
+            aria-hidden
+            className="block size-1.5 rounded-full"
+            style={{ backgroundColor: statusColor }}
+          />
+          {STATUS_LABEL[run.status]}
+        </span>
+        {!isToday && onDelete ? (
+          <button
+            type="button"
+            onClick={() => onDelete(run.dateKey)}
+            disabled={actionRunning}
+            className="shrink-0 rounded-lg px-2.5 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] transition disabled:opacity-40"
+            style={{
+              color: "#E5594F",
+              fontFamily: "var(--font-mono)",
+            }}
+            aria-label={`Run vom ${run.dateKey} löschen`}
+          >
+            Löschen
+          </button>
+        ) : null}
+      </div>
+    </li>
+  );
+}
+
+function AddQuestionModal({
+  step,
+  mode,
+  randomScope,
+  category,
+  selected,
+  pickedVia,
+  status,
+  message,
+  eligiblePool,
+  filteredPool,
+  onClose,
+  onSetMode,
+  onBackToChoose,
+  onBackToList,
+  onSetRandomScope,
+  onSetCategory,
+  onPickRandom,
+  onPickFromCategory,
+  onConfirm,
+}: {
+  step: "choose" | "preview";
+  mode: "random" | "manual" | null;
+  randomScope: "all" | "category";
+  category: Category | "all";
+  selected: AdminQuestionRow | null;
+  pickedVia: "random" | "category" | null;
+  status: "idle" | "saving" | "error";
+  message?: string;
+  eligiblePool: AdminQuestionRow[];
+  filteredPool: AdminQuestionRow[];
+  onClose: () => void;
+  onSetMode: (mode: "random" | "manual") => void;
+  onBackToChoose: () => void;
+  onBackToList: () => void;
+  onSetRandomScope: (scope: "all" | "category") => void;
+  onSetCategory: (category: Category | "all") => void;
+  onPickRandom: (scope?: "all" | "category") => void;
+  onPickFromCategory: (row: AdminQuestionRow) => void;
+  onConfirm: () => void;
+}) {
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-end justify-center bg-black/60 p-3 backdrop-blur-sm sm:items-center"
+      role="dialog"
+      aria-modal="true"
+    >
+      <div className="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-3xl bg-[#1A1A1A] ring-1 ring-[#1F1F1F]">
+        <header className="flex items-center justify-between gap-3 border-b border-[#1F1F1F] px-4 py-3">
+          <div>
+            <Eyebrow accent={DAILY_ACCENT}>Daily</Eyebrow>
+            <p className="text-[14px] font-semibold text-[#FAFAFA]">
+              {step === "choose" ? "Frage hinzufügen" : "Vorschau"}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-[18px] leading-none text-[#A8A8A8] transition hover:text-[#FAFAFA]"
+            aria-label="Schließen"
+          >
+            ✕
+          </button>
+        </header>
+
+        <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
+          {step === "choose" ? (
+            mode === null ? (
+              <div className="grid grid-cols-2 gap-2">
+                <SubtleButton
+                  onClick={() => onSetMode("random")}
+                  disabled={eligiblePool.length === 0}
+                  fullWidth
+                  accent={DAILY_ACCENT}
+                >
+                  🎲 Würfeln
+                </SubtleButton>
+                <SubtleButton
+                  onClick={() => onSetMode("manual")}
+                  disabled={eligiblePool.length === 0}
+                  fullWidth
+                >
+                  📋 Liste
+                </SubtleButton>
+              </div>
+            ) : mode === "random" ? (
+              <RandomMode
+                scope={randomScope}
+                category={category}
+                eligiblePool={eligiblePool}
+                filteredPool={filteredPool}
+                onSetScope={onSetRandomScope}
+                onSetCategory={onSetCategory}
+                onPick={onPickRandom}
+              />
+            ) : (
+              <ManualMode
+                category={category}
+                filteredPool={filteredPool}
+                onSetCategory={onSetCategory}
+                onPick={onPickFromCategory}
+              />
+            )
+          ) : selected ? (
+            <PreviewBlock selected={selected} />
+          ) : null}
+
+          {message ? <StatusBanner status={status} message={message} /> : null}
+        </div>
+
+        <footer className="flex items-center justify-end gap-2 border-t border-[#1F1F1F] px-4 py-3">
+          {step === "preview" ? (
+            <>
+              <SubtleButton onClick={onBackToList} disabled={status === "saving"}>
+                Zurück
+              </SubtleButton>
+              {pickedVia === "random" ? (
+                <SubtleButton
+                  onClick={() => onPickRandom(randomScope)}
+                  disabled={
+                    status === "saving" ||
+                    (randomScope === "category"
+                      ? filteredPool.length <= 1
+                      : eligiblePool.length <= 1)
+                  }
+                >
+                  🎲 Erneut
+                </SubtleButton>
+              ) : null}
+              <PrimaryButton
+                onClick={onConfirm}
+                disabled={status === "saving"}
+                accent={DAILY_ACCENT}
+              >
+                {status === "saving" ? "Pushe..." : "Ins Daily"}
+              </PrimaryButton>
+            </>
+          ) : mode !== null ? (
+            <>
+              <SubtleButton onClick={onBackToChoose}>Zurück</SubtleButton>
+              <SubtleButton onClick={onClose}>Abbrechen</SubtleButton>
+            </>
+          ) : (
+            <SubtleButton onClick={onClose}>Abbrechen</SubtleButton>
+          )}
+        </footer>
+      </div>
+    </div>
+  );
+}
+
+function RandomMode({
+  scope,
+  category,
+  eligiblePool,
+  filteredPool,
+  onSetScope,
+  onSetCategory,
+  onPick,
+}: {
+  scope: "all" | "category";
+  category: Category | "all";
+  eligiblePool: AdminQuestionRow[];
+  filteredPool: AdminQuestionRow[];
+  onSetScope: (scope: "all" | "category") => void;
+  onSetCategory: (category: Category | "all") => void;
+  onPick: (scope: "all" | "category") => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <div className="space-y-1.5">
+        <Eyebrow>Pool für den Wurf</Eyebrow>
+        <div className="grid grid-cols-2 gap-2">
+          <SubtleButton
+            onClick={() => {
+              onSetScope("all");
+              onSetCategory("all");
+            }}
+            selected={scope === "all"}
+            accent={DAILY_ACCENT}
+            fullWidth
+          >
+            Alle Kategorien
+          </SubtleButton>
+          <SubtleButton
+            onClick={() => onSetScope("category")}
+            selected={scope === "category"}
+            accent={DAILY_ACCENT}
+            fullWidth
+          >
+            Kategorie
+          </SubtleButton>
+        </div>
+      </div>
+
+      {scope === "category" ? (
+        <label className="block space-y-1.5">
+          <Eyebrow>Kategorie</Eyebrow>
+          <DarkSelect
+            value={category === "all" ? "" : category}
+            onChange={(value) => onSetCategory(value as Category)}
+            options={[
+              { value: "", label: "Bitte wählen…", disabled: true },
+              ...(Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => ({
+                value: cat,
+                label: `${CATEGORY_EMOJI[cat]} ${CATEGORY_LABELS[cat]}`,
+              })),
+            ]}
+          />
+        </label>
+      ) : null}
+
+      <PrimaryButton
+        onClick={() => onPick(scope)}
+        disabled={
+          eligiblePool.length === 0 ||
+          (scope === "category" && (category === "all" || filteredPool.length === 0))
+        }
+        accent={DAILY_ACCENT}
+        fullWidth
+      >
+        🎲 Würfeln
+      </PrimaryButton>
+    </div>
+  );
+}
+
+function ManualMode({
+  category,
+  filteredPool,
+  onSetCategory,
+  onPick,
+}: {
+  category: Category | "all";
+  filteredPool: AdminQuestionRow[];
+  onSetCategory: (category: Category | "all") => void;
+  onPick: (row: AdminQuestionRow) => void;
+}) {
+  return (
+    <div className="space-y-2">
+      <label className="block space-y-1.5">
+        <Eyebrow>Kategorie</Eyebrow>
+        <DarkSelect
+          value={category}
+          onChange={(value) => onSetCategory(value as Category | "all")}
+          options={[
+            { value: "all", label: "Alle Kategorien" },
+            ...(Object.keys(CATEGORY_LABELS) as Category[]).map((cat) => ({
+              value: cat,
+              label: `${CATEGORY_EMOJI[cat]} ${CATEGORY_LABELS[cat]}`,
+            })),
+          ]}
+        />
+      </label>
+
+      {filteredPool.length === 0 ? (
+        <p
+          className="rounded-xl bg-[#0E0E0E] px-3 py-2 text-[12px] leading-relaxed text-[#A8A8A8] ring-1 ring-[#1F1F1F]"
+        >
+          Keine eligible Fragen in dieser Kategorie.
+        </p>
+      ) : (
+        <ul className="max-h-[40vh] overflow-y-auto rounded-xl bg-[#0E0E0E] ring-1 ring-[#1F1F1F]">
+          {filteredPool.map((row, idx) => (
+            <li
+              key={row.questionId}
+              className={idx === filteredPool.length - 1 ? "" : "border-b border-[#1F1F1F]"}
+            >
+              <button
+                type="button"
+                onClick={() => onPick(row)}
+                className="flex w-full flex-col gap-1.5 px-3 py-2.5 text-left transition hover:bg-[#1A1A1A]"
+              >
+                <div className="flex flex-wrap items-center gap-2">
+                  <CategoryChip
+                    emoji={CATEGORY_EMOJI[row.category]}
+                    label={CATEGORY_LABELS[row.category]}
+                  />
+                  <MonoMetaLabel>{TYPE_LABELS[row.type]}</MonoMetaLabel>
+                </div>
+                <p className="text-[13px] font-medium text-[#FAFAFA]">{row.text}</p>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+function PreviewBlock({ selected }: { selected: AdminQuestionRow }) {
+  return (
+    <div className="space-y-3">
+      <Eyebrow accent={DAILY_ACCENT}>Vorschau</Eyebrow>
+      <div className="space-y-2 rounded-xl bg-[#0E0E0E] p-3 ring-1 ring-[#1F1F1F]">
+        <div className="flex flex-wrap items-center gap-2">
+          <CategoryChip
+            emoji={CATEGORY_EMOJI[selected.category]}
+            label={CATEGORY_LABELS[selected.category]}
+          />
+          <MonoMetaLabel>{TYPE_LABELS[selected.type]}</MonoMetaLabel>
+        </div>
+        <p className="text-[14px] leading-snug text-[#FAFAFA]">{selected.text}</p>
+        {selected.type === "either_or" && selected.options ? (
+          <ul className="space-y-0.5 pl-4 text-[12px] text-[#A8A8A8]">
+            {selected.options.map((opt, i) => (
+              <li key={i} className="list-disc">
+                {opt}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        {selected.type === "meme_caption" && selected.imagePath ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={selected.imagePath}
+            alt=""
+            className="h-32 w-full rounded-xl object-cover ring-1 ring-[#1F1F1F]"
+          />
+        ) : null}
+      </div>
     </div>
   );
 }
