@@ -56,7 +56,6 @@ import type {
   AdminDailyQuestionRemoveResult,
   AdminDailyQuestionRerollResult,
   AdminQuestionEditInput,
-  AdminQuestionImportResult,
   AdminRunActionResult,
   Category,
   DateKey,
@@ -76,15 +75,6 @@ interface AdminCleanupResult {
   deletedFinishedLiveSessions: number;
   deletedInactiveLobbyCodes: number;
   deletedOrphanedDailyFirstAnswerLocks: number;
-}
-
-interface ImportQuestionInput {
-  text: string;
-  category: Category;
-  type: QuestionType;
-  targetMode: TargetMode;
-  options?: string[];
-  imagePath?: string;
 }
 
 const KNOWN_CATEGORIES: Category[] = [
@@ -391,14 +381,6 @@ function normalizeQuestionCoreInput(input: AdminQuestionEditInput) {
   };
 }
 
-function isQuestionUsedInDaily(question: QuestionDoc) {
-  return (
-    question.dailyLocked === true ||
-    question.dailyLockedDateKey != null ||
-    question.consumedInDailyDateKey != null
-  );
-}
-
 export async function toggleQuestionDailyLock(questionId: string, dailyLocked: boolean) {
   const questionsRef = questionsCollection();
 
@@ -563,178 +545,6 @@ export async function resetUserProfilePhoto(userId: string) {
     photoURL: DEFAULT_PROFILE_PHOTO_URL,
     updatedAt: serverTimestamp(),
   });
-}
-
-export function parseQuestionImport(raw: string): ImportQuestionInput[] {
-  const parsed = JSON.parse(raw) as unknown;
-
-  if (!Array.isArray(parsed)) {
-    throw new Error("Import muss ein JSON-Array sein.");
-  }
-
-  return parsed.map((entry, index) => {
-    if (!entry || typeof entry !== "object") {
-      throw new Error(`Eintrag ${index + 1} ist kein Objekt.`);
-    }
-
-    const candidate = entry as Record<string, unknown>;
-
-    if (typeof candidate.text !== "string" || !candidate.text.trim()) {
-      throw new Error(`Eintrag ${index + 1}: text fehlt.`);
-    }
-
-    if (typeof candidate.category !== "string") {
-      throw new Error(`Eintrag ${index + 1}: category fehlt.`);
-    }
-
-    if (typeof candidate.type !== "string") {
-      throw new Error(`Eintrag ${index + 1}: type fehlt.`);
-    }
-
-    const question: ImportQuestionInput = {
-      text: candidate.text.trim(),
-      category: candidate.category as Category,
-      type: candidate.type as QuestionType,
-      targetMode: "daily",
-    };
-
-    if (candidate.options !== undefined) {
-      if (
-        !Array.isArray(candidate.options) ||
-        candidate.options.some((option) => typeof option !== "string")
-      ) {
-        throw new Error(
-          `Eintrag ${index + 1}: options muss ein String-Array sein.`,
-        );
-      }
-      question.options = candidate.options as string[];
-    }
-
-    if (candidate.imagePath !== undefined) {
-      if (typeof candidate.imagePath !== "string") {
-        throw new Error(`Eintrag ${index + 1}: imagePath muss ein String sein.`);
-      }
-      question.imagePath = candidate.imagePath;
-    }
-
-    return question;
-  });
-}
-
-export async function importQuestions(raw: string, createdBy: string) {
-  const items = parseQuestionImport(raw);
-  const questionsRef = questionsCollection();
-
-  if (!questionsRef) {
-    throw new Error("Firestore ist nicht verfügbar.");
-  }
-
-  const existingSnapshot = await getDocs(questionsRef);
-  const existingExactKeys = new Set<string>();
-  const existingByIdentity = new Map<
-    string,
-    { id: string; data: QuestionDoc }
-  >();
-
-  for (const snapshot of existingSnapshot.docs) {
-    const data = snapshot.data() as QuestionDoc;
-    existingExactKeys.add(buildQuestionImportExactKey(data));
-    const identityKey = buildQuestionImportIdentityKey(data);
-    if (!existingByIdentity.has(identityKey)) {
-      existingByIdentity.set(identityKey, { id: snapshot.id, data });
-    }
-  }
-
-  const seenExactKeys = new Set<string>();
-  const seenIdentityTargets = new Map<string, string>();
-  const batch = writeBatch(questionsRef.firestore);
-  let importedCount = 0;
-  let updatedCount = 0;
-  let skippedCount = 0;
-
-  for (const item of items) {
-    const exactKey = buildQuestionImportExactKey(item);
-    if (existingExactKeys.has(exactKey) || seenExactKeys.has(exactKey)) {
-      skippedCount += 1;
-      continue;
-    }
-
-    const identityKey = buildQuestionImportIdentityKey(item);
-    const existing = existingByIdentity.get(identityKey);
-    const targetQuestionId =
-      seenIdentityTargets.get(identityKey) ?? existing?.id ?? null;
-
-    if (targetQuestionId) {
-      if (existing?.data && isQuestionUsedInDaily(existing.data)) {
-        const docRef = doc(questionsRef);
-        batch.set(docRef, {
-          ...item,
-          active: true,
-          dailyLocked: false,
-          dailyLockedDateKey: null,
-          source: existing.data.source ?? "admin_pool",
-          ownerUserId: existing.data.ownerUserId ?? null,
-          targetDateKey: existing.data.targetDateKey ?? null,
-          consumedInDailyDateKey: null,
-          createdBy: existing.data.createdBy ?? createdBy,
-          createdAt: serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        });
-        seenIdentityTargets.set(identityKey, docRef.id);
-        importedCount += 1;
-        continue;
-      }
-
-      batch.set(
-        doc(questionsRef, targetQuestionId),
-        {
-          ...item,
-          active: true,
-          dailyLocked: existing?.data.dailyLocked ?? false,
-          dailyLockedDateKey: existing?.data.dailyLockedDateKey ?? null,
-          source: existing?.data.source ?? "admin_pool",
-          ownerUserId: existing?.data.ownerUserId ?? null,
-          targetDateKey: existing?.data.targetDateKey ?? null,
-          consumedInDailyDateKey: existing?.data.consumedInDailyDateKey ?? null,
-          createdBy: existing?.data.createdBy ?? createdBy,
-          createdAt: existing?.data.createdAt ?? serverTimestamp(),
-          updatedAt: serverTimestamp(),
-        },
-        { merge: false },
-      );
-      seenIdentityTargets.set(identityKey, targetQuestionId);
-      updatedCount += 1;
-      continue;
-    }
-
-    const docRef = doc(questionsRef);
-    batch.set(docRef, {
-      ...item,
-      active: true,
-      dailyLocked: false,
-      dailyLockedDateKey: null,
-      source: "admin_pool",
-      ownerUserId: null,
-      targetDateKey: null,
-      consumedInDailyDateKey: null,
-      createdBy,
-      createdAt: serverTimestamp(),
-      updatedAt: serverTimestamp(),
-    });
-    seenIdentityTargets.set(identityKey, docRef.id);
-    seenExactKeys.add(exactKey);
-    importedCount += 1;
-  }
-
-  if (importedCount > 0 || updatedCount > 0) {
-    await batch.commit();
-  }
-
-  return {
-    importedCount,
-    updatedCount,
-    skippedCount,
-  } satisfies AdminQuestionImportResult;
 }
 
 export async function createDailyRun(params: {
@@ -1993,41 +1803,6 @@ async function unlockRerolledQuestion(params: {
     { merge: true },
   );
   await batch.commit();
-}
-
-function buildQuestionImportExactKey(
-  question: Pick<
-    QuestionDoc,
-    "text" | "category" | "type" | "targetMode" | "options" | "imagePath"
-  >,
-) {
-  return JSON.stringify({
-    text: question.text.trim().toLocaleLowerCase("de-DE"),
-    category: question.category,
-    type: question.type,
-    targetMode: question.targetMode,
-    options: question.options?.map((option) =>
-      option.trim().toLocaleLowerCase("de-DE"),
-    ) ?? null,
-    imagePath: question.imagePath?.trim() || null,
-  });
-}
-
-function buildQuestionImportIdentityKey(
-  question: Pick<
-    QuestionDoc,
-    "text" | "category" | "type" | "targetMode" | "imagePath"
-  >,
-) {
-  return JSON.stringify({
-    text: question.text.trim().toLocaleLowerCase("de-DE"),
-    category: question.category,
-    targetMode: question.targetMode,
-    imagePath:
-      question.type === "meme_caption"
-        ? question.imagePath?.trim() ?? null
-        : null,
-  });
 }
 
 async function deleteDocInOwnBatch(target: ReturnType<typeof doc>) {

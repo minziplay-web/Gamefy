@@ -699,12 +699,6 @@ export interface AdminDailyQuestionRemoveResult {
   deletedMemeVotes: number;
 }
 
-export interface AdminQuestionImportResult {
-  importedCount: number;
-  updatedCount: number;
-  skippedCount: number;
-}
-
 export interface AdminConfigDraft {
   dailyQuestionCount: number;
   dailyRevealPolicy: RevealPolicy;

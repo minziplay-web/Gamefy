@@ -1,7 +1,7 @@
 # Fragen-Pool
 
-Pro Kategorie eine JSON-Datei. Jede Datei ist ein Array von Fragen im
-Import-Format des Admin-JSON-Imports.
+Pro Kategorie eine JSON-Datei. Diese Dateien sind historische Seed-Daten fuer
+den Fragen-Pool; der fruehere Admin-JSON-Import existiert nicht mehr.
 
 ## Dateien
 
@@ -40,13 +40,8 @@ z. B. `/memes/Bossy_Boots.webp`).
 
 ## Workflow
 
-- **Eine Kategorie nachschärfen oder erweitern**: nur die jeweilige Datei
-  bearbeiten und im Admin importieren.
-- **Alles auf einmal importieren**: `all.json` nutzen.
-- **Neue Frage hinzufügen**: in die passende Kategorie-Datei einfügen,
-  dann via Admin-Import drauflegen. Doppelimporte sind unkritisch
-  (neue `questionId`s werden generiert), alte Versionen können im Admin
-  deaktiviert werden.
+- Neue oder geaenderte Fragen werden direkt ueber den Admin-Bereich gepflegt.
+- Diese JSON-Dateien nur noch als Referenz oder Ausgangsmaterial verwenden.
 
 ## Regeln
 

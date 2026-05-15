@@ -173,7 +173,7 @@ Bitte verifizieren, dass `meme_caption` im erlaubten Question-Type-Set steht.
 
 ### F) Admin-Import
 
-Der Admin-JSON-Import muss `imagePath` als optionales Feld auf `QuestionDoc`
+Der fruehere Admin-JSON-Import musste `imagePath` als optionales Feld auf `QuestionDoc`
 durchschreiben. Aktuell unbekannt, ob euer Validator das Feld droppt — kurz prüfen.
 
 ### G) Daily-Run-Generator
